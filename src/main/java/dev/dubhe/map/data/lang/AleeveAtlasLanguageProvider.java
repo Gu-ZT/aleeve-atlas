@@ -18,6 +18,7 @@ public class AleeveAtlasLanguageProvider extends LanguageProvider {
         add("key.categories.aleeve_atlas", "Aleeve Atlas");
         add("key.aleeve_atlas.open_settings", "Open minimap settings");
         add("key.aleeve_atlas.open_waypoints", "Open waypoint manager");
+        add("key.aleeve_atlas.open_quick_waypoint", "Quick create waypoint at camera");
 
         add("screen.aleeve_atlas.settings", "Aleeve Atlas Settings");
         add("screen.aleeve_atlas.settings.hint", "Press M to reopen this screen. Zoom is only configurable from this settings screen.");
@@ -62,5 +63,8 @@ public class AleeveAtlasLanguageProvider extends LanguageProvider {
         add("screen.aleeve_atlas.waypoint.save", "Save");
         add("screen.aleeve_atlas.waypoint.delete", "Delete");
         add("screen.aleeve_atlas.waypoint.set_active", "Set Active");
+        add("screen.aleeve_atlas.quick_waypoint", "Quick Waypoint");
+        add("screen.aleeve_atlas.quick_waypoint.save", "Create Waypoint");
+        add("screen.aleeve_atlas.quick_waypoint.default_name", "Waypoint");
     }
 }

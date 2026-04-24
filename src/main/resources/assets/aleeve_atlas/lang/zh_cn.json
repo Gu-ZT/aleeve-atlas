@@ -37,6 +37,7 @@
   "key.categories.aleeve_atlas": "袖里舆图",
   "key.aleeve_atlas.open_settings": "打开小地图设置",
   "key.aleeve_atlas.open_waypoints": "打开路径点界面",
+  "key.aleeve_atlas.open_quick_waypoint": "在摄像机位置快速创建路径点",
   "screen.aleeve_atlas.settings": "袖里舆图设置",
   "screen.aleeve_atlas.settings.hint": "M 键可随时打开此界面，缩放只能在本设置界面中调整",
   "screen.aleeve_atlas.option.display": "显示：%s",
@@ -78,6 +79,9 @@
   "screen.aleeve_atlas.waypoint.new": "新建",
   "screen.aleeve_atlas.waypoint.save": "保存",
   "screen.aleeve_atlas.waypoint.delete": "删除",
-  "screen.aleeve_atlas.waypoint.set_active": "设为导航目标"
+  "screen.aleeve_atlas.waypoint.set_active": "设为导航目标",
+  "screen.aleeve_atlas.quick_waypoint": "快速创建路径点",
+  "screen.aleeve_atlas.quick_waypoint.save": "创建路径点",
+  "screen.aleeve_atlas.quick_waypoint.default_name": "路径点"
 }
 

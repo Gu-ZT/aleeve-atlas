@@ -24,6 +24,12 @@ public final class AtlasKeyMappings {
         GLFW.GLFW_KEY_B,
         CATEGORY
     );
+    public static final KeyMapping OPEN_QUICK_WAYPOINT = new KeyMapping(
+        "key." + AleeveAtlas.MOD_ID + ".open_quick_waypoint",
+        InputConstants.Type.KEYSYM,
+        GLFW.GLFW_KEY_N,
+        CATEGORY
+    );
 
     private AtlasKeyMappings() {
     }
@@ -32,6 +38,7 @@ public final class AtlasKeyMappings {
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(OPEN_SETTINGS);
         event.register(OPEN_WAYPOINTS);
+        event.register(OPEN_QUICK_WAYPOINT);
     }
 }
 

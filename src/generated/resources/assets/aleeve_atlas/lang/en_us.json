@@ -35,6 +35,7 @@
   "aleeve_atlas.configuration.zoom": "Zoom",
   "aleeve_atlas.configuration.zoom.tooltip": "The scale level of the small map (1=closest, 5=farthest)",
   "key.aleeve_atlas.open_settings": "Open minimap settings",
+  "key.aleeve_atlas.open_quick_waypoint": "Quick create waypoint at camera",
   "key.aleeve_atlas.open_waypoints": "Open waypoint manager",
   "key.categories.aleeve_atlas": "Aleeve Atlas",
   "screen.aleeve_atlas.option.anchor": "Position: %s",
@@ -78,5 +79,8 @@
   "screen.aleeve_atlas.waypoint.set_active": "Set Active",
   "screen.aleeve_atlas.waypoint.use_player": "Use Player Position",
   "screen.aleeve_atlas.waypoint.xyz": "Coordinates X / Y / Z",
-  "screen.aleeve_atlas.waypoints": "Waypoint Manager"
+  "screen.aleeve_atlas.waypoints": "Waypoint Manager",
+  "screen.aleeve_atlas.quick_waypoint": "Quick Waypoint",
+  "screen.aleeve_atlas.quick_waypoint.save": "Create Waypoint",
+  "screen.aleeve_atlas.quick_waypoint.default_name": "Waypoint"
 }

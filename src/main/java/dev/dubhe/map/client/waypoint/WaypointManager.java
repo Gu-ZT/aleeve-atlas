@@ -17,6 +17,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLPaths;
 
 public final class WaypointManager {
@@ -117,6 +118,20 @@ public final class WaypointManager {
             waypoint.y = pos.getY();
             waypoint.z = pos.getZ();
         }
+        return waypoint;
+    }
+
+    public static Waypoint createAtCamera() {
+        Waypoint waypoint = createAtPlayer();
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null) {
+            return waypoint;
+        }
+        Vec3 cameraPos = minecraft.gameRenderer.getMainCamera().getPosition();
+        waypoint.dimension = minecraft.level.dimension().location().toString();
+        waypoint.x = (int) Math.floor(cameraPos.x);
+        waypoint.y = (int) Math.floor(cameraPos.y);
+        waypoint.z = (int) Math.floor(cameraPos.z);
         return waypoint;
     }
 
