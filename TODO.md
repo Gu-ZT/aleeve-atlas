@@ -4,44 +4,44 @@
 
 ### 3.1 地图渲染引擎（最难、最核心）
 
-- [x] **实现小地图世界渲染**
+- [x] **实现小地图世界渲染**（实现位置：[onRenderGuiPost](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L40)、[renderCells](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L81)）
     - 从玩家视角采集周围区块的地形数据
     - 将 3D 世界映射为 2D 俯视图（自上而下视角）
     - 支持圆形 / 方形两种显示模式
-- [x] **实现地图旋转**
+- [x] **实现地图旋转**（实现位置：[getEffectiveRotationDegrees](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L73)）
     - 锁定北向上
     - 跟随玩家视角旋转
-- [x] **实现地形颜色渲染**
+- [x] **实现地形颜色渲染**（实现位置：[sampleSurfaceColor](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L132)、[resolveMapColor](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L167)）
     - 水体、洞穴、山脉等结构清晰可见
-- [x] **实现动态光照渲染**（可选但推荐）
+- [x] **实现动态光照渲染**（可选但推荐）（实现位置：[isDynamicLightingEnabled](src/main/java/dev/dubhe/map/client/AtlasClientState.java#L49)、[resolveMapColor](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L171)）
     - 根据光照级别调整地图亮度
     - 支持关闭以提升低配设备性能
-- [x] **实现洞穴/地下地图渲染**
+- [x] **实现洞穴/地下地图渲染**（实现位置：[shouldRenderCaves](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L123)、[sampleCaveColor](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L150)）
     - 在地下时依然能看到周围地形轮廓
 
 ### 3.2 实时定位系统
 
-- [x] **显示玩家实时坐标**（X / Y / Z）
-- [x] **显示玩家朝向**（方向指示器）
-- [x] **显示当前所处生物群系名称**
-- [x] **显示当前维度信息**（主世界/下界/末地）
-- [x] **显示游戏时间/光照级别**
+- [x] **显示玩家实时坐标**（X / Y / Z）（实现位置：[renderHudInfo](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L218)）
+- [x] **显示玩家朝向**（方向指示器）（实现位置：[facingText](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L250)）
+- [x] **显示当前所处生物群系名称**（实现位置：[renderHudInfo](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L211)）
+- [x] **显示当前维度信息**（主世界/下界/末地）（实现位置：[renderHudInfo](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L209)）
+- [x] **显示游戏时间/光照级别**（实现位置：[renderHudInfo](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L214)）
 
 ### 3.3 生物雷达系统
 
-- [x] **实现实体扫描与分类显示**
+- [x] **实现实体扫描与分类显示**（实现位置：[AtlasRadar.render](src/main/java/dev/dubhe/map/client/radar/AtlasRadar.java#L23)、[markerColor](src/main/java/dev/dubhe/map/client/radar/AtlasRadar.java#L74)）
     - 敌对生物 → 红色标记
     - 友好生物 → 绿色标记
     - 掉落物 → 蓝色标记
     - 玩家 → 黄色/白色标记
-- [x] **实现雷达范围可调节**
+- [x] **实现雷达范围可调节**（实现位置：[getRadarRangeBlocks](src/main/java/dev/dubhe/map/client/AtlasClientState.java#L77)、[AtlasRadar.render](src/main/java/dev/dubhe/map/client/radar/AtlasRadar.java#L30)）
 - [ ] **实现生物类型过滤功能**
     - 单独显示/隐藏特定生物类别
     - 支持自定义过滤规则
 
 ### 3.4 路径点标记系统
 
-- [x] **实现添加/编辑/删除路径点**
+- [x] **实现添加/编辑/删除路径点**（实现位置：[saveCurrent](src/main/java/dev/dubhe/map/client/screen/WaypointListScreen.java#L130)、[deleteCurrent](src/main/java/dev/dubhe/map/client/screen/WaypointListScreen.java#L154)、[WaypointManager.upsert](src/main/java/dev/dubhe/map/client/waypoint/WaypointManager.java#L84)）
     - 按 B 键打开标记界面
     - 输入名称（支持中文）
     - 选择颜色（16 种及以上色标）
@@ -50,7 +50,7 @@
     - 地图上显示方向箭头
     - 长按快捷键循环切换标记
     - 在世界内渲染导航点，让玩家可以直接看见
-- [x] **实现三维路径点**（标记不同高度的位置）
+- [x] **实现三维路径点**（标记不同高度的位置）（实现位置：[Waypoint.y](src/main/java/dev/dubhe/map/client/waypoint/Waypoint.java#L10)、[WaypointRenderer.onRenderLevel](src/main/java/dev/dubhe/map/client/waypoint/WaypointRenderer.java#L67)）
     - 空中建筑、地下矿层等
 - [ ] **实现路径点批量管理**
     - 批量删除、批量编辑
@@ -61,7 +61,7 @@
 
 ### 3.5 配置系统
 
-- [x] **可配置选项**
+- [x] **可配置选项**（实现位置：[AleeveAtlasClientConfig](src/main/java/dev/dubhe/map/client/AleeveAtlasClientConfig.java#L10)、[AtlasSettingsScreen.rebuildWidgets](src/main/java/dev/dubhe/map/client/screen/AtlasSettingsScreen.java#L19)）
     - 显示模式：圆形 / 方形
     - 雷达开关 / 范围 / 过滤
     - 坐标显示开关
@@ -71,13 +71,13 @@
 
 ### 3.6 快捷键系统
 
-- [x] M 键：打开设置界面
-- [x] B 键：添加/编辑路径点
+- [x] M 键：打开设置界面（实现位置：[OPEN_SETTINGS](src/main/java/dev/dubhe/map/client/input/AtlasKeyMappings.java#L15)、[onClientTickPost](src/main/java/dev/dubhe/map/client/input/AtlasInputHandler.java#L18)）
+- [x] B 键：添加/编辑路径点（实现位置：[OPEN_WAYPOINTS](src/main/java/dev/dubhe/map/client/input/AtlasKeyMappings.java#L21)、[onClientTickPost](src/main/java/dev/dubhe/map/client/input/AtlasInputHandler.java#L18)）
 
 ### 3.7 性能优化
 
 - [ ] **实现分块渲染**（只渲染可见区块）
-- [x] **实现地图缓存机制**（减少重复计算）
+- [x] **实现地图缓存机制**（减少重复计算）（实现位置：[COLOR_CACHE](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L34)、[sampleSurfaceColor](src/main/java/dev/dubhe/map/client/hud/MinimapHudRenderer.java#L132)）
 - [ ] **实现实体标记 LOD**（远距离实体简化显示）
 - [ ] **实现动态帧率控制**（低配设备自动降低渲染频率）
 - [ ] **提供"低性能模式"一键开关**（关闭动态光照、实体标记等）
