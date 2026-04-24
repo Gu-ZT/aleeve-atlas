@@ -3,7 +3,6 @@ package dev.dubhe.map.client;
 public final class AtlasClientState {
     /** blockStep per zoom level 1‑5 */
     private static final int[] ZOOM_STEPS = {1, 2, 4, 6, 12};
-    private static final int DEFAULT_ZOOM = 2;
 
     /** Runtime-only: drag rotation delta (not persisted). */
     private static float manualRotationDeg = 0.0F;
@@ -40,25 +39,6 @@ public final class AtlasClientState {
 
     public static void zoomOut() {
         AleeveAtlasClient.CONFIG.zoom = Math.min(ZOOM_STEPS.length, AleeveAtlasClient.CONFIG.zoom + 1);
-    }
-
-    public static void resetZoom() {
-        AleeveAtlasClient.CONFIG.zoom = DEFAULT_ZOOM;
-    }
-
-    public static void toggleRotation() {
-        AleeveAtlasClient.CONFIG.rotation = !AleeveAtlasClient.CONFIG.rotation;
-    }
-
-    public static void toggleMinimapVisible() {
-        AleeveAtlasClient.CONFIG.display = !AleeveAtlasClient.CONFIG.display;
-    }
-
-    public static void toggleMinimapShape() {
-        AleeveAtlasClient.CONFIG.mapShape =
-            (AleeveAtlasClient.CONFIG.mapShape == AleeveAtlasClientConfig.MapShape.SQUARE)
-                ? AleeveAtlasClientConfig.MapShape.CIRCLE
-                : AleeveAtlasClientConfig.MapShape.SQUARE;
     }
 
     // ── runtime-only state ───────────────────────────────────────────────

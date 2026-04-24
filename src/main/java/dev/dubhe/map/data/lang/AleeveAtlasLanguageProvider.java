@@ -14,10 +14,5 @@ public class AleeveAtlasLanguageProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
         ConfigData.readConfigClass(this, AleeveAtlasClientConfig.class);
-        this.add("key.categories.aleeve_atlas", "Aleeve Atlas");
-        this.add("key.aleeve_atlas.toggle_minimap", "Toggle Minimap");
-        this.add("key.aleeve_atlas.toggle_rotation", "Toggle Minimap Rotation");
-        this.add("key.aleeve_atlas.toggle_shape", "Toggle Minimap Shape");
-        this.add("key.aleeve_atlas.reset_zoom", "Reset Minimap Zoom");
     }
 }

@@ -9,10 +9,5 @@
   "aleeve_atlas.configuration.section.aleeve_atlas.client.toml.title": "Aleeve Atlas Client Configuration",
   "aleeve_atlas.configuration.title": "Aleeve Atlas Configuration",
   "aleeve_atlas.configuration.zoom": "Zoom",
-  "aleeve_atlas.configuration.zoom.tooltip": "The scale level of the small map",
-  "key.aleeve_atlas.reset_zoom": "Reset Minimap Zoom",
-  "key.aleeve_atlas.toggle_minimap": "Toggle Minimap",
-  "key.aleeve_atlas.toggle_rotation": "Toggle Minimap Rotation",
-  "key.aleeve_atlas.toggle_shape": "Toggle Minimap Shape",
-  "key.categories.aleeve_atlas": "Aleeve Atlas"
+  "aleeve_atlas.configuration.zoom.tooltip": "The scale level of the small map"
 }
