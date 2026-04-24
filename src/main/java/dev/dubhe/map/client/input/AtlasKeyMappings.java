@@ -6,11 +6,13 @@ import net.minecraft.client.KeyMapping;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import org.lwjgl.glfw.GLFW;
 
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class AtlasKeyMappings {
+    public static final boolean WAYPOINT_HOTKEYS_ENABLED = !FMLLoader.isProduction();
     public static final String CATEGORY = "key.categories." + AleeveAtlas.MOD_ID;
     public static final KeyMapping OPEN_SETTINGS = new KeyMapping(
         "key." + AleeveAtlas.MOD_ID + ".open_settings",
@@ -37,8 +39,10 @@ public final class AtlasKeyMappings {
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(OPEN_SETTINGS);
-        event.register(OPEN_WAYPOINTS);
-        event.register(OPEN_QUICK_WAYPOINT);
+        if (WAYPOINT_HOTKEYS_ENABLED) {
+            event.register(OPEN_WAYPOINTS);
+            event.register(OPEN_QUICK_WAYPOINT);
+        }
     }
 }
 

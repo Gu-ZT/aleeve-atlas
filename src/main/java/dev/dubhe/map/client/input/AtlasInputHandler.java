@@ -24,11 +24,13 @@ public final class AtlasInputHandler {
                 .getModContainerById(AleeveAtlas.MOD_ID)
                 .ifPresent(container -> minecraft.setScreen(new ConfigurationScreen(container, minecraft.screen)));
         }
-        while (AtlasKeyMappings.OPEN_WAYPOINTS.consumeClick()) {
-            minecraft.setScreen(new WaypointListScreen(minecraft.screen));
-        }
-        while (AtlasKeyMappings.OPEN_QUICK_WAYPOINT.consumeClick()) {
-            minecraft.setScreen(new QuickWaypointScreen(minecraft.screen));
+        if (AtlasKeyMappings.WAYPOINT_HOTKEYS_ENABLED) {
+            while (AtlasKeyMappings.OPEN_WAYPOINTS.consumeClick()) {
+                minecraft.setScreen(new WaypointListScreen(minecraft.screen));
+            }
+            while (AtlasKeyMappings.OPEN_QUICK_WAYPOINT.consumeClick()) {
+                minecraft.setScreen(new QuickWaypointScreen(minecraft.screen));
+            }
         }
 
         // Built-in config screens may leave the cursor ungrabbed on close in-game.
