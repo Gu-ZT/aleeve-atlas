@@ -61,7 +61,7 @@
 
 ### 3.5 配置系统
 
-- [x] **可配置选项**（实现位置：[AleeveAtlasClientConfig](src/main/java/dev/dubhe/map/client/AleeveAtlasClientConfig.java#L10)、[AtlasSettingsScreen.rebuildWidgets](src/main/java/dev/dubhe/map/client/screen/AtlasSettingsScreen.java#L19)）
+- [x] **可配置选项**（实现位置：[AleeveAtlasClientConfig](src/main/java/dev/dubhe/map/client/AleeveAtlasClientConfig.java#L10)、[ConfigurationScreen 调用](src/main/java/dev/dubhe/map/client/input/AtlasInputHandler.java#L23)）
     - 显示模式：圆形 / 方形
     - 雷达开关 / 范围 / 过滤
     - 坐标显示开关
