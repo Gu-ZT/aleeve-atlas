@@ -29,16 +29,8 @@ public final class AtlasClientState {
     }
 
     public static int getBlockStep() {
-        int idx = Math.max(0, Math.min(AleeveAtlasClient.CONFIG.zoom - 1, ZOOM_STEPS.length - 1));
+        int idx = Math.clamp(AleeveAtlasClient.CONFIG.zoom - 1, 0, ZOOM_STEPS.length - 1);
         return ZOOM_STEPS[idx];
-    }
-
-    public static void zoomIn() {
-        AleeveAtlasClient.CONFIG.zoom = Math.max(1, AleeveAtlasClient.CONFIG.zoom - 1);
-    }
-
-    public static void zoomOut() {
-        AleeveAtlasClient.CONFIG.zoom = Math.min(ZOOM_STEPS.length, AleeveAtlasClient.CONFIG.zoom + 1);
     }
 
     // ── runtime-only state ───────────────────────────────────────────────
