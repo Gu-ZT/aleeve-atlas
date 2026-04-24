@@ -21,8 +21,94 @@ public class AleeveAtlasClientConfig {
     @Comment("Show the minimap or not")
     public boolean display = true;
 
+    @Comment("Apply world light level shading to the minimap")
+    public boolean dynamicLighting = true;
+
+    @Comment("Render nearby cave surfaces when underground")
+    public boolean caveMapping = true;
+
+    @Comment("Show the player's coordinate line under the minimap")
+    public boolean showCoordinates = true;
+
+    @Comment("Show biome, dimension, time and light information under the minimap")
+    public boolean showEnvironment = true;
+
+    @Comment("Minimap anchor position on the screen")
+    public MinimapAnchor minimapAnchor = MinimapAnchor.TOP_RIGHT;
+
+    @Comment("Minimap size preset")
+    public MinimapSize minimapSize = MinimapSize.MEDIUM;
+
+    @Comment("Enable the entity radar overlay")
+    public boolean radar = true;
+
+    @Comment("Radar scan range preset")
+    public RadarRange radarRange = RadarRange.R128;
+
+    @Comment("Show hostile mobs on radar")
+    public boolean radarHostile = true;
+
+    @Comment("Show friendly mobs on radar")
+    public boolean radarFriendly = true;
+
+    @Comment("Show dropped items on radar")
+    public boolean radarItems = true;
+
+    @Comment("Show players on radar")
+    public boolean radarPlayers = true;
+
+
+    public void normalize() {
+        if (this.mapShape == null) this.mapShape = MapShape.SQUARE;
+        if (this.minimapAnchor == null) this.minimapAnchor = MinimapAnchor.TOP_RIGHT;
+        if (this.minimapSize == null) this.minimapSize = MinimapSize.MEDIUM;
+        if (this.radarRange == null) this.radarRange = RadarRange.R128;
+        this.zoom = Math.clamp(this.zoom, 1, 5);
+    }
+
     public enum MapShape {
         SQUARE,
         CIRCLE
+    }
+
+    public enum MinimapAnchor {
+        TOP_LEFT,
+        TOP_RIGHT,
+        BOTTOM_LEFT,
+        BOTTOM_RIGHT
+    }
+
+    public enum MinimapSize {
+        SMALL(76),
+        MEDIUM(92),
+        LARGE(124);
+
+        private final int pixels;
+
+        MinimapSize(int pixels) {
+            this.pixels = pixels;
+        }
+
+        public int pixels() {
+            return this.pixels;
+        }
+    }
+
+    public enum RadarRange {
+        R64(64),
+        R96(96),
+        R128(128),
+        R192(192),
+        R256(256);
+
+        private final int blocks;
+
+        RadarRange(int blocks) {
+            this.blocks = blocks;
+        }
+
+        public int blocks() {
+            return this.blocks;
+        }
     }
 }
