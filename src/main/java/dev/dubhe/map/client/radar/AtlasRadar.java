@@ -62,8 +62,8 @@ public final class AtlasRadar {
             double pixelX = centerX + normalizedX * radiusPixels;
             double pixelY = centerY + normalizedZ * radiusPixels;
             if (!MinimapHudRenderer.isPointInsideMinimap(pixelX, pixelY, minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight())) {
-                pixelX = centerX + Math.clamp(normalizedX, -1.0D, 1.0D) * radiusPixels;
-                pixelY = centerY + Math.clamp(normalizedZ, -1.0D, 1.0D) * radiusPixels;
+                // Out-of-range entities are hidden instead of being clamped on the minimap edge.
+                continue;
             }
             graphics.fill((int) pixelX - 1, (int) pixelY - 1, (int) pixelX + 2, (int) pixelY + 2, color);
             drawn++;
