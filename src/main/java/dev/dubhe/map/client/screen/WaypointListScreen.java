@@ -222,7 +222,8 @@ public class WaypointListScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        // Avoid Screen blur pass conflict: NeoForge 1.21.8 allows blur only once per frame.
+        guiGraphics.fill(0, 0, this.width, this.height, 0xA0101010);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 16, 0xFFFFFF);
         guiGraphics.drawString(this.font, Component.translatable("screen.aleeve_atlas.waypoint.list"), this.width / 2 - 170, 40, 0xFFFFFF);
