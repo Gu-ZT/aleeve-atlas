@@ -1,9 +1,14 @@
 package dev.dubhe.map.client.input;
 
+import dev.dubhe.map.AleeveAtlas;
 import net.minecraft.client.KeyMapping;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import org.lwjgl.glfw.GLFW;
 
+@EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class AtlasKeyMappings {
     private static final String CATEGORY = "key.categories.aleeve_atlas";
 
@@ -15,6 +20,7 @@ public final class AtlasKeyMappings {
     private AtlasKeyMappings() {
     }
 
+    @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(TOGGLE_MINIMAP);
         event.register(TOGGLE_ROTATION);

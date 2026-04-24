@@ -1,5 +1,7 @@
 package dev.dubhe.map.client.hud;
 
+import dev.dubhe.map.AleeveAtlas;
+import dev.dubhe.map.client.AleeveAtlasClientConfig;
 import dev.dubhe.map.client.AtlasClientState;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,8 +14,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.material.MapColor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 
+@EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class MinimapHudRenderer {
     private static final int MAP_SIZE_PX = 92;
     private static final int CELL_COUNT = 23;
@@ -27,6 +33,7 @@ public final class MinimapHudRenderer {
     private MinimapHudRenderer() {
     }
 
+    @SubscribeEvent
     public static void onRenderGuiPost(RenderGuiEvent.Post event) {
         if (!AtlasClientState.isMinimapVisible()) {
             return;
@@ -43,7 +50,7 @@ public final class MinimapHudRenderer {
         int x1 = x0 + MAP_SIZE_PX;
         int y1 = y0 + MAP_SIZE_PX;
 
-        if (AtlasClientState.getMinimapShape() == AtlasClientState.MinimapShape.CIRCLE) {
+        if (AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.CIRCLE) {
             drawCircleFilled(graphics, x0 + MAP_SIZE_PX / 2, y0 + MAP_SIZE_PX / 2, MAP_SIZE_PX / 2, BACKGROUND_COLOR);
             drawCircleOutline(graphics, x0 + MAP_SIZE_PX / 2, y0 + MAP_SIZE_PX / 2, MAP_SIZE_PX / 2, BORDER_COLOR);
         } else {
@@ -61,7 +68,8 @@ public final class MinimapHudRenderer {
         double playerZ = minecraft.player.getZ();
         float rotationDeg = AtlasClientState.getManualRotationDeg();
         if (AtlasClientState.isRotateWithPlayer()) {
-            rotationDeg += minecraft.player.getYRot();
+            // Minecraft yaw 0 points south; +180 aligns minimap top with the player's forward direction.
+            rotationDeg += minecraft.player.getYRot() + 180.0F;
         }
         float rotationRad = (float) Math.toRadians(rotationDeg);
         double cos = Math.cos(rotationRad);
@@ -75,7 +83,7 @@ public final class MinimapHudRenderer {
 
         for (int gz = 0; gz < CELL_COUNT; gz++) {
             for (int gx = 0; gx < CELL_COUNT; gx++) {
-                if (AtlasClientState.getMinimapShape() == AtlasClientState.MinimapShape.CIRCLE) {
+                if (AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.CIRCLE) {
                     double dx = (gx + 0.5D) - circleRadiusCells;
                     double dz = (gz + 0.5D) - circleRadiusCells;
                     if (dx * dx + dz * dz > circleRadiusCells * circleRadiusCells) {
@@ -157,7 +165,8 @@ public final class MinimapHudRenderer {
         graphics.drawString(minecraft.font, Component.literal("Dir: " + facing + " | Zoom: " + AtlasClientState.getZoomLevel()), x, y + 10, 0xFFFFFFFF, true);
         graphics.drawString(minecraft.font, Component.literal("Biome: " + biomeName), x, y + 20, 0xFFFFFFFF, false);
         graphics.drawString(minecraft.font, Component.literal("Dim: " + dimension + " | Time: " + dayTime), x, y + 30, 0xFFFFFFFF, false);
-        graphics.drawString(minecraft.font, Component.literal("Shape: " + AtlasClientState.getMinimapShape() + " | Rot: " + AtlasClientState.getRotationMode()), x, y + 40, 0xFFFFFFFF, false);
+        String rotMode = AtlasClientState.isRotateWithPlayer() ? "FOLLOW" : "NORTH_UP";
+        graphics.drawString(minecraft.font, Component.literal("Shape: " + AtlasClientState.getMinimapShape() + " | Rot: " + rotMode), x, y + 40, 0xFFFFFFFF, false);
     }
 
     private static String facingText(float yaw) {
@@ -194,7 +203,7 @@ public final class MinimapHudRenderer {
             return false;
         }
 
-        if (AtlasClientState.getMinimapShape() == AtlasClientState.MinimapShape.SQUARE) {
+        if (AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.SQUARE) {
             return true;
         }
 

@@ -4,10 +4,14 @@ import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.client.AtlasClientState;
 import dev.dubhe.map.client.hud.MinimapHudRenderer;
 import net.minecraft.client.Minecraft;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import org.lwjgl.glfw.GLFW;
 
+@EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class AtlasClientInputEvents {
     private static final long DOUBLE_SCROLL_WINDOW_MS = 220L;
     private static long lastScrollMs = -1L;
@@ -20,6 +24,7 @@ public final class AtlasClientInputEvents {
     private AtlasClientInputEvents() {
     }
 
+    @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
 
@@ -30,7 +35,7 @@ public final class AtlasClientInputEvents {
 
         while (AtlasKeyMappings.TOGGLE_ROTATION.consumeClick()) {
             AtlasClientState.toggleRotation();
-            AleeveAtlas.LOGGER.debug("Rotation mode: {}", AtlasClientState.getRotationMode());
+            AleeveAtlas.LOGGER.debug("Rotate with player: {}", AtlasClientState.isRotateWithPlayer());
         }
 
         while (AtlasKeyMappings.TOGGLE_SHAPE.consumeClick()) {
@@ -46,6 +51,7 @@ public final class AtlasClientInputEvents {
         handleRightDragRotation(minecraft);
     }
 
+    @SubscribeEvent
     public static void onMouseScrolling(InputEvent.MouseScrollingEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.level == null || minecraft.screen != null) {
@@ -56,7 +62,7 @@ public final class AtlasClientInputEvents {
             return;
         }
 
-        int direction = (event.getScrollDeltaY() > 0.0D) ? 1 : (event.getScrollDeltaY() < 0.0D ? -1 : 0);
+        int direction = Double.compare(event.getScrollDeltaY(), 0.0D);
         if (direction == 0) {
             return;
         }

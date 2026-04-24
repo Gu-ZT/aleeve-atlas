@@ -1,0 +1,18 @@
+{
+  "aleeve_atlas.configuration.display": "Display",
+  "aleeve_atlas.configuration.display.tooltip": "Show the minimap or not",
+  "aleeve_atlas.configuration.map_shape": "Map Shape",
+  "aleeve_atlas.configuration.map_shape.tooltip": "Minimap's Shape",
+  "aleeve_atlas.configuration.rotation": "Rotation",
+  "aleeve_atlas.configuration.rotation.tooltip": "Should the minimap rotate with the player's perspective",
+  "aleeve_atlas.configuration.section.aleeve_atlas.client.toml": "Aleeve Atlas Client Configuration",
+  "aleeve_atlas.configuration.section.aleeve_atlas.client.toml.title": "Aleeve Atlas Client Configuration",
+  "aleeve_atlas.configuration.title": "Aleeve Atlas Configuration",
+  "aleeve_atlas.configuration.zoom": "Zoom",
+  "aleeve_atlas.configuration.zoom.tooltip": "The scale level of the small map",
+  "key.aleeve_atlas.reset_zoom": "Reset Minimap Zoom",
+  "key.aleeve_atlas.toggle_minimap": "Toggle Minimap",
+  "key.aleeve_atlas.toggle_rotation": "Toggle Minimap Rotation",
+  "key.aleeve_atlas.toggle_shape": "Toggle Minimap Shape",
+  "key.categories.aleeve_atlas": "Aleeve Atlas"
+}

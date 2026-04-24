@@ -1,59 +1,70 @@
 package dev.dubhe.map.client;
 
 public final class AtlasClientState {
-    private static final int[] ZOOM_STEPS = {1, 2, 4, 6};
-    private static final int DEFAULT_ZOOM_INDEX = 1;
-    private static int zoomIndex = 1;
+    /** blockStep per zoom level 1‑5 */
+    private static final int[] ZOOM_STEPS = {1, 2, 4, 6, 12};
+    private static final int DEFAULT_ZOOM = 2;
+
+    /** Runtime-only: drag rotation delta (not persisted). */
     private static float manualRotationDeg = 0.0F;
-    private static RotationMode rotationMode = RotationMode.NORTH_UP;
-    private static MinimapShape minimapShape = MinimapShape.SQUARE;
-    private static boolean minimapVisible = true;
 
     private AtlasClientState() {
     }
 
-    public static int getBlockStep() {
-        return ZOOM_STEPS[zoomIndex];
-    }
+    // ── persistent state via CONFIG ──────────────────────────────────────
 
-    public static int getZoomLevel() {
-        return zoomIndex;
-    }
-
-    public static RotationMode getRotationMode() {
-        return rotationMode;
+    public static boolean isMinimapVisible() {
+        return AleeveAtlasClient.CONFIG.display;
     }
 
     public static boolean isRotateWithPlayer() {
-        return rotationMode == RotationMode.FOLLOW_PLAYER;
+        return AleeveAtlasClient.CONFIG.rotation;
     }
 
-    public static MinimapShape getMinimapShape() {
-        return minimapShape;
+    public static AleeveAtlasClientConfig.MapShape getMinimapShape() {
+        return AleeveAtlasClient.CONFIG.mapShape;
     }
 
-    public static float getManualRotationDeg() {
-        return manualRotationDeg;
+    public static int getZoomLevel() {
+        return AleeveAtlasClient.CONFIG.zoom;
     }
 
-    public static boolean isMinimapVisible() {
-        return minimapVisible;
+    public static int getBlockStep() {
+        int idx = Math.max(0, Math.min(AleeveAtlasClient.CONFIG.zoom - 1, ZOOM_STEPS.length - 1));
+        return ZOOM_STEPS[idx];
     }
 
     public static void zoomIn() {
-        zoomIndex = Math.max(0, zoomIndex - 1);
+        AleeveAtlasClient.CONFIG.zoom = Math.max(1, AleeveAtlasClient.CONFIG.zoom - 1);
     }
 
     public static void zoomOut() {
-        zoomIndex = Math.min(ZOOM_STEPS.length - 1, zoomIndex + 1);
+        AleeveAtlasClient.CONFIG.zoom = Math.min(ZOOM_STEPS.length, AleeveAtlasClient.CONFIG.zoom + 1);
     }
 
     public static void resetZoom() {
-        zoomIndex = DEFAULT_ZOOM_INDEX;
+        AleeveAtlasClient.CONFIG.zoom = DEFAULT_ZOOM;
     }
 
     public static void toggleRotation() {
-        rotationMode = (rotationMode == RotationMode.NORTH_UP) ? RotationMode.FOLLOW_PLAYER : RotationMode.NORTH_UP;
+        AleeveAtlasClient.CONFIG.rotation = !AleeveAtlasClient.CONFIG.rotation;
+    }
+
+    public static void toggleMinimapVisible() {
+        AleeveAtlasClient.CONFIG.display = !AleeveAtlasClient.CONFIG.display;
+    }
+
+    public static void toggleMinimapShape() {
+        AleeveAtlasClient.CONFIG.mapShape =
+            (AleeveAtlasClient.CONFIG.mapShape == AleeveAtlasClientConfig.MapShape.SQUARE)
+                ? AleeveAtlasClientConfig.MapShape.CIRCLE
+                : AleeveAtlasClientConfig.MapShape.SQUARE;
+    }
+
+    // ── runtime-only state ───────────────────────────────────────────────
+
+    public static float getManualRotationDeg() {
+        return manualRotationDeg;
     }
 
     public static void addManualRotationDeg(float deltaDeg) {
@@ -64,27 +75,8 @@ public final class AtlasClientState {
         manualRotationDeg = 0.0F;
     }
 
-    public static void toggleMinimapShape() {
-        minimapShape = (minimapShape == MinimapShape.SQUARE) ? MinimapShape.CIRCLE : MinimapShape.SQUARE;
-    }
-
-    public static void toggleMinimapVisible() {
-        minimapVisible = !minimapVisible;
-    }
-
-    private static float normalizeAngle(float angleDeg) {
-        float normalized = angleDeg % 360.0F;
-        return normalized < 0.0F ? normalized + 360.0F : normalized;
-    }
-
-    public enum RotationMode {
-        NORTH_UP,
-        FOLLOW_PLAYER
-    }
-
-    public enum MinimapShape {
-        SQUARE,
-        CIRCLE
+    private static float normalizeAngle(float a) {
+        float n = a % 360.0F;
+        return n < 0.0F ? n + 360.0F : n;
     }
 }
-
