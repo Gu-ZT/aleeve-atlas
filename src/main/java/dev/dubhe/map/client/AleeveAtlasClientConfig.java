@@ -31,7 +31,7 @@ public class AleeveAtlasClientConfig {
     public boolean showCoordinates = true;
 
     @Comment("Show biome, dimension, time and light information under the minimap")
-    public boolean showEnvironment = true;
+    public boolean showEnvironment = false;
 
     @Comment("Minimap anchor position on the screen")
     public MinimapAnchor minimapAnchor = MinimapAnchor.TOP_RIGHT;
@@ -56,15 +56,6 @@ public class AleeveAtlasClientConfig {
 
     @Comment("Show players on radar")
     public boolean radarPlayers = true;
-
-
-    public void normalize() {
-        if (this.mapShape == null) this.mapShape = MapShape.SQUARE;
-        if (this.minimapAnchor == null) this.minimapAnchor = MinimapAnchor.TOP_RIGHT;
-        if (this.minimapSize == null) this.minimapSize = MinimapSize.MEDIUM;
-        if (this.radarRange == null) this.radarRange = RadarRange.R128;
-        this.zoom = Math.clamp(this.zoom, 1, 5);
-    }
 
     public enum MapShape {
         SQUARE,
