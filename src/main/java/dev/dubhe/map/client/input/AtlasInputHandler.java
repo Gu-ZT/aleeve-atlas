@@ -20,15 +20,17 @@ public final class AtlasInputHandler {
     public static void onClientTickPost(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         while (AtlasKeyMappings.OPEN_SETTINGS.consumeClick()) {
-            ModContainer container = ModList.get().getModContainerById(AleeveAtlas.MOD_ID).orElse(null);
-            if (container != null) {
-                minecraft.setScreen(new ConfigurationScreen(container, minecraft.screen));
-            }
+            ModList.get()
+                .getModContainerById(AleeveAtlas.MOD_ID)
+                .ifPresent(container -> minecraft.setScreen(new ConfigurationScreen(container, minecraft.screen)));
         }
         while (AtlasKeyMappings.OPEN_WAYPOINTS.consumeClick()) {
             minecraft.setScreen(new WaypointListScreen(minecraft.screen));
         }
+
+        // Built-in config screens may leave the cursor ungrabbed on close in-game.
+        if (minecraft.screen == null && minecraft.player != null && !minecraft.mouseHandler.isMouseGrabbed()) {
+            minecraft.mouseHandler.grabMouse();
+        }
     }
-
 }
-

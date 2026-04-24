@@ -16,6 +16,7 @@ public final class AtlasRadar {
     private static final int ITEM_COLOR = 0xFF55AAFF;
     private static final int PLAYER_COLOR = 0xFFFFFFFF;
     private static final int MAX_MARKERS = 48;
+    private static final double HALF_CELL_COUNT = 23 / 2.0D;
 
     private AtlasRadar() {
     }
@@ -27,8 +28,9 @@ public final class AtlasRadar {
 
         double playerX = minecraft.player.getX();
         double playerZ = minecraft.player.getZ();
-        double range = AtlasClientState.getRadarRangeBlocks();
-        double maxDistanceSqr = range * range;
+        double scanRange = AtlasClientState.getRadarRangeBlocks();
+        double displayRange = Math.max(1.0D, AtlasClientState.getBlockStep() * HALF_CELL_COUNT);
+        double maxDistanceSqr = scanRange * scanRange;
         double radiusPixels = mapSizePx / 2.0D - 4.0D;
         float rotationRad = (float) Math.toRadians(rotationDeg);
         double cos = Math.cos(rotationRad);
@@ -55,8 +57,8 @@ public final class AtlasRadar {
 
             double mapLocalX = dx * cos + dz * sin;
             double mapLocalZ = -dx * sin + dz * cos;
-            double normalizedX = mapLocalX / range;
-            double normalizedZ = mapLocalZ / range;
+            double normalizedX = mapLocalX / displayRange;
+            double normalizedZ = mapLocalZ / displayRange;
             double pixelX = centerX + normalizedX * radiusPixels;
             double pixelY = centerY + normalizedZ * radiusPixels;
             if (!MinimapHudRenderer.isPointInsideMinimap(pixelX, pixelY, minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight())) {
