@@ -38,13 +38,18 @@ public final class MinimapHudRenderer {
         }
 
         GuiGraphics graphics = event.getGuiGraphics();
-        int x0 = graphics.guiWidth() - MAP_SIZE_PX - MARGIN;
-        int y0 = MARGIN;
+        int x0 = getMinimapLeft(graphics.guiWidth());
+        int y0 = getMinimapTop();
         int x1 = x0 + MAP_SIZE_PX;
         int y1 = y0 + MAP_SIZE_PX;
 
-        graphics.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, BORDER_COLOR);
-        graphics.fill(x0, y0, x1, y1, BACKGROUND_COLOR);
+        if (AtlasClientState.getMinimapShape() == AtlasClientState.MinimapShape.CIRCLE) {
+            drawCircleFilled(graphics, x0 + MAP_SIZE_PX / 2, y0 + MAP_SIZE_PX / 2, MAP_SIZE_PX / 2, BACKGROUND_COLOR);
+            drawCircleOutline(graphics, x0 + MAP_SIZE_PX / 2, y0 + MAP_SIZE_PX / 2, MAP_SIZE_PX / 2, BORDER_COLOR);
+        } else {
+            graphics.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, BORDER_COLOR);
+            graphics.fill(x0, y0, x1, y1, BACKGROUND_COLOR);
+        }
 
         renderCells(minecraft, graphics, x0, y0);
         renderPlayerMarker(graphics, x0, y0);
@@ -54,29 +59,37 @@ public final class MinimapHudRenderer {
     private static void renderCells(Minecraft minecraft, GuiGraphics graphics, int mapX, int mapY) {
         double playerX = minecraft.player.getX();
         double playerZ = minecraft.player.getZ();
-        float yawRad = (float) Math.toRadians(minecraft.player.getYRot());
+        float rotationDeg = AtlasClientState.getManualRotationDeg();
+        if (AtlasClientState.isRotateWithPlayer()) {
+            rotationDeg += minecraft.player.getYRot();
+        }
+        float rotationRad = (float) Math.toRadians(rotationDeg);
+        double cos = Math.cos(rotationRad);
+        double sin = Math.sin(rotationRad);
 
         int cellSize = MAP_SIZE_PX / CELL_COUNT;
         int halfCells = CELL_COUNT / 2;
         int blockStep = AtlasClientState.getBlockStep();
         long gameTime = minecraft.level.getGameTime();
+        double circleRadiusCells = CELL_COUNT / 2.0D;
 
         for (int gz = 0; gz < CELL_COUNT; gz++) {
             for (int gx = 0; gx < CELL_COUNT; gx++) {
+                if (AtlasClientState.getMinimapShape() == AtlasClientState.MinimapShape.CIRCLE) {
+                    double dx = (gx + 0.5D) - circleRadiusCells;
+                    double dz = (gz + 0.5D) - circleRadiusCells;
+                    if (dx * dx + dz * dz > circleRadiusCells * circleRadiusCells) {
+                        continue;
+                    }
+                }
+
                 int localX = (gx - halfCells) * blockStep;
                 int localZ = (gz - halfCells) * blockStep;
 
-                int sampleX;
-                int sampleZ;
-                if (AtlasClientState.isRotateWithPlayer()) {
-                    double rx = localX * Math.cos(yawRad) - localZ * Math.sin(yawRad);
-                    double rz = localX * Math.sin(yawRad) + localZ * Math.cos(yawRad);
-                    sampleX = (int) Math.floor(playerX + rx);
-                    sampleZ = (int) Math.floor(playerZ + rz);
-                } else {
-                    sampleX = (int) Math.floor(playerX + localX);
-                    sampleZ = (int) Math.floor(playerZ + localZ);
-                }
+                double rx = localX * cos - localZ * sin;
+                double rz = localX * sin + localZ * cos;
+                int sampleX = (int) Math.floor(playerX + rx);
+                int sampleZ = (int) Math.floor(playerZ + rz);
 
                 int color = sampleTopColor(minecraft, sampleX, sampleZ, gameTime);
                 int pixelX = mapX + gx * cellSize;
@@ -144,6 +157,7 @@ public final class MinimapHudRenderer {
         graphics.drawString(minecraft.font, Component.literal("Dir: " + facing + " | Zoom: " + AtlasClientState.getZoomLevel()), x, y + 10, 0xFFFFFFFF, true);
         graphics.drawString(minecraft.font, Component.literal("Biome: " + biomeName), x, y + 20, 0xFFFFFFFF, false);
         graphics.drawString(minecraft.font, Component.literal("Dim: " + dimension + " | Time: " + dayTime), x, y + 30, 0xFFFFFFFF, false);
+        graphics.drawString(minecraft.font, Component.literal("Shape: " + AtlasClientState.getMinimapShape() + " | Rot: " + AtlasClientState.getRotationMode()), x, y + 40, 0xFFFFFFFF, false);
     }
 
     private static String facingText(float yaw) {
@@ -161,6 +175,50 @@ public final class MinimapHudRenderer {
     }
 
     private record CachedColor(int argb, long sampleTick) {
+    }
+
+    public static int getMinimapLeft(int guiWidth) {
+        return guiWidth - MAP_SIZE_PX - MARGIN;
+    }
+
+    public static int getMinimapTop() {
+        return MARGIN;
+    }
+
+    public static boolean isPointInsideMinimap(double guiX, double guiY, int guiWidth, int guiHeight) {
+        int left = getMinimapLeft(guiWidth);
+        int top = getMinimapTop();
+        int right = left + MAP_SIZE_PX;
+        int bottom = top + MAP_SIZE_PX;
+        if (guiX < left || guiX >= right || guiY < top || guiY >= bottom) {
+            return false;
+        }
+
+        if (AtlasClientState.getMinimapShape() == AtlasClientState.MinimapShape.SQUARE) {
+            return true;
+        }
+
+        double cx = left + MAP_SIZE_PX / 2.0D;
+        double cy = top + MAP_SIZE_PX / 2.0D;
+        double dx = guiX - cx;
+        double dy = guiY - cy;
+        double radius = MAP_SIZE_PX / 2.0D;
+        return dx * dx + dy * dy <= radius * radius;
+    }
+
+    private static void drawCircleFilled(GuiGraphics graphics, int centerX, int centerY, int radius, int color) {
+        for (int y = -radius; y <= radius; y++) {
+            int span = (int) Math.sqrt(radius * radius - y * y);
+            graphics.fill(centerX - span, centerY + y, centerX + span + 1, centerY + y + 1, color);
+        }
+    }
+
+    private static void drawCircleOutline(GuiGraphics graphics, int centerX, int centerY, int radius, int color) {
+        for (int y = -radius; y <= radius; y++) {
+            int span = (int) Math.sqrt(radius * radius - y * y);
+            graphics.fill(centerX - span, centerY + y, centerX - span + 1, centerY + y + 1, color);
+            graphics.fill(centerX + span, centerY + y, centerX + span + 1, centerY + y + 1, color);
+        }
     }
 }
 
