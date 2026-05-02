@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.client.AtlasClientState;
-import dev.dubhe.map.client.hud.MinimapHudRenderer;
+import dev.dubhe.map.client.hud.MinimapHudSupport;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -61,7 +61,7 @@ public final class WaypointRenderer {
             double pixelX = centerX + (mapLocalX / range) * mapRadius;
             double pixelY = centerY + (mapLocalZ / range) * mapRadius;
             int color = 0xFF000000 | waypoint.color;
-            if (!MinimapHudRenderer.isPointInsideMinimap(
+            if (!MinimapHudSupport.isPointInsideMinimap(
                 pixelX,
                 pixelY,
                 minecraft.getWindow().getGuiScaledWidth(),
