@@ -12,8 +12,8 @@ import org.lwjgl.glfw.GLFW;
 
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class AtlasKeyMappings {
-    public static final boolean WAYPOINT_HOTKEYS_ENABLED = !FMLLoader.isProduction();
-    public static final String CATEGORY = "key.categories." + AleeveAtlas.MOD_ID;
+    public static final boolean WAYPOINT_HOTKEYS_ENABLED = !FMLLoader.getCurrent().isProduction();
+    public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(AleeveAtlas.of("main"));
     public static final KeyMapping OPEN_SETTINGS = new KeyMapping(
         "key." + AleeveAtlas.MOD_ID + ".open_settings",
         InputConstants.Type.KEYSYM,

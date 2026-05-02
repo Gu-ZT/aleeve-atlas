@@ -3,7 +3,7 @@ package dev.dubhe.map.client.radar;
 import dev.dubhe.map.client.AtlasClientState;
 import dev.dubhe.map.client.hud.MinimapHudRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Enemy;
@@ -21,7 +21,7 @@ public final class AtlasRadar {
     private AtlasRadar() {
     }
 
-    public static void render(Minecraft minecraft, GuiGraphics graphics, int mapX, int mapY, int mapSizePx, float rotationDeg) {
+    public static void render(Minecraft minecraft, GuiGraphicsExtractor graphics, int mapX, int mapY, int mapSizePx, float rotationDeg) {
         if (!AtlasClientState.isRadarEnabled() || minecraft.player == null || minecraft.level == null) {
             return;
         }

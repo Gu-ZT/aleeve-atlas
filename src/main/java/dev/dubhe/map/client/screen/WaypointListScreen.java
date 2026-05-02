@@ -2,15 +2,17 @@ package dev.dubhe.map.client.screen;
 
 import dev.dubhe.map.client.waypoint.Waypoint;
 import dev.dubhe.map.client.waypoint.WaypointManager;
-import java.util.List;
-import java.util.Locale;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+
+import java.util.List;
+import java.util.Locale;
 
 public class WaypointListScreen extends Screen {
     private final Screen parent;
@@ -32,11 +34,25 @@ public class WaypointListScreen extends Screen {
         int editorLeft = this.width / 2 - 10;
         int top = 56;
 
-        this.nameBox = addRenderableWidget(new EditBox(this.font, editorLeft, top, 160, 20, Component.translatable("screen.aleeve_atlas.waypoint.name")));
+        this.nameBox = addRenderableWidget(new EditBox(
+            this.font,
+            editorLeft,
+            top,
+            160,
+            20,
+            Component.translatable("screen.aleeve_atlas.waypoint.name")
+        ));
         this.xBox = addRenderableWidget(new EditBox(this.font, editorLeft, top + 28, 50, 20, Component.literal("X")));
         this.yBox = addRenderableWidget(new EditBox(this.font, editorLeft + 55, top + 28, 50, 20, Component.literal("Y")));
         this.zBox = addRenderableWidget(new EditBox(this.font, editorLeft + 110, top + 28, 50, 20, Component.literal("Z")));
-        this.colorBox = addRenderableWidget(new EditBox(this.font, editorLeft, top + 56, 160, 20, Component.translatable("screen.aleeve_atlas.waypoint.color")));
+        this.colorBox = addRenderableWidget(new EditBox(
+            this.font,
+            editorLeft,
+            top + 56,
+            160,
+            20,
+            Component.translatable("screen.aleeve_atlas.waypoint.color")
+        ));
         this.colorBox.setValue("#FF55FF");
 
         int buttonY = top + 88;
@@ -144,7 +160,7 @@ public class WaypointListScreen extends Screen {
         waypoint.z = parseInt(this.zBox.getValue(), waypoint.z);
         waypoint.color = parseColor(this.colorBox.getValue(), waypoint.color);
         if (minecraft.level != null) {
-            waypoint.dimension = minecraft.level.dimension().location().toString();
+            waypoint.dimension = minecraft.level.dimension().identifier().toString();
         }
         WaypointManager.upsert(waypoint);
         this.selectedIndex = WaypointManager.getWaypoints().stream().map(existing -> existing.id).toList().indexOf(waypoint.id);
@@ -194,8 +210,9 @@ public class WaypointListScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (super.mouseClicked(mouseX, mouseY, button)) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x(), mouseY = event.y();
+        if (super.mouseClicked(event, doubleClick)) {
             return true;
         }
         int listLeft = this.width / 2 - 170;
@@ -221,13 +238,13 @@ public class WaypointListScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         // Avoid Screen blur pass conflict: NeoForge 1.21.8 allows blur only once per frame.
         guiGraphics.fill(0, 0, this.width, this.height, 0xA0101010);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 16, 0xFFFFFF);
-        guiGraphics.drawString(this.font, Component.translatable("screen.aleeve_atlas.waypoint.list"), this.width / 2 - 170, 40, 0xFFFFFF);
-        guiGraphics.drawString(this.font, Component.translatable("screen.aleeve_atlas.waypoint.editor"), this.width / 2 - 10, 40, 0xFFFFFF);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.centeredText(this.font, this.title, this.width / 2, 16, 0xFFFFFF);
+        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.list"), this.width / 2 - 170, 40, 0xFFFFFF);
+        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.editor"), this.width / 2 - 10, 40, 0xFFFFFF);
 
         List<Waypoint> waypoints = WaypointManager.getWaypoints();
         int listLeft = this.width / 2 - 170;
@@ -238,12 +255,12 @@ public class WaypointListScreen extends Screen {
             int bg = i == this.selectedIndex ? 0x804466AA : 0x40222222;
             guiGraphics.fill(listLeft, rowY, listLeft + 150, rowY + 16, bg);
             String activePrefix = WaypointManager.getActiveWaypoint().map(active -> active.id.equals(waypoint.id) ? "★ " : "").orElse("");
-            guiGraphics.drawString(this.font, activePrefix + waypoint.name, listLeft + 4, rowY + 4, 0xFFFFFF, false);
+            guiGraphics.text(this.font, activePrefix + waypoint.name, listLeft + 4, rowY + 4, 0xFFFFFF, false);
         }
 
-        guiGraphics.drawString(this.font, Component.translatable("screen.aleeve_atlas.waypoint.name"), this.width / 2 - 10, 46, 0xA0A0A0);
-        guiGraphics.drawString(this.font, Component.translatable("screen.aleeve_atlas.waypoint.xyz"), this.width / 2 - 10, 74, 0xA0A0A0);
-        guiGraphics.drawString(this.font, Component.translatable("screen.aleeve_atlas.waypoint.color"), this.width / 2 - 10, 102, 0xA0A0A0);
+        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.name"), this.width / 2 - 10, 46, 0xA0A0A0);
+        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.xyz"), this.width / 2 - 10, 74, 0xA0A0A0);
+        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.color"), this.width / 2 - 10, 102, 0xA0A0A0);
     }
 }
 

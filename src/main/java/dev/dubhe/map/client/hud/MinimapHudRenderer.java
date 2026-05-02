@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -54,7 +54,7 @@ public final class MinimapHudRenderer {
             return;
         }
 
-        GuiGraphics graphics = event.getGuiGraphics();
+        GuiGraphicsExtractor graphics = event.getGuiGraphics();
         int mapSize = AtlasClientState.getMinimapSizePx();
         int x0 = getMinimapLeft(graphics.guiWidth());
         int y0 = getMinimapTop(graphics.guiHeight());
@@ -85,7 +85,7 @@ public final class MinimapHudRenderer {
         return rotationDeg;
     }
 
-    private static void renderCells(Minecraft minecraft, GuiGraphics graphics, int mapX, int mapY, int mapSize, float rotationDeg) {
+    private static void renderCells(Minecraft minecraft, GuiGraphicsExtractor graphics, int mapX, int mapY, int mapSize, float rotationDeg) {
         double playerX = minecraft.player.getX();
         double playerZ = minecraft.player.getZ();
         int playerY = minecraft.player.blockPosition().getY();
@@ -134,7 +134,7 @@ public final class MinimapHudRenderer {
     }
 
     private static void renderCellClipped(
-        GuiGraphics graphics,
+        GuiGraphicsExtractor graphics,
         int x0,
         int y0,
         int x1,
@@ -281,25 +281,25 @@ public final class MinimapHudRenderer {
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
-    private static void renderPlayerMarker(GuiGraphics graphics, int mapX, int mapY, int mapSize) {
+    private static void renderPlayerMarker(GuiGraphicsExtractor graphics, int mapX, int mapY, int mapSize) {
         int cx = mapX + mapSize / 2;
         int cy = mapY + mapSize / 2;
         graphics.fill(cx - 2, cy - 2, cx + 3, cy + 3, PLAYER_COLOR);
     }
 
-    private static void renderHudInfo(Minecraft minecraft, GuiGraphics graphics, int x, int y) {
+    private static void renderHudInfo(Minecraft minecraft, GuiGraphicsExtractor graphics, int x, int y) {
         BlockPos playerPos = minecraft.player.blockPosition();
         ResourceKey<?> dimensionKey = minecraft.level.dimension();
-        String dimension = dimensionKey.location().toString();
+        String dimension = dimensionKey.identifier().toString();
         Holder<Biome> biome = minecraft.level.getBiome(playerPos);
-        String biomeName = biome.unwrapKey().map(key -> key.location().toString()).orElse("minecraft:unknown");
+        String biomeName = biome.unwrapKey().map(key -> key.identifier().toString()).orElse("minecraft:unknown");
         String facing = facingText(minecraft.player.getYRot());
-        int dayTime = (int) (minecraft.level.getDayTime() % 24000L);
+        int dayTime = (int) (minecraft.level.getOverworldClockTime() % 24000L);
         int light = Math.max(minecraft.level.getBrightness(LightLayer.SKY, playerPos), minecraft.level.getBrightness(LightLayer.BLOCK, playerPos));
         int lineY = y;
 
         if (AtlasClientState.isCoordinateLineVisible()) {
-            graphics.drawString(
+            graphics.text(
                 minecraft.font,
                 Component.literal(String.format(Locale.ROOT, "X:%d Y:%d Z:%d", playerPos.getX(), playerPos.getY(), playerPos.getZ())),
                 x,
@@ -311,15 +311,15 @@ public final class MinimapHudRenderer {
         }
 
         if (AtlasClientState.isEnvironmentLineVisible()) {
-            graphics.drawString(minecraft.font, Component.literal("Dir: " + facing + " | Zoom: " + AtlasClientState.getZoomLevel()), x, lineY, 0xFFFFFFFF, true);
+            graphics.text(minecraft.font, Component.literal("Dir: " + facing + " | Zoom: " + AtlasClientState.getZoomLevel()), x, lineY, 0xFFFFFFFF, true);
             lineY += 10;
-            graphics.drawString(minecraft.font, Component.literal("Biome: " + biomeName), x, lineY, 0xFFFFFFFF, false);
+            graphics.text(minecraft.font, Component.literal("Biome: " + biomeName), x, lineY, 0xFFFFFFFF, false);
             lineY += 10;
-            graphics.drawString(minecraft.font, Component.literal("Dim: " + dimension + " | Time: " + dayTime + " | Light: " + light), x, lineY, 0xFFFFFFFF, false);
+            graphics.text(minecraft.font, Component.literal("Dim: " + dimension + " | Time: " + dayTime + " | Light: " + light), x, lineY, 0xFFFFFFFF, false);
             lineY += 10;
             String rotMode = AtlasClientState.isRotateWithPlayer() ? "FOLLOW" : "NORTH_UP";
             String cave = shouldRenderCaves(minecraft) ? "CAVE" : "SURFACE";
-            graphics.drawString(
+            graphics.text(
                 minecraft.font,
                 Component.literal("Shape: " + AtlasClientState.getMinimapShape() + " | Rot: " + rotMode + " | Radar: " + (AtlasClientState.isRadarEnabled() ? "ON" : "OFF") + " | " + cave),
                 x,
@@ -383,14 +383,14 @@ public final class MinimapHudRenderer {
         return dx * dx + dy * dy <= radius * radius;
     }
 
-    private static void drawCircleFilled(GuiGraphics graphics, int centerX, int centerY, int radius, int color) {
+    private static void drawCircleFilled(GuiGraphicsExtractor graphics, int centerX, int centerY, int radius, int color) {
         for (int y = -radius; y <= radius; y++) {
             int span = (int) Math.sqrt(radius * radius - y * y);
             graphics.fill(centerX - span, centerY + y, centerX + span + 1, centerY + y + 1, color);
         }
     }
 
-    private static void drawCircleOutline(GuiGraphics graphics, int centerX, int centerY, int radius, int color) {
+    private static void drawCircleOutline(GuiGraphicsExtractor graphics, int centerX, int centerY, int radius, int color) {
         for (int y = -radius; y <= radius; y++) {
             int span = (int) Math.sqrt(radius * radius - y * y);
             graphics.fill(centerX - span, centerY + y, centerX - span + 1, centerY + y + 1, color);

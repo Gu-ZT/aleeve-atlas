@@ -3,7 +3,7 @@ package dev.dubhe.map.client.screen;
 import dev.dubhe.map.client.waypoint.Waypoint;
 import dev.dubhe.map.client.waypoint.WaypointManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -60,7 +60,7 @@ public class QuickWaypointScreen extends Screen {
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level != null) {
-            waypoint.dimension = minecraft.level.dimension().location().toString();
+            waypoint.dimension = minecraft.level.dimension().identifier().toString();
         }
 
         WaypointManager.upsert(waypoint);
@@ -83,16 +83,16 @@ public class QuickWaypointScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         int left = this.width / 2 - 100;
         int top = this.height / 2 - 62;
         guiGraphics.fill(0, 0, this.width, this.height, 0xA0101010);
         guiGraphics.fill(left - 4, top - 4, left + 204, top + 96, 0xB0202020);
 
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, top - 12, 0xFFFFFF);
-        guiGraphics.drawString(this.font, Component.translatable("screen.aleeve_atlas.waypoint.name"), left, top, 0xA0A0A0);
-        guiGraphics.drawString(this.font, Component.translatable("screen.aleeve_atlas.waypoint.xyz"), left, top + 28, 0xA0A0A0);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.centeredText(this.font, this.title, this.width / 2, top - 12, 0xFFFFFF);
+        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.name"), left, top, 0xA0A0A0);
+        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.xyz"), left, top + 28, 0xA0A0A0);
     }
 }
 

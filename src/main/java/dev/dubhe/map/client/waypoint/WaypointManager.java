@@ -70,12 +70,12 @@ public final class WaypointManager {
     }
 
     public static Optional<Waypoint> getActiveWaypoint(ResourceKey<Level> dimension) {
-        String key = dimension.location().toString();
+        String key = dimension.identifier().toString();
         return getActiveWaypoint().filter(waypoint -> waypoint.enabled && Objects.equals(waypoint.dimension, key));
     }
 
     public static List<Waypoint> getWaypoints(ResourceKey<Level> dimension) {
-        String key = dimension.location().toString();
+        String key = dimension.identifier().toString();
         return WAYPOINTS.stream()
             .filter(waypoint -> waypoint.enabled && Objects.equals(waypoint.dimension, key))
             .sorted(Comparator.comparing(waypoint -> waypoint.name, String.CASE_INSENSITIVE_ORDER))
@@ -113,7 +113,7 @@ public final class WaypointManager {
         if (minecraft.player != null && minecraft.level != null) {
             BlockPos pos = minecraft.player.blockPosition();
             waypoint.name = "Waypoint " + (WAYPOINTS.size() + 1);
-            waypoint.dimension = minecraft.level.dimension().location().toString();
+            waypoint.dimension = minecraft.level.dimension().identifier().toString();
             waypoint.x = pos.getX();
             waypoint.y = pos.getY();
             waypoint.z = pos.getZ();
@@ -127,8 +127,8 @@ public final class WaypointManager {
         if (minecraft.level == null) {
             return waypoint;
         }
-        Vec3 cameraPos = minecraft.gameRenderer.getMainCamera().getPosition();
-        waypoint.dimension = minecraft.level.dimension().location().toString();
+        Vec3 cameraPos = minecraft.gameRenderer.getMainCamera().position();
+        waypoint.dimension = minecraft.level.dimension().identifier().toString();
         waypoint.x = (int) Math.floor(cameraPos.x);
         waypoint.y = (int) Math.floor(cameraPos.y);
         waypoint.z = (int) Math.floor(cameraPos.z);
