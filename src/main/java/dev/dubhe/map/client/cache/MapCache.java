@@ -2,9 +2,6 @@ package dev.dubhe.map.client.cache;
 
 import dev.dubhe.map.AleeveAtlas;
 import lombok.Getter;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtAccounter;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 
@@ -22,7 +19,7 @@ import javax.annotation.Nullable;
 @Getter
 public class MapCache {
     private static final String REGION_FILE_PREFIX = "r.";
-    private static final String REGION_FILE_SUFFIX = ".nbt";
+    private static final String REGION_FILE_SUFFIX = ".atlas";
 
     private final Path dimensionDir;
     private final Map<RegionPos, RegionCache> regionCacheMap = new HashMap<>();
@@ -105,11 +102,16 @@ public class MapCache {
                     })
                     .forEach(path -> {
                         try {
-                            CompoundTag tag = NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap());
-                            RegionCache regionCache = RegionCache.deserialize(tag);
+                            byte[] data = Files.readAllBytes(path);
+                            RegionCache regionCache = RegionCache.deserializeFromGzip(data);
                             regionCacheMap.put(new RegionPos(regionCache.getX(), regionCache.getZ()), regionCache);
                         } catch (IOException exception) {
-                            AleeveAtlas.LOGGER.warn("Failed to load map cache region file {}", path, exception);
+                            AleeveAtlas.LOGGER.warn("Removing corrupted cache file: {}", path);
+                            try {
+                                Files.deleteIfExists(path);
+                            } catch (IOException deleteEx) {
+                                AleeveAtlas.LOGGER.warn("Failed to delete corrupted cache file {}", path);
+                            }
                         }
                     });
             }
@@ -124,8 +126,8 @@ public class MapCache {
             return java.util.Optional.empty();
         }
         try {
-            CompoundTag tag = NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap());
-            return java.util.Optional.of(RegionCache.deserialize(tag));
+            byte[] data = Files.readAllBytes(path);
+            return java.util.Optional.of(RegionCache.deserializeFromGzip(data));
         } catch (IOException exception) {
             AleeveAtlas.LOGGER.warn("Failed to load map cache region {} from {}", regionPos, path, exception);
             return java.util.Optional.empty();
@@ -136,7 +138,8 @@ public class MapCache {
         Path path = regionFilePath(regionPos);
         try {
             Files.createDirectories(dimensionDir);
-            NbtIo.writeCompressed(regionCache.serialize(), path);
+            byte[] data = regionCache.serializeToGzip();
+            Files.write(path, data);
             dirtyRegions.remove(regionPos);
         } catch (IOException exception) {
             AleeveAtlas.LOGGER.warn("Failed to save map cache region {} to {}", regionPos, path, exception);

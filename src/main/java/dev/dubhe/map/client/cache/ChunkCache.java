@@ -63,7 +63,7 @@ public class ChunkCache {
         return true;
     }
 
-    public IntArrayTag serialize() {
+    public int[] serialize() {
         List<Integer> list = new ArrayList<>();
         list.add(ChunkCache.packXz(this.x, this.z));
         for (BlockCache[] block : this.blocks) {
@@ -76,16 +76,16 @@ public class ChunkCache {
         for (int i = 0; i < list.size(); i++) {
             blocks[i] = list.get(i);
         }
-        return new IntArrayTag(blocks);
+        return blocks;
     }
 
-    public static ChunkCache deserialize(RegionCache regionCache, IntArrayTag arrayTag) {
-        int packXz = arrayTag.get(0).intValue();
+    public static ChunkCache deserialize(RegionCache regionCache, int[] arrayTag) {
+        int packXz = arrayTag[0];
         short x = (short) ((packXz >>> 16) & 0xFFFF);
         short z = (short) (packXz & 0xFFFF);
         ChunkCache chunkCache = new ChunkCache(regionCache, x, z);
-        for (int i = 1; i < arrayTag.size(); i++) {
-            chunkCache.addBlock(BlockCache.deserialize(chunkCache, arrayTag.get(i).intValue()));
+        for (int i = 1; i < arrayTag.length; i++) {
+            chunkCache.addBlock(BlockCache.deserialize(chunkCache, arrayTag[i]));
         }
         return chunkCache;
     }
