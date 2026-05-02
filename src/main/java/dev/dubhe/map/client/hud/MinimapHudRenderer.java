@@ -4,10 +4,12 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.client.AleeveAtlasClientConfig;
 import dev.dubhe.map.client.AtlasClientState;
+import dev.dubhe.map.client.cache.MapCacheLifecycle;
 import dev.dubhe.map.client.radar.AtlasRadar;
 import dev.dubhe.map.client.render.state.MapRenderState;
 import dev.dubhe.map.client.waypoint.WaypointRenderer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -323,6 +325,14 @@ public final class MinimapHudRenderer {
     }
 
     private static TileSample sampleSurfaceTile(Minecraft minecraft, int x, int z, long gameTime) {
+        if (minecraft.level instanceof ClientLevel clientLevel) {
+            MapCacheLifecycle.SurfaceSample sample = MapCacheLifecycle.getSurfaceSample(clientLevel, x, z);
+            if (sample != null) {
+                int argb = 0xFF000000 | (sample.color() & 0x00FFFFFF);
+                return new TileSample(argb, sample.height());
+            }
+        }
+
         long key = (((long) x) << 32) ^ (z & 0xFFFFFFFFL);
         CachedColor cached = COLOR_CACHE.get(key);
         if (cached != null && gameTime - cached.sampleTick < 20L) {

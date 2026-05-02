@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 @Getter
 public class MapCache {
@@ -61,6 +62,29 @@ public class MapCache {
             }
             saveRegion(regionPos, regionCache);
         }
+    }
+
+    public @Nullable BlockCache getBlock(int blockX, int blockZ) {
+        int chunkX = Math.floorDiv(blockX, 16);
+        int chunkZ = Math.floorDiv(blockZ, 16);
+        int regionX = Math.floorDiv(chunkX, 64);
+        int regionZ = Math.floorDiv(chunkZ, 64);
+
+        RegionCache regionCache = regionCacheMap.get(new RegionPos(regionX, regionZ));
+        if (regionCache == null) {
+            return null;
+        }
+
+        short localChunkX = (short) Math.floorMod(chunkX, 64);
+        short localChunkZ = (short) Math.floorMod(chunkZ, 64);
+        ChunkCache chunkCache = regionCache.getChunk(localChunkX, localChunkZ);
+        if (chunkCache == null) {
+            return null;
+        }
+
+        int localBlockX = Math.floorMod(blockX, 16);
+        int localBlockZ = Math.floorMod(blockZ, 16);
+        return chunkCache.getBlock(localBlockX, localBlockZ);
     }
 
     private void loadAllRegions() {

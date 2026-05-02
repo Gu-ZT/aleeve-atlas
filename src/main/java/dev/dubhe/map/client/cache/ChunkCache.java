@@ -29,6 +29,10 @@ public class ChunkCache {
         blocks[blockCache.x()][blockCache.z()] = blockCache;
     }
 
+    public @Nullable BlockCache getBlock(int x, int z) {
+        return blocks[x][z];
+    }
+
     public static int packXz(short x, short z) {
         return ((x & 0xFFFF) << 16) | (z & 0xFFFF);
     }
@@ -101,7 +105,7 @@ public class ChunkCache {
                 BlockState blockState = chunk.getBlockState(blockPos);
                 int color = blockState.getMapColor(chunk.getLevel(), levelBlockPos).col;
                 regionCache.addColor(color);
-                chunkCache.addBlock(new BlockCache(chunkCache, (byte) x, (byte) y, (byte) z, color));
+                chunkCache.addBlock(new BlockCache(chunkCache, (byte) x, (short) y, (byte) z, color));
             }
         }
         return chunkCache;

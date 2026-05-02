@@ -156,6 +156,24 @@ public final class MapCacheLifecycle {
         }
     }
 
+    public static @Nullable SurfaceSample getSurfaceSample(ClientLevel level, int blockX, int blockZ) {
+        if (sessionRoot == null) {
+            return null;
+        }
+
+        MapCache mapCache = DIMENSION_CACHES.get(dimensionId(level));
+        if (mapCache == null) {
+            return null;
+        }
+
+        BlockCache blockCache = mapCache.getBlock(blockX, blockZ);
+        if (blockCache == null) {
+            return null;
+        }
+
+        return new SurfaceSample(blockCache.color(), blockCache.y());
+    }
+
     private static long packChunkPos(ChunkPos chunkPos) {
         return (((long) chunkPos.x()) << 32) ^ (chunkPos.z() & 0xFFFFFFFFL);
     }
@@ -166,6 +184,9 @@ public final class MapCacheLifecycle {
     }
 
     private record TrackedChunkKey(String dimensionId, long chunkPos) {
+    }
+
+    public record SurfaceSample(int color, int height) {
     }
 }
 
