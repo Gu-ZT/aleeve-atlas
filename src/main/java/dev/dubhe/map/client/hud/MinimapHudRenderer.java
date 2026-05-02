@@ -99,6 +99,10 @@ public final class MinimapHudRenderer {
     ) {
         double playerX = minecraft.player.getX();
         double playerZ = minecraft.player.getZ();
+        double anchorX = Math.floor(playerX + 0.5D);
+        double anchorZ = Math.floor(playerZ + 0.5D);
+        double fracX = playerX - anchorX;
+        double fracZ = playerZ - anchorZ;
         int playerY = minecraft.player.blockPosition().getY();
         boolean underground = shouldRenderCaves(minecraft);
         float rotationRad = (float) Math.toRadians(rotationDeg);
@@ -109,6 +113,9 @@ public final class MinimapHudRenderer {
         double blockStep = AtlasClientState.getBlockStep() * (double) BASE_CELL_COUNT / cellCount;
         int northStep = Math.max(1, (int) Math.round(blockStep));
         double cellSize = mapSize / (double) cellCount;
+        double pixelsPerBlock = cellSize / blockStep;
+        double localOffsetX = -fracX * pixelsPerBlock;
+        double localOffsetY = -fracZ * pixelsPerBlock;
         double mapHalfSize = mapSize / 2.0D;
         long gameTime = minecraft.level.getGameTime();
         boolean circleMode = AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.CIRCLE;
@@ -119,8 +126,8 @@ public final class MinimapHudRenderer {
             for (int gx = 0; gx < cellCount; gx++) {
                 double sampleLocalX = (gx + 0.5D - cellCount / 2.0D) * blockStep;
                 double sampleLocalZ = (gz + 0.5D - cellCount / 2.0D) * blockStep;
-                int sampleX = (int) Math.floor(playerX + sampleLocalX);
-                int sampleZ = (int) Math.floor(playerZ + sampleLocalZ);
+                int sampleX = quantizeSampleCoord(anchorX + sampleLocalX);
+                int sampleZ = quantizeSampleCoord(anchorZ + sampleLocalZ);
                 TileSample surfaceSample = sampleSurfaceTile(minecraft, sampleX, sampleZ, gameTime);
                 TileSample northSurfaceSample = sampleSurfaceTile(minecraft, sampleX, sampleZ - northStep, gameTime);
                 int baseColor = underground
@@ -128,8 +135,8 @@ public final class MinimapHudRenderer {
                                 : surfaceSample.argb();
                 int color = applyNorthShade(baseColor, surfaceSample.height(), northSurfaceSample.height());
 
-                double localLeft = -mapHalfSize + gx * cellSize;
-                double localTop = -mapHalfSize + gz * cellSize;
+                double localLeft = -mapHalfSize + gx * cellSize + localOffsetX;
+                double localTop = -mapHalfSize + gz * cellSize + localOffsetY;
                 double localRight = localLeft + cellSize;
                 double localBottom = localTop + cellSize;
                 TileQuad quad = createTileQuad(clipMask.centerX(), clipMask.centerY(), localLeft, localTop, localRight, localBottom, cos, sin);
@@ -195,6 +202,10 @@ public final class MinimapHudRenderer {
     private static int getCellCount(int mapSize) {
         int count = Math.clamp(mapSize / 2, BASE_CELL_COUNT, MAX_CELL_COUNT);
         return (count & 1) == 0 ? count + 1 : count;
+    }
+
+    private static int quantizeSampleCoord(double coord) {
+        return (int) Math.floor(coord + 0.5D);
     }
 
     private static TileQuad createTileQuad(
