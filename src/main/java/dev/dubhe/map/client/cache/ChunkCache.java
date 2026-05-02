@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,32 @@ public class ChunkCache {
 
     public static int packXz(short x, short z) {
         return ((x & 0xFFFF) << 16) | (z & 0xFFFF);
+    }
+
+    public boolean sameData(@Nullable ChunkCache other) {
+        if (other == null) {
+            return false;
+        }
+        if (this.x != other.x || this.z != other.z) {
+            return false;
+        }
+
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                BlockCache a = this.blocks[x][z];
+                BlockCache b = other.blocks[x][z];
+                if (a == null && b == null) {
+                    continue;
+                }
+                if (a == null || b == null) {
+                    return false;
+                }
+                if (a.x() != b.x() || a.y() != b.y() || a.z() != b.z() || a.color() != b.color()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public IntArrayTag serialize() {

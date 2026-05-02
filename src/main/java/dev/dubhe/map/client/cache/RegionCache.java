@@ -26,6 +26,10 @@ public class RegionCache {
         chunks[chunkCache.getX()][chunkCache.getZ()] = chunkCache;
     }
 
+    public ChunkCache getChunk(short x, short z) {
+        return chunks[x][z];
+    }
+
     public void addChunk(LevelChunk chunk) {
         this.addChunk(ChunkCache.create(this, chunk));
     }

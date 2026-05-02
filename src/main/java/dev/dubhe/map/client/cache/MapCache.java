@@ -38,7 +38,14 @@ public class MapCache {
         int regionZ = Math.floorDiv(chunkPos.z(), 64);
         RegionPos regionPos = new RegionPos(regionX, regionZ);
         RegionCache regionCache = regionCacheMap.computeIfAbsent(regionPos, pos -> loadRegion(pos).orElseGet(() -> new RegionCache(pos.x, pos.z)));
-        regionCache.addChunk(chunk);
+
+        ChunkCache newChunkCache = ChunkCache.create(regionCache, chunk);
+        ChunkCache oldChunkCache = regionCache.getChunk(newChunkCache.getX(), newChunkCache.getZ());
+        if (newChunkCache.sameData(oldChunkCache)) {
+            return;
+        }
+
+        regionCache.addChunk(newChunkCache);
         dirtyRegions.add(regionPos);
     }
 
