@@ -19,7 +19,10 @@ import net.minecraft.world.level.material.MapColor;
 import net.neoforged.neoforge.client.gui.GuiLayer;
 import org.joml.Vector2f;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -27,6 +30,7 @@ import javax.annotation.Nullable;
 public final class MinimapGuiLayer implements GuiLayer {
     private static final int BASE_CELL_COUNT = 23;
     private static final int MAX_CELL_COUNT = 63;
+    private static final int CHUNK_SIZE = 16;
     private static final Map<Long, CachedColor> COLOR_CACHE = new HashMap<>();
 
     @Override
@@ -81,6 +85,7 @@ public final class MinimapGuiLayer implements GuiLayer {
         boolean circleMode = AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.CIRCLE;
         MapClipMask clipMask = createClipMask(minecraft, mapX, mapY, mapSize, circleMode);
         GpuBufferSlice mapUniform = createClipUniform(clipMask);
+        Map<Long, ChunkRenderBatch> chunkBatches = new HashMap<>();
 
         for (int gz = 0; gz < cellCount; gz++) {
             for (int gx = 0; gx < cellCount; gx++) {
@@ -94,31 +99,59 @@ public final class MinimapGuiLayer implements GuiLayer {
                     continue;
                 }
                 int baseColor = underground
-                    ? sampleCaveColor(minecraft, sampleX, sampleZ, playerY)
-                    : surfaceSample.argb();
+                                ? sampleCaveColor(minecraft, sampleX, sampleZ, playerY)
+                                : surfaceSample.argb();
                 int color = applyNorthShade(baseColor, surfaceSample.height(), northSurfaceSample.height());
 
                 double localLeft = -mapHalfSize + gx * cellSize + localOffsetX;
                 double localTop = -mapHalfSize + gz * cellSize + localOffsetY;
                 double localRight = localLeft + cellSize;
                 double localBottom = localTop + cellSize;
-                TileQuad quad = createTileQuad(
-                    clipMask.centerX(),
-                    clipMask.centerY(),
-                    localLeft,
-                    localTop,
-                    localRight,
-                    localBottom,
-                    cos,
-                    sin
-                );
-                if (quad.maxX() <= quad.minX() || quad.maxY() <= quad.minY()) {
-                    continue;
-                }
-
-                renderCell(graphics, quad, color, clipMask, mapUniform);
+                int chunkX = Math.floorDiv(sampleX, CHUNK_SIZE);
+                int chunkZ = Math.floorDiv(sampleZ, CHUNK_SIZE);
+                long chunkKey = packChunkKey(chunkX, chunkZ);
+                ChunkRenderBatch batch = chunkBatches.computeIfAbsent(chunkKey, key -> new ChunkRenderBatch(chunkX, chunkZ));
+                batch.cells().add(new CellRenderTask(localLeft, localTop, localRight, localBottom, color));
             }
         }
+
+        List<ChunkRenderBatch> orderedBatches = new ArrayList<>(chunkBatches.values());
+        orderedBatches.sort(Comparator.comparingInt(ChunkRenderBatch::chunkZ).thenComparingInt(ChunkRenderBatch::chunkX));
+        for (ChunkRenderBatch batch : orderedBatches) {
+            renderChunkBatch(graphics, batch, clipMask, mapUniform, cos, sin);
+            graphics.nextStratum();
+        }
+    }
+
+    private static void renderChunkBatch(
+        GuiGraphicsExtractor graphics,
+        ChunkRenderBatch batch,
+        MapClipMask clipMask,
+        @Nullable GpuBufferSlice mapUniform,
+        double cos,
+        double sin
+    ) {
+        for (CellRenderTask task : batch.cells()) {
+            TileQuad quad = createTileQuad(
+                clipMask.centerX(),
+                clipMask.centerY(),
+                task.localLeft(),
+                task.localTop(),
+                task.localRight(),
+                task.localBottom(),
+                cos,
+                sin
+            );
+            if (quad.maxX() <= quad.minX() || quad.maxY() <= quad.minY()) {
+                continue;
+            }
+
+            renderCell(graphics, quad, task.color(), clipMask, mapUniform);
+        }
+    }
+
+    private static long packChunkKey(int chunkX, int chunkZ) {
+        return (((long) chunkX) << 32) ^ (chunkZ & 0xFFFFFFFFL);
     }
 
     private static void renderCell(
@@ -286,7 +319,7 @@ public final class MinimapGuiLayer implements GuiLayer {
         }
         BlockPos playerPos = minecraft.player.blockPosition();
         return !minecraft.level.canSeeSky(playerPos.above())
-            && minecraft.level.getBrightness(LightLayer.SKY, playerPos.above()) < 8;
+               && minecraft.level.getBrightness(LightLayer.SKY, playerPos.above()) < 8;
     }
 
     private static @Nullable TileSample sampleSurfaceTile(Minecraft minecraft, int x, int z, long gameTime) {
@@ -421,6 +454,15 @@ public final class MinimapGuiLayer implements GuiLayer {
     }
 
     private record CachedColor(int argb, int height, long sampleTick) {
+    }
+
+    private record CellRenderTask(double localLeft, double localTop, double localRight, double localBottom, int color) {
+    }
+
+    private record ChunkRenderBatch(int chunkX, int chunkZ, List<CellRenderTask> cells) {
+        private ChunkRenderBatch(int chunkX, int chunkZ) {
+            this(chunkX, chunkZ, new ArrayList<>());
+        }
     }
 
     private static void pipelineUsage(
