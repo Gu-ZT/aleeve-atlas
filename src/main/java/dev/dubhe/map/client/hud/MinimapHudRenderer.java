@@ -427,10 +427,12 @@ public final class MinimapHudRenderer {
         float markerMode = northLocked ? 1.0f : 0.0f;
         float arrowAngle = 0.0f;
         if (northLocked && minecraft.player != null) {
-            // Convert Minecraft yRot to screen-space angle from north (up = −y).
-            // ArrowAngle = yRot + 180° in radians: at yRot=180 (facing north) → 0 rad (arrow up). ✓
-            float yRot = minecraft.player.getYRot();
-            arrowAngle = (float) Math.toRadians(yRot + 180.0);
+            // Project player forward vector onto minimap axes:
+            // map x = east (+x), map y = south (+z). ArrowAngle uses 0 = up (north), CW positive.
+            float yawRad = (float) Math.toRadians(minecraft.player.getYRot());
+            float dirMapX = (float) -Math.sin(yawRad);
+            float dirMapY = (float) Math.cos(yawRad);
+            arrowAngle = (float) Math.atan2(dirMapX, -dirMapY);
         }
 
         float playerRadiusGui = 4.0f;
@@ -445,8 +447,8 @@ public final class MinimapHudRenderer {
         float fbClipHalf = (float) (mapSize / 2.0 * guiScale);
         float fbClipMode = circleClip ? 1.0f : 0.0f;
 
-        float fbMarkerCx = (float) (cx * guiScale);
-        float fbMarkerCy = (float) (windowHeight - cy * guiScale);
+        float fbMarkerCx = (float) Math.floor(cx * guiScale) + 0.5f;
+        float fbMarkerCy = (float) Math.floor(windowHeight - cy * guiScale) + 0.5f;
         float fbRadius   = playerRadiusGui * (float) guiScale;
 
         @Nullable GpuBufferSlice uniform = MarkerRenderState.createMarkerUniform(

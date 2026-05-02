@@ -1,7 +1,6 @@
 package dev.dubhe.map.client.radar;
 
 import dev.dubhe.map.client.AtlasClientState;
-import dev.dubhe.map.client.hud.MinimapHudRenderer;
 import dev.dubhe.map.client.render.state.MarkerRenderState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -11,12 +10,16 @@ import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.phys.AABB;
 import org.joml.Vector2f;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import dev.dubhe.map.client.AleeveAtlasClientConfig;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public final class AtlasRadar {
     // Entity marker colours (ARGB)
@@ -26,9 +29,9 @@ public final class AtlasRadar {
     private static final int COLOR_ITEM     = 0xFFFF3333;  // red    – dropped items
 
     /** GUI-pixel radius of entity dot markers. */
-    private static final float ENTITY_MARKER_RADIUS = 2.5f;
+    private static final float ENTITY_MARKER_RADIUS = 1.8f;
 
-    private static final int MAX_MARKERS = 48;
+    private static final int MAX_MARKERS = 256;
     private static final double HALF_CELL_COUNT = 23 / 2.0D;
 
     private AtlasRadar() {
@@ -62,9 +65,14 @@ public final class AtlasRadar {
         Vector2f clipCenter = new Vector2f(fbClipCx, fbClipCy);
         Vector2f clipHalfSize = new Vector2f(fbClipHalf, fbClipHalf);
 
-        int drawn = 0;
+        List<RadarMarker> markers = new ArrayList<>();
 
-        for (Entity entity : minecraft.level.entitiesForRendering()) {
+        AABB queryBox = new AABB(
+            playerX - scanRange, minecraft.player.getY() - scanRange, playerZ - scanRange,
+            playerX + scanRange, minecraft.player.getY() + scanRange, playerZ + scanRange
+        );
+
+        for (Entity entity : minecraft.level.getEntities(minecraft.player, queryBox, Entity::isAlive)) {
             if (entity == minecraft.player || !entity.isAlive()) {
                 continue;
             }
@@ -87,21 +95,30 @@ public final class AtlasRadar {
             double pixelX = centerX + normalizedX * radiusPixels;
             double pixelY = centerY + normalizedZ * radiusPixels;
 
-            if (!MinimapHudRenderer.isPointInsideMinimap(
-                    pixelX, pixelY,
-                    minecraft.getWindow().getGuiScaledWidth(),
-                    minecraft.getWindow().getGuiScaledHeight())) {
-                continue;
-            }
+            markers.add(new RadarMarker(pixelX, pixelY, color, distanceSqr, entity.getId()));
+        }
 
+        // Keep marker selection stable frame-to-frame: nearest first, then entity id.
+        markers.sort(Comparator
+            .comparingDouble(RadarMarker::distanceSqr)
+            .thenComparingInt(RadarMarker::entityId));
+
+        int limit = Math.min(MAX_MARKERS, markers.size());
+        for (int i = 0; i < limit; i++) {
+            RadarMarker marker = markers.get(i);
             renderCircleMarker(
-                graphics, pixelX, pixelY, ENTITY_MARKER_RADIUS,
-                color, guiScale, windowHeight,
-                clipCenter, clipHalfSize, fbClipHalf, fbClipMode);
-            drawn++;
-            if (drawn >= MAX_MARKERS) {
-                return;
-            }
+                graphics,
+                marker.pixelX(),
+                marker.pixelY(),
+                ENTITY_MARKER_RADIUS,
+                marker.color(),
+                guiScale,
+                windowHeight,
+                clipCenter,
+                clipHalfSize,
+                fbClipHalf,
+                fbClipMode
+            );
         }
     }
 
@@ -123,8 +140,8 @@ public final class AtlasRadar {
         float clipRadius,
         float clipMode
     ) {
-        float fbX = (float) (guiX * guiScale);
-        float fbY = (float) (windowHeight - guiY * guiScale);
+        float fbX = (float) Math.floor(guiX * guiScale) + 0.5f;
+        float fbY = (float) Math.floor(windowHeight - guiY * guiScale) + 0.5f;
         float fbRadius = radiusGui * (float) guiScale;
 
         @Nullable GpuBufferSlice uniform = MarkerRenderState.createMarkerUniform(
@@ -172,5 +189,8 @@ public final class AtlasRadar {
             return AtlasClientState.showFriendlyOnRadar() ? COLOR_FRIENDLY : 0;
         }
         return 0;
+    }
+
+    private record RadarMarker(double pixelX, double pixelY, int color, double distanceSqr, int entityId) {
     }
 }

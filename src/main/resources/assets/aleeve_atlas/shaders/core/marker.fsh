@@ -26,7 +26,7 @@ float clipSignedDistance(vec2 p) {
 }
 
 float coverageFromDistance(float d) {
-    float aa = max(fwidth(d), 1e-4);
+    float aa = max(fwidth(d), 0.35);
     return smoothstep(-aa, aa, d);
 }
 
@@ -36,20 +36,33 @@ float sdfCircle(vec2 p, vec2 c, float r) {
     return r - length(p - c);
 }
 
-// Inigo Quilez triangle SDF, negated so positive = inside
+float cross2d(vec2 a, vec2 b) {
+    return a.x * b.y - a.y * b.x;
+}
+
+float distanceToSegment(vec2 p, vec2 a, vec2 b) {
+    vec2 ab = b - a;
+    float t = clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-6), 0.0, 1.0);
+    return length((a + ab * t) - p);
+}
+
+// Triangle SDF with positive-inside convention and winding-independent inside test.
 float sdfTriangle(vec2 p, vec2 a, vec2 b, vec2 c) {
-    vec2 e0 = b - a, e1 = c - b, e2 = a - c;
-    vec2 v0 = p - a, v1 = p - b, v2 = p - c;
-    vec2 pq0 = v0 - e0 * clamp(dot(v0, e0) / dot(e0, e0), 0.0, 1.0);
-    vec2 pq1 = v1 - e1 * clamp(dot(v1, e1) / dot(e1, e1), 0.0, 1.0);
-    vec2 pq2 = v2 - e2 * clamp(dot(v2, e2) / dot(e2, e2), 0.0, 1.0);
-    float s = sign(e0.x * e2.y - e0.y * e2.x);
-    vec2 d = min(min(
-        vec2(dot(pq0, pq0), s * (v0.x * e0.y - v0.y * e0.x)),
-        vec2(dot(pq1, pq1), s * (v1.x * e1.y - v1.y * e1.x))),
-        vec2(dot(pq2, pq2), s * (v2.x * e2.y - v2.y * e2.x)));
-    // Standard IQ returns negative inside; negate so positive = inside
-    return sqrt(d.x) * sign(d.y);
+    float d0 = distanceToSegment(p, a, b);
+    float d1 = distanceToSegment(p, b, c);
+    float d2 = distanceToSegment(p, c, a);
+    float edgeDistance = min(d0, min(d1, d2));
+
+    float orientation = sign(cross2d(b - a, c - a));
+    if (orientation == 0.0) {
+        orientation = 1.0;
+    }
+
+    float s0 = orientation * cross2d(b - a, p - a);
+    float s1 = orientation * cross2d(c - b, p - b);
+    float s2 = orientation * cross2d(a - c, p - c);
+    bool inside = s0 >= 0.0 && s1 >= 0.0 && s2 >= 0.0;
+    return inside ? edgeDistance : -edgeDistance;
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -80,14 +93,17 @@ void main() {
         markerSDF = sdfCircle(r, vec2(0.0), MarkerRadius);
     } else {
         // Circle body (offset toward +y so arrow has room)
-        float cr = MarkerRadius * 0.60;
-        vec2  cc = vec2(0.0, MarkerRadius * 0.25);
+        float cr = MarkerRadius * 0.58;
+        vec2  cc = vec2(0.0, MarkerRadius * 0.18);
         float circleSDF = sdfCircle(r, cc, cr);
 
-        // Arrow triangle pointing in -y direction (tip at -MarkerRadius)
-        vec2 triA = vec2(-MarkerRadius * 0.40,  0.0);
-        vec2 triB = vec2( MarkerRadius * 0.40,  0.0);
-        vec2 triC = vec2( 0.0, -MarkerRadius);
+        // Arrow triangle pointing in -y direction (tip at -MarkerRadius).
+        // Base line is tangent to the circle at y = cc.y - cr.
+        float tangentY = cc.y - cr;
+        float halfBase = MarkerRadius * 0.26;
+        vec2 triA = vec2(-halfBase, tangentY);
+        vec2 triB = vec2(0.0, -MarkerRadius * 1.05);
+        vec2 triC = vec2(halfBase, tangentY);
         float triangleSDF = sdfTriangle(r, triA, triB, triC);
 
         // Union of circle and triangle (positive-inside convention: max = union)
