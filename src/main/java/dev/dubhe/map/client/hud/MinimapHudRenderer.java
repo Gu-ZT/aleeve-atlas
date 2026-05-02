@@ -106,78 +106,86 @@ public final class MinimapHudRenderer {
         double sin = Math.sin(rotationRad);
 
         int cellCount = getCellCount(mapSize);
-        int halfCells = cellCount / 2;
         double blockStep = AtlasClientState.getBlockStep() * (double) BASE_CELL_COUNT / cellCount;
+        double cellSize = mapSize / (double) cellCount;
+        double mapHalfSize = mapSize / 2.0D;
         long gameTime = minecraft.level.getGameTime();
         boolean circleMode = AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.CIRCLE;
-        double circleCx = mapX + mapSize / 2.0D;
-        double circleCy = mapY + mapSize / 2.0D;
-        double circleRadius = mapSize / 2.0D;
-        GpuBufferSlice mapUniform = circleMode ? createMapUniform(minecraft, circleCx, circleCy, circleRadius) : null;
+        MapClipMask clipMask = createClipMask(minecraft, mapX, mapY, mapSize, circleMode);
+        GpuBufferSlice mapUniform = createClipUniform(clipMask);
 
         for (int gz = 0; gz < cellCount; gz++) {
             for (int gx = 0; gx < cellCount; gx++) {
-                double localX = (gx - halfCells) * blockStep;
-                double localZ = (gz - halfCells) * blockStep;
-                double rx = localX * cos - localZ * sin;
-                double rz = localX * sin + localZ * cos;
-                int sampleX = (int) Math.floor(playerX + rx);
-                int sampleZ = (int) Math.floor(playerZ + rz);
+                double sampleLocalX = (gx + 0.5D - cellCount / 2.0D) * blockStep;
+                double sampleLocalZ = (gz + 0.5D - cellCount / 2.0D) * blockStep;
+                int sampleX = (int) Math.floor(playerX + sampleLocalX);
+                int sampleZ = (int) Math.floor(playerZ + sampleLocalZ);
                 int color = underground
                             ? sampleCaveColor(minecraft, sampleX, sampleZ, playerY)
                             : sampleSurfaceColor(minecraft, sampleX, sampleZ, gameTime);
 
-                int pixelX0 = mapX + gx * mapSize / cellCount;
-                int pixelY0 = mapY + gz * mapSize / cellCount;
-                int pixelX1 = mapX + (gx + 1) * mapSize / cellCount;
-                int pixelY1 = mapY + (gz + 1) * mapSize / cellCount;
-                if (pixelX1 <= pixelX0 || pixelY1 <= pixelY0) {
+                double localLeft = -mapHalfSize + gx * cellSize;
+                double localTop = -mapHalfSize + gz * cellSize;
+                double localRight = localLeft + cellSize;
+                double localBottom = localTop + cellSize;
+                TileQuad quad = createTileQuad(clipMask.centerX(), clipMask.centerY(), localLeft, localTop, localRight, localBottom, cos, sin);
+                if (quad.maxX() <= quad.minX() || quad.maxY() <= quad.minY()) {
                     continue;
                 }
 
-                renderCell(graphics, pixelX0, pixelY0, pixelX1, pixelY1, color, circleMode, circleCx, circleCy, circleRadius, mapUniform);
+                renderCell(graphics, quad, color, clipMask, mapUniform);
             }
         }
     }
 
     private static void renderCell(
         GuiGraphicsExtractor graphics,
-        int x0,
-        int y0,
-        int x1,
-        int y1,
+        TileQuad quad,
         int color,
-        boolean circleMode,
-        double cx,
-        double cy,
-        double radius,
+        MapClipMask clipMask,
         GpuBufferSlice mapUniform
     ) {
-        if (!circleMode) {
-            graphics.fill(x0, y0, x1, y1, color);
-            return;
-        }
-
         if (mapUniform != null) {
             pipelineUsage(
                 graphics,
-                new Vector2f(x0, y0),
-                new Vector2f(x1, y1),
+                quad,
                 mapUniform,
                 color
             );
             return;
         }
 
-        renderCellClipped(graphics, x0, y0, x1, y1, color, true, cx, cy, radius);
+        renderCellFallback(graphics, quad, color, clipMask);
     }
 
-    private static GpuBufferSlice createMapUniform(Minecraft minecraft, double circleCx, double circleCy, double circleRadius) {
+    private static MapClipMask createClipMask(Minecraft minecraft, int mapX, int mapY, int mapSize, boolean circleMode) {
+        double centerX = mapX + mapSize / 2.0D;
+        double centerY = mapY + mapSize / 2.0D;
+        double halfSize = mapSize / 2.0D;
         double guiScale = minecraft.getWindow().getGuiScale();
-        float framebufferCenterX = (float) (circleCx * guiScale);
-        float framebufferCenterY = (float) (minecraft.getWindow().getHeight() - circleCy * guiScale);
-        float framebufferRadius = (float) (circleRadius * guiScale);
-        return MapRenderState.createMapUniform(new Vector2f(framebufferCenterX, framebufferCenterY), framebufferRadius);
+        float framebufferCenterX = (float) (centerX * guiScale);
+        float framebufferCenterY = (float) (minecraft.getWindow().getHeight() - centerY * guiScale);
+        float framebufferHalfSize = (float) (halfSize * guiScale);
+        return new MapClipMask(
+            centerX,
+            centerY,
+            halfSize,
+            halfSize,
+            halfSize,
+            circleMode ? 1.0F : 0.0F,
+            new Vector2f(framebufferCenterX, framebufferCenterY),
+            new Vector2f(framebufferHalfSize, framebufferHalfSize),
+            framebufferHalfSize
+        );
+    }
+
+    private static GpuBufferSlice createClipUniform(MapClipMask clipMask) {
+        return MapRenderState.createMapUniform(
+            clipMask.framebufferCenter(),
+            clipMask.framebufferHalfSize(),
+            clipMask.framebufferRadius(),
+            clipMask.clipMode()
+        );
     }
 
     private static int getCellCount(int mapSize) {
@@ -185,44 +193,62 @@ public final class MinimapHudRenderer {
         return (count & 1) == 0 ? count + 1 : count;
     }
 
-    private static void renderCellClipped(
-        GuiGraphicsExtractor graphics,
-        int x0,
-        int y0,
-        int x1,
-        int y1,
-        int color,
-        boolean circleMode,
-        double cx,
-        double cy,
-        double radius
+    private static TileQuad createTileQuad(
+        double centerX,
+        double centerY,
+        double localLeft,
+        double localTop,
+        double localRight,
+        double localBottom,
+        double cos,
+        double sin
     ) {
-        if (!circleMode) {
-            graphics.fill(x0, y0, x1, y1, color);
-            return;
-        }
+        Vector2f p0 = rotateLocalPoint(centerX, centerY, localLeft, localTop, cos, sin);
+        Vector2f p1 = rotateLocalPoint(centerX, centerY, localRight, localTop, cos, sin);
+        Vector2f p2 = rotateLocalPoint(centerX, centerY, localRight, localBottom, cos, sin);
+        Vector2f p3 = rotateLocalPoint(centerX, centerY, localLeft, localBottom, cos, sin);
+        float minX = Math.min(Math.min(p0.x, p1.x), Math.min(p2.x, p3.x));
+        float minY = Math.min(Math.min(p0.y, p1.y), Math.min(p2.y, p3.y));
+        float maxX = Math.max(Math.max(p0.x, p1.x), Math.max(p2.x, p3.x));
+        float maxY = Math.max(Math.max(p0.y, p1.y), Math.max(p2.y, p3.y));
+        return new TileQuad(p0, p1, p2, p3, minX, minY, maxX, maxY);
+    }
 
-        double innerRadius = Math.max(0.0D, radius - 1.0D);
-        double outerRadius = radius + 1.0D;
-        double nearDist = distanceToRect(x0, y0, x1, y1, cx, cy);
-        if (nearDist >= outerRadius) {
-            return;
-        }
+    private static Vector2f rotateLocalPoint(
+        double centerX,
+        double centerY,
+        double localX,
+        double localY,
+        double cos,
+        double sin
+    ) {
+        float x = (float) (centerX + localX * cos - localY * sin);
+        float y = (float) (centerY + localX * sin + localY * cos);
+        return new Vector2f(x, y);
+    }
 
-        double farDist = maxCornerDistance(x0, y0, x1, y1, cx, cy);
-        if (farDist <= innerRadius) {
-            graphics.fill(x0, y0, x1, y1, color);
-            return;
-        }
-
+    private static void renderCellFallback(
+        GuiGraphicsExtractor graphics,
+        TileQuad quad,
+        int color,
+        MapClipMask clipMask
+    ) {
+        int minX = (int) Math.floor(quad.minX());
+        int minY = (int) Math.floor(quad.minY());
+        int maxX = (int) Math.ceil(quad.maxX());
+        int maxY = (int) Math.ceil(quad.maxY());
         int baseAlpha = (color >>> 24) & 0xFF;
         int rgb = color & 0x00FFFFFF;
-        for (int py = y0; py < y1; py++) {
-            for (int px = x0; px < x1; px++) {
-                double dx = (px + 0.5D) - cx;
-                double dy = (py + 0.5D) - cy;
-                double dist = Math.sqrt(dx * dx + dy * dy);
-                double coverage = Math.clamp(radius + 0.5D - dist, 0.0D, 1.0D);
+        for (int py = minY; py < maxY; py++) {
+            for (int px = minX; px < maxX; px++) {
+                double sampleX = px + 0.5D;
+                double sampleY = py + 0.5D;
+                double quadCoverage = coverageFromSignedDistance(signedDistanceToQuad(quad, sampleX, sampleY));
+                if (quadCoverage <= 0.0D) {
+                    continue;
+                }
+                double clipCoverage = coverageFromSignedDistance(signedDistanceToClip(clipMask, sampleX, sampleY));
+                double coverage = quadCoverage * clipCoverage;
                 if (coverage <= 0.0D) {
                     continue;
                 }
@@ -233,26 +259,43 @@ public final class MinimapHudRenderer {
         }
     }
 
-    private static double distanceToRect(int x0, int y0, int x1, int y1, double px, double py) {
-        double clampedX = Math.clamp(px, x0, x1 - 1.0D);
-        double clampedY = Math.clamp(py, y0, y1 - 1.0D);
-        double dx = px - clampedX;
-        double dy = py - clampedY;
-        return Math.sqrt(dx * dx + dy * dy);
+    private static double signedDistanceToQuad(TileQuad quad, double px, double py) {
+        double winding = Math.signum(edgeFunction(quad.p0(), quad.p1(), quad.p2().x, quad.p2().y));
+        if (winding == 0.0D) {
+            winding = 1.0D;
+        }
+
+        double d0 = winding * signedEdgeDistance(quad.p0(), quad.p1(), px, py);
+        double d1 = winding * signedEdgeDistance(quad.p1(), quad.p2(), px, py);
+        double d2 = winding * signedEdgeDistance(quad.p2(), quad.p3(), px, py);
+        double d3 = winding * signedEdgeDistance(quad.p3(), quad.p0(), px, py);
+        return Math.min(Math.min(d0, d1), Math.min(d2, d3));
     }
 
-    private static double maxCornerDistance(int x0, int y0, int x1, int y1, double px, double py) {
-        double d0 = cornerDistance(x0, y0, px, py);
-        double d1 = cornerDistance(x1 - 1.0D, y0, px, py);
-        double d2 = cornerDistance(x0, y1 - 1.0D, px, py);
-        double d3 = cornerDistance(x1 - 1.0D, y1 - 1.0D, px, py);
-        return Math.max(Math.max(d0, d1), Math.max(d2, d3));
+    private static double edgeFunction(Vector2f a, Vector2f b, double px, double py) {
+        double abx = b.x - a.x;
+        double aby = b.y - a.y;
+        double apx = px - a.x;
+        double apy = py - a.y;
+        return abx * apy - aby * apx;
     }
 
-    private static double cornerDistance(double x, double y, double px, double py) {
-        double dx = x - px;
-        double dy = y - py;
-        return Math.sqrt(dx * dx + dy * dy);
+    private static double signedEdgeDistance(Vector2f a, Vector2f b, double px, double py) {
+        return edgeFunction(a, b, px, py) / Math.max(Math.hypot(b.x - a.x, b.y - a.y), 1.0E-4D);
+    }
+
+    private static double signedDistanceToClip(MapClipMask clipMask, double px, double py) {
+        if (clipMask.clipMode() > 0.5F) {
+            return clipMask.radius() - Math.hypot(px - clipMask.centerX(), py - clipMask.centerY());
+        }
+
+        double dx = clipMask.halfWidth() - Math.abs(px - clipMask.centerX());
+        double dy = clipMask.halfHeight() - Math.abs(py - clipMask.centerY());
+        return Math.min(dx, dy);
+    }
+
+    private static double coverageFromSignedDistance(double signedDistance) {
+        return Math.clamp(signedDistance + 0.5D, 0.0D, 1.0D);
     }
 
     private static boolean shouldRenderCaves(Minecraft minecraft) {
@@ -417,6 +460,31 @@ public final class MinimapHudRenderer {
         return "S";
     }
 
+    private record MapClipMask(
+        double centerX,
+        double centerY,
+        double halfWidth,
+        double halfHeight,
+        double radius,
+        float clipMode,
+        Vector2f framebufferCenter,
+        Vector2f framebufferHalfSize,
+        float framebufferRadius
+    ) {
+    }
+
+    private record TileQuad(
+        Vector2f p0,
+        Vector2f p1,
+        Vector2f p2,
+        Vector2f p3,
+        float minX,
+        float minY,
+        float maxX,
+        float maxY
+    ) {
+    }
+
     private record CachedColor(int argb, long sampleTick) {
     }
 
@@ -473,15 +541,16 @@ public final class MinimapHudRenderer {
 
     private static void pipelineUsage(
         GuiGraphicsExtractor graphics,
-        Vector2f start,
-        Vector2f end,
+        TileQuad quad,
         GpuBufferSlice mapUniform,
         int color
     ) {
         graphics.submitGuiElementRenderState(new MapRenderState(
             graphics.pose(),
-            start,
-            end,
+            quad.p0(),
+            quad.p1(),
+            quad.p2(),
+            quad.p3(),
             color,
             mapUniform,
             graphics.peekScissorStack()

@@ -18,8 +18,10 @@ import javax.annotation.Nullable;
 
 public record MapRenderState(
     Matrix3x2f pose,
-    Vector2f start,
-    Vector2f end,
+    Vector2f p0,
+    Vector2f p1,
+    Vector2f p2,
+    Vector2f p3,
     int color,
     GpuBufferSlice mapUniform,
     @Nullable ScreenRectangle scissorArea,
@@ -27,29 +29,37 @@ public record MapRenderState(
 ) implements LibGuiElementRenderState {
     public MapRenderState(
         Matrix3x2f pose,
-        Vector2f start,
-        Vector2f end,
+        Vector2f p0,
+        Vector2f p1,
+        Vector2f p2,
+        Vector2f p3,
         int color,
         GpuBufferSlice mapUniform,
         @Nullable ScreenRectangle scissorArea
     ) {
+        float minX = Math.min(Math.min(p0.x, p1.x), Math.min(p2.x, p3.x));
+        float minY = Math.min(Math.min(p0.y, p1.y), Math.min(p2.y, p3.y));
+        float maxX = Math.max(Math.max(p0.x, p1.x), Math.max(p2.x, p3.x));
+        float maxY = Math.max(Math.max(p0.y, p1.y), Math.max(p2.y, p3.y));
         this(
             pose,
-            start,
-            end,
+            p0,
+            p1,
+            p2,
+            p3,
             color,
             mapUniform,
             scissorArea,
-            LibGuiElementRenderState.getBounds(pose, start.x, start.y, end.x, end.y, scissorArea)
+            LibGuiElementRenderState.getBounds(pose, minX, minY, maxX, maxY, scissorArea)
         );
     }
 
     @Override
     public void buildVertices(VertexConsumer consumer) {
-        consumer.addVertexWith2DPose(this.pose(), this.start().x(), this.start().y()).setColor(this.color());
-        consumer.addVertexWith2DPose(this.pose(), this.start().x(), this.end().y()).setColor(this.color());
-        consumer.addVertexWith2DPose(this.pose(), this.end().x(), this.end().y()).setColor(this.color());
-        consumer.addVertexWith2DPose(this.pose(), this.end().x(), this.start().y()).setColor(this.color());
+        consumer.addVertexWith2DPose(this.pose(), this.p0().x(), this.p0().y()).setColor(this.color());
+        consumer.addVertexWith2DPose(this.pose(), this.p3().x(), this.p3().y()).setColor(this.color());
+        consumer.addVertexWith2DPose(this.pose(), this.p2().x(), this.p2().y()).setColor(this.color());
+        consumer.addVertexWith2DPose(this.pose(), this.p1().x(), this.p1().y()).setColor(this.color());
     }
 
     @Override
@@ -62,10 +72,13 @@ public record MapRenderState(
         return TextureSetup.noTexture();
     }
 
-    public static @Nullable GpuBufferSlice createMapUniform(Vector2fc center, float radius) {
+    public static @Nullable GpuBufferSlice createMapUniform(Vector2fc clipCenter, Vector2fc clipHalfSize, float clipRadius, float clipMode) {
         if (AleeveAtlasClient.getModDynamicUniforms() == null) return null;
         return AleeveAtlasClient.getModDynamicUniforms().getMapUbo().writeUniform(new ModDynamicUniforms.MapUniform(
-            center, radius
+            clipCenter,
+            clipHalfSize,
+            clipRadius,
+            clipMode
         ));
     }
 

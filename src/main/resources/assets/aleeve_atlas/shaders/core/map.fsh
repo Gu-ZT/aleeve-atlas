@@ -3,18 +3,33 @@
 in vec4 vertexColor;
 
 layout (std140) uniform MapUniform {
-    vec2 Center;
-    float Radius;
+    vec2 ClipCenter;
+    vec2 ClipHalfSize;
+    float ClipRadius;
+    float ClipMode;
 };
 
 out vec4 fragColor;
 
+float clipSignedDistance(vec2 p) {
+    if (ClipMode > 0.5) {
+        return ClipRadius - length(p - ClipCenter);
+    }
+
+    vec2 delta = ClipHalfSize - abs(p - ClipCenter);
+    return min(delta.x, delta.y);
+}
+
+float coverageFromDistance(float distance) {
+    float aa = max(fwidth(distance), 1e-4);
+    return smoothstep(-aa, aa, distance);
+}
+
 void main() {
     vec2 p = gl_FragCoord.xy;
 
-    float dCircle = length(p - Center) - Radius;
-    float aaCircle = max(fwidth(dCircle), 1e-4);
-    float alpha = 1.0 - smoothstep(0.0, aaCircle, dCircle);
+    float clipAlpha = coverageFromDistance(clipSignedDistance(p));
+    float alpha = clipAlpha;
 
     if (alpha <= 0.0) {
         discard;

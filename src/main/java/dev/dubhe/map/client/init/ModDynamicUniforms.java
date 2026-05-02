@@ -17,10 +17,17 @@ public class ModDynamicUniforms {
         GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST
     );
 
-    public record MapUniform(Vector2fc center, float radius) implements DynamicUniformStorage.DynamicUniform {
+    public record MapUniform(
+        Vector2fc clipCenter,
+        Vector2fc clipHalfSize,
+        float clipRadius,
+        float clipMode
+    ) implements DynamicUniformStorage.DynamicUniform {
         public static int size() {
             return new Std140SizeCalculator()
                 .putVec2()
+                .putVec2()
+                .putFloat()
                 .putFloat()
                 .get();
         }
@@ -28,8 +35,10 @@ public class ModDynamicUniforms {
         @Override
         public void write(ByteBuffer buffer) {
             Std140Builder.intoBuffer(buffer)
-                .putVec2(this.center)
-                .putFloat(this.radius);
+                .putVec2(this.clipCenter)
+                .putVec2(this.clipHalfSize)
+                .putFloat(this.clipRadius)
+                .putFloat(this.clipMode);
         }
     }
 }
