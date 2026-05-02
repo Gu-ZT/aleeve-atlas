@@ -122,12 +122,7 @@ public final class AtlasRadar {
         }
     }
 
-    // ── Marker rendering ──────────────────────────────────────────────────────
-
-    /**
-     * Renders a single filled-circle marker using the {@code core/marker} shader pipeline.
-     * Falls back to {@code graphics.fill()} when the GPU uniform buffer is unavailable.
-     */
+    @SuppressWarnings("SameParameterValue")
     static void renderCircleMarker(
         GuiGraphicsExtractor graphics,
         double guiX, double guiY,
@@ -170,25 +165,15 @@ public final class AtlasRadar {
         ));
     }
 
-    // ── Colour lookup ─────────────────────────────────────────────────────────
-
-    private static int markerColor(Entity entity) {
-        if (entity instanceof Player) {
-            return AtlasClientState.showPlayersOnRadar() ? COLOR_FRIENDLY : 0;
-        }
-        if (entity instanceof ItemEntity) {
-            return AtlasClientState.showItemsOnRadar() ? COLOR_ITEM : 0;
-        }
-        if (entity instanceof Enemy) {
-            return AtlasClientState.showHostileOnRadar() ? COLOR_HOSTILE : 0;
-        }
-        if (entity instanceof NeutralMob) {
-            return AtlasClientState.showFriendlyOnRadar() ? COLOR_NEUTRAL : 0;
-        }
-        if (entity instanceof LivingEntity) {
-            return AtlasClientState.showFriendlyOnRadar() ? COLOR_FRIENDLY : 0;
-        }
-        return 0;
+    private static int markerColor(@Nullable Entity entity) {
+        return switch (entity) {
+            case Player _ -> AtlasClientState.showPlayersOnRadar() ? COLOR_FRIENDLY : 0;
+            case ItemEntity _ -> AtlasClientState.showItemsOnRadar() ? COLOR_ITEM : 0;
+            case Enemy _ -> AtlasClientState.showHostileOnRadar() ? COLOR_HOSTILE : 0;
+            case NeutralMob _ -> AtlasClientState.showFriendlyOnRadar() ? COLOR_NEUTRAL : 0;
+            case LivingEntity _ -> AtlasClientState.showFriendlyOnRadar() ? COLOR_FRIENDLY : 0;
+            case null, default -> 0;
+        };
     }
 
     private record RadarMarker(double pixelX, double pixelY, int color, double distanceSqr, int entityId) {

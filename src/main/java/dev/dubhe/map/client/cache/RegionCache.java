@@ -3,7 +3,6 @@ package dev.dubhe.map.client.cache;
 import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,10 +31,6 @@ public class RegionCache {
 
     public @Nullable ChunkCache getChunk(short x, short z) {
         return chunks[x][z];
-    }
-
-    public void addChunk(LevelChunk chunk) {
-        this.addChunk(ChunkCache.create(this, chunk));
     }
 
     public void addColor(int color) {

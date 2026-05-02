@@ -20,6 +20,7 @@ public final class AtlasInputHandler {
     public static void onClientTickPost(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         while (AtlasKeyMappings.OPEN_SETTINGS.consumeClick()) {
+            //noinspection DataFlowIssue
             ModList.get()
                 .getModContainerById(AleeveAtlas.MOD_ID)
                 .ifPresent(container -> minecraft.setScreen(new ConfigurationScreen(container, minecraft.screen)));

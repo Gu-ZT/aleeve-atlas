@@ -20,11 +20,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.loading.FMLPaths;
 
+import javax.annotation.Nullable;
+
 public final class WaypointManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH = FMLPaths.CONFIGDIR.get().resolve(AleeveAtlas.MOD_ID + "-waypoints.json");
     private static final List<Waypoint> WAYPOINTS = new ArrayList<>();
-    private static String activeWaypointId;
+    private static @Nullable String activeWaypointId;
 
     private WaypointManager() {
     }
@@ -38,7 +40,7 @@ public final class WaypointManager {
         }
         try (Reader reader = Files.newBufferedReader(PATH)) {
             StoredWaypoints stored = GSON.fromJson(reader, StoredWaypoints.class);
-            if (stored != null && stored.waypoints != null) {
+            if (stored != null) {
                 WAYPOINTS.addAll(stored.waypoints);
                 activeWaypointId = stored.activeWaypointId;
             }
@@ -136,7 +138,7 @@ public final class WaypointManager {
     }
 
     private static class StoredWaypoints {
-        private String activeWaypointId;
+        private @Nullable String activeWaypointId;
         private List<Waypoint> waypoints = new ArrayList<>();
     }
 }

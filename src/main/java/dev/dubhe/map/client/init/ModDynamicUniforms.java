@@ -56,21 +56,6 @@ public class ModDynamicUniforms {
         }
     }
 
-    /**
-     * Uniform buffer for both the minimap clip region and a single circular / arrow marker.
-     *
-     * <p>Layout (std140):
-     * <ul>
-     *   <li>vec2  ClipCenter    – framebuffer-space centre of the minimap clip region</li>
-     *   <li>vec2  ClipHalfSize  – half-extents of the clip region (square mode)</li>
-     *   <li>float ClipRadius    – radius of the clip region (circular mode)</li>
-     *   <li>float ClipMode      – 0 = square clip, 1 = circular clip</li>
-     *   <li>vec2  MarkerCenter  – framebuffer-space centre of the marker</li>
-     *   <li>float MarkerRadius  – radius (framebuffer pixels)</li>
-     *   <li>float MarkerMode    – 0 = circle, 1 = circle + directional arrow</li>
-     *   <li>float ArrowAngle    – radians; 0 = arrow points up (−y = north)</li>
-     * </ul>
-     */
     public record MarkerUniform(
         Vector2fc clipCenter,
         Vector2fc clipHalfSize,

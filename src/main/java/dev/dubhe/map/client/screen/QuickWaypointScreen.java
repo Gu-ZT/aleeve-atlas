@@ -9,15 +9,17 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-public class QuickWaypointScreen extends Screen {
-    private final Screen parent;
-    private final Waypoint draft;
-    private EditBox nameBox;
-    private EditBox xBox;
-    private EditBox yBox;
-    private EditBox zBox;
+import javax.annotation.Nullable;
 
-    public QuickWaypointScreen(Screen parent) {
+public class QuickWaypointScreen extends Screen {
+    private final @Nullable Screen parent;
+    private final Waypoint draft;
+    private @Nullable EditBox nameBox;
+    private @Nullable EditBox xBox;
+    private @Nullable EditBox yBox;
+    private @Nullable EditBox zBox;
+
+    public QuickWaypointScreen(@Nullable Screen parent) {
         super(Component.translatable("screen.aleeve_atlas.quick_waypoint"));
         this.parent = parent;
         this.draft = WaypointManager.createAtCamera();
@@ -29,7 +31,14 @@ public class QuickWaypointScreen extends Screen {
         int left = this.width / 2 - 100;
         int top = this.height / 2 - 62;
 
-        this.nameBox = addRenderableWidget(new EditBox(this.font, left, top + 12, 200, 20, Component.translatable("screen.aleeve_atlas.waypoint.name")));
+        this.nameBox = addRenderableWidget(new EditBox(
+            this.font,
+            left,
+            top + 12,
+            200,
+            20,
+            Component.translatable("screen.aleeve_atlas.waypoint.name")
+        ));
         this.nameBox.setValue(this.draft.name);
 
         this.xBox = addRenderableWidget(new EditBox(this.font, left, top + 40, 62, 20, Component.literal("X")));
@@ -41,10 +50,10 @@ public class QuickWaypointScreen extends Screen {
         this.zBox = addRenderableWidget(new EditBox(this.font, left + 138, top + 40, 62, 20, Component.literal("Z")));
         this.zBox.setValue(Integer.toString(this.draft.z));
 
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.quick_waypoint.save"), button -> saveAndClose())
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.quick_waypoint.save"), ignored -> saveAndClose())
             .bounds(left, top + 70, 98, 20)
             .build());
-        addRenderableWidget(Button.builder(Component.translatable("gui.cancel"), button -> onClose())
+        addRenderableWidget(Button.builder(Component.translatable("gui.cancel"), ignored -> onClose())
             .bounds(left + 102, top + 70, 98, 20)
             .build());
 
@@ -53,10 +62,19 @@ public class QuickWaypointScreen extends Screen {
 
     private void saveAndClose() {
         Waypoint waypoint = this.draft.copy();
-        waypoint.name = this.nameBox.getValue().isBlank() ? Component.translatable("screen.aleeve_atlas.quick_waypoint.default_name").getString() : this.nameBox.getValue();
-        waypoint.x = parseInt(this.xBox.getValue(), waypoint.x);
-        waypoint.y = parseInt(this.yBox.getValue(), waypoint.y);
-        waypoint.z = parseInt(this.zBox.getValue(), waypoint.z);
+        if (this.nameBox != null) {
+            waypoint.name = this.nameBox.getValue().isBlank() ? Component.translatable("screen.aleeve_atlas.quick_waypoint.default_name")
+                                                                .getString() : this.nameBox.getValue();
+        }
+        if (this.xBox != null) {
+            waypoint.x = parseInt(this.xBox.getValue(), waypoint.x);
+        }
+        if (this.yBox != null) {
+            waypoint.y = parseInt(this.yBox.getValue(), waypoint.y);
+        }
+        if (this.zBox != null) {
+            waypoint.z = parseInt(this.zBox.getValue(), waypoint.z);
+        }
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level != null) {
@@ -77,9 +95,7 @@ public class QuickWaypointScreen extends Screen {
 
     @Override
     public void onClose() {
-        if (this.minecraft != null) {
-            this.minecraft.setScreen(this.parent);
-        }
+        this.minecraft.setScreen(this.parent);
     }
 
     @Override

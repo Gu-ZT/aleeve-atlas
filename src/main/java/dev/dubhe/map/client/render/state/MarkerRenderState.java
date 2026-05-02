@@ -16,13 +16,6 @@ import org.joml.Vector2fc;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-/**
- * Render state for a single minimap marker (entity dot or player arrow).
- *
- * <p>The backing fragment shader ({@code core/marker}) uses signed-distance-field
- * maths to draw either a filled circle (MarkerMode = 0) or a circle with a
- * directional arrow tip (MarkerMode = 1) within the minimap clip region.
- */
 public record MarkerRenderState(
     Matrix3x2f pose,
     Vector2f p0,
@@ -34,8 +27,6 @@ public record MarkerRenderState(
     @Nullable ScreenRectangle scissorArea,
     @Nullable ScreenRectangle bounds
 ) implements LibGuiElementRenderState {
-
-    /** Convenience constructor – computes {@code bounds} automatically. */
     public MarkerRenderState(
         Matrix3x2f pose,
         Vector2f p0,
@@ -79,22 +70,6 @@ public record MarkerRenderState(
         return Map.of("MarkerUniform", markerUniform());
     }
 
-    // ── Factory helpers ──────────────────────────────────────────────────────
-
-    /**
-     * Writes a {@link ModDynamicUniforms.MarkerUniform} into the shared dynamic-uniform
-     * storage and returns a slice to it.  Returns {@code null} when the client has not
-     * yet been initialised (e.g. during early loading).
-     *
-     * @param clipCenter    framebuffer-space centre of the minimap clip region
-     * @param clipHalfSize  half-extents of the clip region
-     * @param clipRadius    radius for circular clip mode
-     * @param clipMode      0 = square, 1 = circle
-     * @param markerCenter  framebuffer-space centre of the marker
-     * @param markerRadius  marker radius in framebuffer pixels
-     * @param markerMode    0 = circle, 1 = circle + arrow
-     * @param arrowAngle    arrow direction in radians (0 = north / up)
-     */
     @Nullable
     public static GpuBufferSlice createMarkerUniform(
         Vector2fc clipCenter,

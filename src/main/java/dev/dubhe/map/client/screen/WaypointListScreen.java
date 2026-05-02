@@ -13,17 +13,18 @@ import net.minecraft.network.chat.Component;
 
 import java.util.List;
 import java.util.Locale;
+import javax.annotation.Nullable;
 
 public class WaypointListScreen extends Screen {
-    private final Screen parent;
-    private EditBox nameBox;
-    private EditBox xBox;
-    private EditBox yBox;
-    private EditBox zBox;
-    private EditBox colorBox;
+    private final @Nullable Screen parent;
+    private @Nullable EditBox nameBox;
+    private @Nullable EditBox xBox;
+    private @Nullable EditBox yBox;
+    private @Nullable EditBox zBox;
+    private @Nullable EditBox colorBox;
     private int selectedIndex = -1;
 
-    public WaypointListScreen(Screen parent) {
+    public WaypointListScreen(@Nullable Screen parent) {
         super(Component.translatable("screen.aleeve_atlas.waypoints"));
         this.parent = parent;
     }
@@ -56,35 +57,35 @@ public class WaypointListScreen extends Screen {
         this.colorBox.setValue("#FF55FF");
 
         int buttonY = top + 88;
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.previous"), button -> selectRelative(-1))
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.previous"), ignored -> selectRelative(-1))
             .bounds(editorLeft, buttonY, 75, 20)
             .build());
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.next"), button -> selectRelative(1))
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.next"), ignored -> selectRelative(1))
             .bounds(editorLeft + 85, buttonY, 75, 20)
             .build());
 
         buttonY += 24;
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.use_player"), button -> fillFromPlayer())
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.use_player"), ignored -> fillFromPlayer())
             .bounds(editorLeft, buttonY, 160, 20)
             .build());
 
         buttonY += 24;
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.new"), button -> newDraft())
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.new"), ignored -> newDraft())
             .bounds(editorLeft, buttonY, 75, 20)
             .build());
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.save"), button -> saveCurrent())
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.save"), ignored -> saveCurrent())
             .bounds(editorLeft + 85, buttonY, 75, 20)
             .build());
 
         buttonY += 24;
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.delete"), button -> deleteCurrent())
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.delete"), ignored -> deleteCurrent())
             .bounds(editorLeft, buttonY, 75, 20)
             .build());
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.set_active"), button -> setActiveCurrent())
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.set_active"), ignored -> setActiveCurrent())
             .bounds(editorLeft + 85, buttonY, 75, 20)
             .build());
 
-        addRenderableWidget(Button.builder(Component.translatable("gui.done"), button -> onClose())
+        addRenderableWidget(Button.builder(Component.translatable("gui.done"), ignored -> onClose())
             .bounds(this.width / 2 - 75, this.height - 28, 150, 20)
             .build());
 
@@ -118,10 +119,16 @@ public class WaypointListScreen extends Screen {
             return;
         }
         BlockPos pos = minecraft.player.blockPosition();
-        this.xBox.setValue(Integer.toString(pos.getX()));
-        this.yBox.setValue(Integer.toString(pos.getY()));
-        this.zBox.setValue(Integer.toString(pos.getZ()));
-        if (this.selectedIndex < 0 && this.nameBox.getValue().isBlank()) {
+        if (this.xBox != null) {
+            this.xBox.setValue(Integer.toString(pos.getX()));
+        }
+        if (this.yBox != null) {
+            this.yBox.setValue(Integer.toString(pos.getY()));
+        }
+        if (this.zBox != null) {
+            this.zBox.setValue(Integer.toString(pos.getZ()));
+        }
+        if (this.selectedIndex < 0 && this.nameBox != null && this.nameBox.getValue().isBlank()) {
             this.nameBox.setValue("Waypoint " + (WaypointManager.getWaypoints().size() + 1));
         }
     }
@@ -136,11 +143,21 @@ public class WaypointListScreen extends Screen {
     }
 
     private void applyToInputs(Waypoint waypoint) {
-        this.nameBox.setValue(waypoint.name);
-        this.xBox.setValue(Integer.toString(waypoint.x));
-        this.yBox.setValue(Integer.toString(waypoint.y));
-        this.zBox.setValue(Integer.toString(waypoint.z));
-        this.colorBox.setValue(String.format(Locale.ROOT, "#%06X", waypoint.color & 0xFFFFFF));
+        if (this.nameBox != null) {
+            this.nameBox.setValue(waypoint.name);
+        }
+        if (this.xBox != null) {
+            this.xBox.setValue(Integer.toString(waypoint.x));
+        }
+        if (this.yBox != null) {
+            this.yBox.setValue(Integer.toString(waypoint.y));
+        }
+        if (this.zBox != null) {
+            this.zBox.setValue(Integer.toString(waypoint.z));
+        }
+        if (this.colorBox != null) {
+            this.colorBox.setValue(String.format(Locale.ROOT, "#%06X", waypoint.color & 0xFFFFFF));
+        }
     }
 
     private void saveCurrent() {
@@ -154,11 +171,21 @@ public class WaypointListScreen extends Screen {
             this.selectedIndex = waypoints.size();
         }
 
-        waypoint.name = this.nameBox.getValue().isBlank() ? "Waypoint" : this.nameBox.getValue();
-        waypoint.x = parseInt(this.xBox.getValue(), waypoint.x);
-        waypoint.y = parseInt(this.yBox.getValue(), waypoint.y);
-        waypoint.z = parseInt(this.zBox.getValue(), waypoint.z);
-        waypoint.color = parseColor(this.colorBox.getValue(), waypoint.color);
+        if (this.nameBox != null) {
+            waypoint.name = this.nameBox.getValue().isBlank() ? "Waypoint" : this.nameBox.getValue();
+        }
+        if (this.xBox != null) {
+            waypoint.x = parseInt(this.xBox.getValue(), waypoint.x);
+        }
+        if (this.yBox != null) {
+            waypoint.y = parseInt(this.yBox.getValue(), waypoint.y);
+        }
+        if (this.zBox != null) {
+            waypoint.z = parseInt(this.zBox.getValue(), waypoint.z);
+        }
+        if (this.colorBox != null) {
+            waypoint.color = parseColor(this.colorBox.getValue(), waypoint.color);
+        }
         if (minecraft.level != null) {
             waypoint.dimension = minecraft.level.dimension().identifier().toString();
         }
@@ -232,9 +259,7 @@ public class WaypointListScreen extends Screen {
 
     @Override
     public void onClose() {
-        if (this.minecraft != null) {
-            this.minecraft.setScreen(this.parent);
-        }
+        this.minecraft.setScreen(this.parent);
     }
 
     @Override

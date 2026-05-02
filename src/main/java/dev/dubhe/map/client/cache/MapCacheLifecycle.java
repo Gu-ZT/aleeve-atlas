@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class MapCacheLifecycle {
@@ -143,7 +144,7 @@ public final class MapCacheLifecycle {
 
     private static Path resolveDimensionPath(ClientLevel level) {
         String dimensionFolder = dimensionId(level).replace(':', '_');
-        return sessionRoot.resolve(dimensionFolder);
+        return Objects.requireNonNull(sessionRoot).resolve(dimensionFolder);
     }
 
     private static String dimensionId(ClientLevel level) {

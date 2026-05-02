@@ -23,7 +23,6 @@ public class ModRenders {
         .withUniform("MapUniform", UniformType.UNIFORM_BUFFER)
         .build();
 
-    /** Pipeline for rendering circular / arrow entity and player markers on the minimap. */
     public static final RenderPipeline MARKER_PIPELINE = RenderPipeline.builder(SNIPPET_COMMON)
         .withLocation(AleeveAtlas.of("pipeline/marker"))
         .withVertexShader("core/position_color")

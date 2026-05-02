@@ -499,7 +499,7 @@ public final class MinimapHudRenderer {
         int centerX = mapX + mapSize / 2;
         int centerY = mapY + mapSize / 2;
         float radiusGui = mapSize / 2.0F;
-        float borderWidthGui = Math.max(1.0F, (float) Math.ceil(minecraft.getWindow().getGuiScale()));
+        float borderWidthGui = Math.max(1.0F, minecraft.getWindow().getGuiScale());
 
         double guiScale = minecraft.getWindow().getGuiScale();
         int windowHeight = minecraft.getWindow().getHeight();

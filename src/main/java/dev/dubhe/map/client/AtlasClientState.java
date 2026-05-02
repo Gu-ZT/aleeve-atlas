@@ -1,17 +1,25 @@
 package dev.dubhe.map.client;
 
+import lombok.Getter;
+
 public final class AtlasClientState {
-    /** blockStep per zoom level 1‑5 */
-    private static final int[] ZOOM_STEPS = {1, 2, 4, 6, 12};
+    /**
+     * blockStep per zoom level 1‑5
+     */
+    private static final int[] ZOOM_STEPS = {
+        1,
+        2,
+        4,
+        6,
+        12
+    };
     private static final int DEFAULT_ZOOM = 2;
 
-    /** Runtime-only: drag rotation delta (not persisted). */
+    @Getter
     private static float manualRotationDeg = 0.0F;
 
     private AtlasClientState() {
     }
-
-    // ── persistent state via CONFIG ──────────────────────────────────────
 
     public static boolean isMinimapVisible() {
         return AleeveAtlasClient.CONFIG.display;
@@ -92,12 +100,6 @@ public final class AtlasClientState {
 
     public static boolean showPlayersOnRadar() {
         return AleeveAtlasClient.CONFIG.radarPlayers;
-    }
-
-    // ── runtime-only state ───────────────────────────────────────────────
-
-    public static float getManualRotationDeg() {
-        return manualRotationDeg;
     }
 
     public static void addManualRotationDeg(float deltaDeg) {
