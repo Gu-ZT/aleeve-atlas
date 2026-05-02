@@ -107,6 +107,7 @@ public final class MinimapHudRenderer {
 
         int cellCount = getCellCount(mapSize);
         double blockStep = AtlasClientState.getBlockStep() * (double) BASE_CELL_COUNT / cellCount;
+        int northStep = Math.max(1, (int) Math.round(blockStep));
         double cellSize = mapSize / (double) cellCount;
         double mapHalfSize = mapSize / 2.0D;
         long gameTime = minecraft.level.getGameTime();
@@ -120,9 +121,12 @@ public final class MinimapHudRenderer {
                 double sampleLocalZ = (gz + 0.5D - cellCount / 2.0D) * blockStep;
                 int sampleX = (int) Math.floor(playerX + sampleLocalX);
                 int sampleZ = (int) Math.floor(playerZ + sampleLocalZ);
-                int color = underground
-                            ? sampleCaveColor(minecraft, sampleX, sampleZ, playerY)
-                            : sampleSurfaceColor(minecraft, sampleX, sampleZ, gameTime);
+                TileSample surfaceSample = sampleSurfaceTile(minecraft, sampleX, sampleZ, gameTime);
+                TileSample northSurfaceSample = sampleSurfaceTile(minecraft, sampleX, sampleZ - northStep, gameTime);
+                int baseColor = underground
+                                ? sampleCaveColor(minecraft, sampleX, sampleZ, playerY)
+                                : surfaceSample.argb();
+                int color = applyNorthShade(baseColor, surfaceSample.height(), northSurfaceSample.height());
 
                 double localLeft = -mapHalfSize + gx * cellSize;
                 double localTop = -mapHalfSize + gz * cellSize;
@@ -307,22 +311,26 @@ public final class MinimapHudRenderer {
                && minecraft.level.getBrightness(LightLayer.SKY, playerPos.above()) < 8;
     }
 
-    private static int sampleSurfaceColor(Minecraft minecraft, int x, int z, long gameTime) {
+    private static TileSample sampleSurfaceTile(Minecraft minecraft, int x, int z, long gameTime) {
         long key = (((long) x) << 32) ^ (z & 0xFFFFFFFFL);
         CachedColor cached = COLOR_CACHE.get(key);
         if (cached != null && gameTime - cached.sampleTick < 20L) {
-            return cached.argb;
+            return new TileSample(cached.argb, cached.height);
         }
 
         int y = minecraft.level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
         y = Math.max(y, minecraft.level.getMinY());
         BlockPos pos = new BlockPos(x, y, z);
         int argb = resolveMapColor(minecraft, pos);
-        COLOR_CACHE.put(key, new CachedColor(argb, gameTime));
+        COLOR_CACHE.put(key, new CachedColor(argb, y, gameTime));
         if (COLOR_CACHE.size() > 20000) {
             COLOR_CACHE.clear();
         }
-        return argb;
+        return new TileSample(argb, y);
+    }
+
+    private static int sampleSurfaceColor(Minecraft minecraft, int x, int z, long gameTime) {
+        return sampleSurfaceTile(minecraft, x, z, gameTime).argb();
     }
 
     private static int sampleCaveColor(Minecraft minecraft, int x, int z, int playerY) {
@@ -373,6 +381,15 @@ public final class MinimapHudRenderer {
         int r = (int) (((argb >>> 16) & 0xFF) * factor);
         int g = (int) (((argb >>> 8) & 0xFF) * factor);
         int b = (int) ((argb & 0xFF) * factor);
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    private static int applyNorthShade(int argb, int y1, int y2) {
+        int m = y1 < y2 ? 180 : (y1 > y2 ? 255 : 220);
+        int a = (argb >>> 24) & 0xFF;
+        int r = ((argb >>> 16) & 0xFF) * m / 255;
+        int g = ((argb >>> 8) & 0xFF) * m / 255;
+        int b = (argb & 0xFF) * m / 255;
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
@@ -485,7 +502,10 @@ public final class MinimapHudRenderer {
     ) {
     }
 
-    private record CachedColor(int argb, long sampleTick) {
+    private record TileSample(int argb, int height) {
+    }
+
+    private record CachedColor(int argb, int height, long sampleTick) {
     }
 
     public static int getMinimapLeft(int guiWidth) {
