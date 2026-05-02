@@ -2,15 +2,14 @@ package dev.dubhe.map.client.cache;
 
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 @Getter
 public class ChunkCache {
@@ -99,6 +98,9 @@ public class ChunkCache {
         BlockPos.MutableBlockPos levelBlockPos = new BlockPos.MutableBlockPos();
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
+                if (!chunk.hasPrimedHeightmap(Heightmap.Types.WORLD_SURFACE_WG)) {
+                    continue;
+                }
                 int y = chunk.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
                 blockPos.set(x, y, z);
                 levelBlockPos.set(chunkPos.x() * 16 + x, y, chunkPos.z() * 16 + z);

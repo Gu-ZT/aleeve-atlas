@@ -17,6 +17,13 @@ public class ModDynamicUniforms {
         GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST
     );
 
+    @Getter
+    private final DynamicUniformStorage<MarkerUniform> markerUbo = new DynamicUniformStorage<>(
+        "MarkerUniform UBO",
+        MarkerUniform.size(),
+        GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST
+    );
+
     public record MapUniform(
         Vector2fc clipCenter,
         Vector2fc clipHalfSize,
@@ -39,6 +46,58 @@ public class ModDynamicUniforms {
                 .putVec2(this.clipHalfSize)
                 .putFloat(this.clipRadius)
                 .putFloat(this.clipMode);
+        }
+    }
+
+    /**
+     * Uniform buffer for both the minimap clip region and a single circular / arrow marker.
+     *
+     * <p>Layout (std140):
+     * <ul>
+     *   <li>vec2  ClipCenter    – framebuffer-space centre of the minimap clip region</li>
+     *   <li>vec2  ClipHalfSize  – half-extents of the clip region (square mode)</li>
+     *   <li>float ClipRadius    – radius of the clip region (circular mode)</li>
+     *   <li>float ClipMode      – 0 = square clip, 1 = circular clip</li>
+     *   <li>vec2  MarkerCenter  – framebuffer-space centre of the marker</li>
+     *   <li>float MarkerRadius  – radius (framebuffer pixels)</li>
+     *   <li>float MarkerMode    – 0 = circle, 1 = circle + directional arrow</li>
+     *   <li>float ArrowAngle    – radians; 0 = arrow points up (−y = north)</li>
+     * </ul>
+     */
+    public record MarkerUniform(
+        Vector2fc clipCenter,
+        Vector2fc clipHalfSize,
+        float clipRadius,
+        float clipMode,
+        Vector2fc markerCenter,
+        float markerRadius,
+        float markerMode,
+        float arrowAngle
+    ) implements DynamicUniformStorage.DynamicUniform {
+        public static int size() {
+            return new Std140SizeCalculator()
+                .putVec2()   // ClipCenter
+                .putVec2()   // ClipHalfSize
+                .putFloat()  // ClipRadius
+                .putFloat()  // ClipMode
+                .putVec2()   // MarkerCenter
+                .putFloat()  // MarkerRadius
+                .putFloat()  // MarkerMode
+                .putFloat()  // ArrowAngle
+                .get();
+        }
+
+        @Override
+        public void write(ByteBuffer buffer) {
+            Std140Builder.intoBuffer(buffer)
+                .putVec2(this.clipCenter)
+                .putVec2(this.clipHalfSize)
+                .putFloat(this.clipRadius)
+                .putFloat(this.clipMode)
+                .putVec2(this.markerCenter)
+                .putFloat(this.markerRadius)
+                .putFloat(this.markerMode)
+                .putFloat(this.arrowAngle);
         }
     }
 }

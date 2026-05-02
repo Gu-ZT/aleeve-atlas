@@ -7,6 +7,7 @@ import dev.dubhe.map.client.AtlasClientState;
 import dev.dubhe.map.client.cache.MapCacheLifecycle;
 import dev.dubhe.map.client.radar.AtlasRadar;
 import dev.dubhe.map.client.render.state.MapRenderState;
+import dev.dubhe.map.client.render.state.MarkerRenderState;
 import dev.dubhe.map.client.waypoint.WaypointRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -26,6 +27,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import org.joml.Vector2f;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -79,7 +81,7 @@ public final class MinimapHudRenderer {
         renderCells(minecraft, graphics, x0, y0, mapSize, rotationDeg);
         AtlasRadar.render(minecraft, graphics, x0, y0, mapSize, rotationDeg);
         WaypointRenderer.renderMinimap(minecraft, graphics, x0, y0, mapSize, rotationDeg);
-        renderPlayerMarker(graphics, x0, y0, mapSize);
+        renderPlayerMarker(minecraft, graphics, x0, y0, mapSize);
         renderHudInfo(minecraft, graphics, x0, y1 + 4);
     }
 
@@ -414,10 +416,65 @@ public final class MinimapHudRenderer {
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
-    private static void renderPlayerMarker(GuiGraphicsExtractor graphics, int mapX, int mapY, int mapSize) {
+    private static void renderPlayerMarker(Minecraft minecraft, GuiGraphicsExtractor graphics, int mapX, int mapY, int mapSize) {
         int cx = mapX + mapSize / 2;
         int cy = mapY + mapSize / 2;
-        graphics.fill(cx - 2, cy - 2, cx + 3, cy + 3, PLAYER_COLOR);
+
+        boolean northLocked = !AtlasClientState.isRotateWithPlayer();
+
+        // When north-locked the marker is a circle+arrow pointing in the player's facing direction.
+        // When rotating with the player (FOLLOW mode) the player always faces "up", so a plain circle suffices.
+        float markerMode = northLocked ? 1.0f : 0.0f;
+        float arrowAngle = 0.0f;
+        if (northLocked && minecraft.player != null) {
+            // Convert Minecraft yRot to screen-space angle from north (up = −y).
+            // ArrowAngle = yRot + 180° in radians: at yRot=180 (facing north) → 0 rad (arrow up). ✓
+            float yRot = minecraft.player.getYRot();
+            arrowAngle = (float) Math.toRadians(yRot + 180.0);
+        }
+
+        float playerRadiusGui = 4.0f;
+        // Bounding quad: extend by full radius + 1 to cover the arrow tip when rotated
+        float pad = playerRadiusGui + 1.5f;
+
+        boolean circleClip = AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.CIRCLE;
+        double guiScale = minecraft.getWindow().getGuiScale();
+        int windowHeight = minecraft.getWindow().getHeight();
+        float fbClipCx   = (float) (cx * guiScale);
+        float fbClipCy   = (float) (windowHeight - cy * guiScale);
+        float fbClipHalf = (float) (mapSize / 2.0 * guiScale);
+        float fbClipMode = circleClip ? 1.0f : 0.0f;
+
+        float fbMarkerCx = (float) (cx * guiScale);
+        float fbMarkerCy = (float) (windowHeight - cy * guiScale);
+        float fbRadius   = playerRadiusGui * (float) guiScale;
+
+        @Nullable GpuBufferSlice uniform = MarkerRenderState.createMarkerUniform(
+            new Vector2f(fbClipCx, fbClipCy),
+            new Vector2f(fbClipHalf, fbClipHalf),
+            fbClipHalf,
+            fbClipMode,
+            new Vector2f(fbMarkerCx, fbMarkerCy),
+            fbRadius,
+            markerMode,
+            arrowAngle
+        );
+
+        if (uniform == null) {
+            // Fallback: plain square
+            graphics.fill(cx - 2, cy - 2, cx + 3, cy + 3, PLAYER_COLOR);
+            return;
+        }
+
+        float x0 = cx - pad, y0 = cy - pad;
+        float x1 = cx + pad, y1 = cy + pad;
+        graphics.submitGuiElementRenderState(new MarkerRenderState(
+            graphics.pose(),
+            new Vector2f(x0, y0), new Vector2f(x1, y0),
+            new Vector2f(x1, y1), new Vector2f(x0, y1),
+            PLAYER_COLOR, uniform,
+            graphics.peekScissorStack()
+        ));
     }
 
     private static void renderHudInfo(Minecraft minecraft, GuiGraphicsExtractor graphics, int x, int y) {
