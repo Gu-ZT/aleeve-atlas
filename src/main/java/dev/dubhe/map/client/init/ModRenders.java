@@ -31,4 +31,12 @@ public class ModRenders {
         .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
         .withUniform("MarkerUniform", UniformType.UNIFORM_BUFFER)
         .build();
+
+    public static final RenderPipeline MINIMAP_FRAME_PIPELINE = RenderPipeline.builder(SNIPPET_COMMON)
+        .withLocation(AleeveAtlas.of("pipeline/minimap_frame"))
+        .withVertexShader("core/position_color")
+        .withFragmentShader(AleeveAtlas.of("core/minimap_frame"))
+        .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+        .withUniform("MinimapFrameUniform", UniformType.UNIFORM_BUFFER)
+        .build();
 }

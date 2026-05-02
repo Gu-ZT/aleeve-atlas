@@ -24,6 +24,13 @@ public class ModDynamicUniforms {
         GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST
     );
 
+    @Getter
+    private final DynamicUniformStorage<MinimapFrameUniform> minimapFrameUbo = new DynamicUniformStorage<>(
+        "MinimapFrameUniform UBO",
+        MinimapFrameUniform.size(),
+        GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST
+    );
+
     public record MapUniform(
         Vector2fc clipCenter,
         Vector2fc clipHalfSize,
@@ -98,6 +105,52 @@ public class ModDynamicUniforms {
                 .putFloat(this.markerRadius)
                 .putFloat(this.markerMode)
                 .putFloat(this.arrowAngle);
+        }
+    }
+
+    public record MinimapFrameUniform(
+        Vector2fc frameCenter,
+        float frameRadius,
+        float borderWidth,
+        float fillR,
+        float fillG,
+        float fillB,
+        float fillA,
+        float borderR,
+        float borderG,
+        float borderB,
+        float borderA
+    ) implements DynamicUniformStorage.DynamicUniform {
+        public static int size() {
+            return new Std140SizeCalculator()
+                .putVec2()
+                .putFloat()
+                .putFloat()
+                .putFloat()
+                .putFloat()
+                .putFloat()
+                .putFloat()
+                .putFloat()
+                .putFloat()
+                .putFloat()
+                .putFloat()
+                .get();
+        }
+
+        @Override
+        public void write(ByteBuffer buffer) {
+            Std140Builder.intoBuffer(buffer)
+                .putVec2(this.frameCenter)
+                .putFloat(this.frameRadius)
+                .putFloat(this.borderWidth)
+                .putFloat(this.fillR)
+                .putFloat(this.fillG)
+                .putFloat(this.fillB)
+                .putFloat(this.fillA)
+                .putFloat(this.borderR)
+                .putFloat(this.borderG)
+                .putFloat(this.borderB)
+                .putFloat(this.borderA);
         }
     }
 }

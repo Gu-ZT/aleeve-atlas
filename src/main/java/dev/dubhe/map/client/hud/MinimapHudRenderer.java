@@ -7,6 +7,7 @@ import dev.dubhe.map.client.AtlasClientState;
 import dev.dubhe.map.client.cache.MapCacheLifecycle;
 import dev.dubhe.map.client.radar.AtlasRadar;
 import dev.dubhe.map.client.render.state.MapRenderState;
+import dev.dubhe.map.client.render.state.MinimapFrameRenderState;
 import dev.dubhe.map.client.render.state.MarkerRenderState;
 import dev.dubhe.map.client.waypoint.WaypointRenderer;
 import net.minecraft.client.Minecraft;
@@ -70,8 +71,7 @@ public final class MinimapHudRenderer {
         int y1 = y0 + mapSize;
 
         if (AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.CIRCLE) {
-            drawCircleFilled(graphics, x0 + mapSize / 2, y0 + mapSize / 2, mapSize / 2, BACKGROUND_COLOR);
-            drawCircleOutline(graphics, x0 + mapSize / 2, y0 + mapSize / 2, mapSize / 2, BORDER_COLOR);
+            renderCircularFrame(graphics, minecraft, x0, y0, mapSize);
         } else {
             graphics.outline(x0, y0, x1 - x0, y1 - y0, BORDER_COLOR);
             graphics.fill(x0, y0, x1, y1, BACKGROUND_COLOR);
@@ -491,6 +491,45 @@ public final class MinimapHudRenderer {
             new Vector2f(x0, y0), new Vector2f(x1, y0),
             new Vector2f(x1, y1), new Vector2f(x0, y1),
             PLAYER_COLOR, uniform,
+            graphics.peekScissorStack()
+        ));
+    }
+
+    private static void renderCircularFrame(GuiGraphicsExtractor graphics, Minecraft minecraft, int mapX, int mapY, int mapSize) {
+        int centerX = mapX + mapSize / 2;
+        int centerY = mapY + mapSize / 2;
+        float radiusGui = mapSize / 2.0F;
+        float borderWidthGui = Math.max(1.0F, (float) Math.ceil(minecraft.getWindow().getGuiScale()));
+
+        double guiScale = minecraft.getWindow().getGuiScale();
+        int windowHeight = minecraft.getWindow().getHeight();
+        float fbCenterX = (float) (centerX * guiScale);
+        float fbCenterY = (float) (windowHeight - centerY * guiScale);
+        float fbRadius = radiusGui * (float) guiScale;
+        float fbBorderWidth = borderWidthGui * (float) guiScale;
+
+        @Nullable GpuBufferSlice frameUniform = MinimapFrameRenderState.createFrameUniform(
+            new Vector2f(fbCenterX, fbCenterY),
+            fbRadius,
+            fbBorderWidth,
+            BACKGROUND_COLOR,
+            BORDER_COLOR
+        );
+
+        if (frameUniform == null) {
+            drawCircleFilled(graphics, centerX, centerY, mapSize / 2, BACKGROUND_COLOR);
+            drawCircleOutline(graphics, centerX, centerY, mapSize / 2, BORDER_COLOR);
+            return;
+        }
+
+        graphics.submitGuiElementRenderState(new MinimapFrameRenderState(
+            graphics.pose(),
+            new Vector2f(mapX, mapY),
+            new Vector2f(mapX + mapSize, mapY),
+            new Vector2f(mapX + mapSize, mapY + mapSize),
+            new Vector2f(mapX, mapY + mapSize),
+            0xFFFFFFFF,
+            frameUniform,
             graphics.peekScissorStack()
         ));
     }
