@@ -141,9 +141,7 @@ public final class AtlasRadar {
 
         @Nullable GpuBufferSlice uniform = MarkerRenderState.createMarkerUniform(
             clipCenter, clipHalfSize, clipRadius, clipMode,
-            new Vector2f(fbX, fbY), fbRadius,
-            0.0f,  // circle mode
-            0.0f   // no arrow
+            new Vector2f(fbX, fbY), fbRadius
         );
 
         if (uniform == null) {

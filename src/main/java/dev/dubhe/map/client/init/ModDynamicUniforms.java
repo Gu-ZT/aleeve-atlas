@@ -25,6 +25,13 @@ public class ModDynamicUniforms {
     );
 
     @Getter
+    private final DynamicUniformStorage<ArrowMarkerUniform> arrowMarkerUbo = new DynamicUniformStorage<>(
+        "ArrowMarkerUniform UBO",
+        ArrowMarkerUniform.size(),
+        GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST
+    );
+
+    @Getter
     private final DynamicUniformStorage<MinimapFrameUniform> minimapFrameUbo = new DynamicUniformStorage<>(
         "MinimapFrameUniform UBO",
         MinimapFrameUniform.size(),
@@ -62,8 +69,38 @@ public class ModDynamicUniforms {
         float clipRadius,
         float clipMode,
         Vector2fc markerCenter,
+        float markerRadius
+    ) implements DynamicUniformStorage.DynamicUniform {
+        public static int size() {
+            return new Std140SizeCalculator()
+                .putVec2()   // ClipCenter
+                .putVec2()   // ClipHalfSize
+                .putFloat()  // ClipRadius
+                .putFloat()  // ClipMode
+                .putVec2()   // MarkerCenter
+                .putFloat()  // MarkerRadius
+                .get();
+        }
+
+        @Override
+        public void write(ByteBuffer buffer) {
+            Std140Builder.intoBuffer(buffer)
+                .putVec2(this.clipCenter)
+                .putVec2(this.clipHalfSize)
+                .putFloat(this.clipRadius)
+                .putFloat(this.clipMode)
+                .putVec2(this.markerCenter)
+                .putFloat(this.markerRadius);
+        }
+    }
+
+    public record ArrowMarkerUniform(
+        Vector2fc clipCenter,
+        Vector2fc clipHalfSize,
+        float clipRadius,
+        float clipMode,
+        Vector2fc markerCenter,
         float markerRadius,
-        float markerMode,
         float arrowAngle
     ) implements DynamicUniformStorage.DynamicUniform {
         public static int size() {
@@ -74,7 +111,6 @@ public class ModDynamicUniforms {
                 .putFloat()  // ClipMode
                 .putVec2()   // MarkerCenter
                 .putFloat()  // MarkerRadius
-                .putFloat()  // MarkerMode
                 .putFloat()  // ArrowAngle
                 .get();
         }
@@ -88,7 +124,6 @@ public class ModDynamicUniforms {
                 .putFloat(this.clipMode)
                 .putVec2(this.markerCenter)
                 .putFloat(this.markerRadius)
-                .putFloat(this.markerMode)
                 .putFloat(this.arrowAngle);
         }
     }

@@ -31,6 +31,14 @@ public class ModRenders {
         .withUniform("MarkerUniform", UniformType.UNIFORM_BUFFER)
         .build();
 
+    public static final RenderPipeline ARROW_MARKER_PIPELINE = RenderPipeline.builder(SNIPPET_COMMON)
+        .withLocation(AleeveAtlas.of("pipeline/arrow_marker"))
+        .withVertexShader("core/position_color")
+        .withFragmentShader(AleeveAtlas.of("core/arrow_marker"))
+        .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+        .withUniform("ArrowMarkerUniform", UniformType.UNIFORM_BUFFER)
+        .build();
+
     public static final RenderPipeline MINIMAP_FRAME_PIPELINE = RenderPipeline.builder(SNIPPET_COMMON)
         .withLocation(AleeveAtlas.of("pipeline/minimap_frame"))
         .withVertexShader("core/position_color")

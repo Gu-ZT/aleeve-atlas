@@ -16,25 +16,25 @@ import org.joml.Vector2fc;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-public record MarkerRenderState(
+public record ArrowMarkerRenderState(
     Matrix3x2f pose,
     Vector2f p0,
     Vector2f p1,
     Vector2f p2,
     Vector2f p3,
     int color,
-    GpuBufferSlice markerUniform,
+    GpuBufferSlice arrowMarkerUniform,
     @Nullable ScreenRectangle scissorArea,
     @Nullable ScreenRectangle bounds
 ) implements LibGuiElementRenderState {
-    public MarkerRenderState(
+    public ArrowMarkerRenderState(
         Matrix3x2f pose,
         Vector2f p0,
         Vector2f p1,
         Vector2f p2,
         Vector2f p3,
         int color,
-        GpuBufferSlice markerUniform,
+        GpuBufferSlice arrowMarkerUniform,
         @Nullable ScreenRectangle scissorArea
     ) {
         float minX = Math.min(Math.min(p0.x, p1.x), Math.min(p2.x, p3.x));
@@ -42,7 +42,7 @@ public record MarkerRenderState(
         float maxX = Math.max(Math.max(p0.x, p1.x), Math.max(p2.x, p3.x));
         float maxY = Math.max(Math.max(p0.y, p1.y), Math.max(p2.y, p3.y));
         this(
-            pose, p0, p1, p2, p3, color, markerUniform, scissorArea,
+            pose, p0, p1, p2, p3, color, arrowMarkerUniform, scissorArea,
             LibGuiElementRenderState.getBounds(pose, minX, minY, maxX, maxY, scissorArea)
         );
     }
@@ -57,7 +57,7 @@ public record MarkerRenderState(
 
     @Override
     public RenderPipeline pipeline() {
-        return ModRenders.MARKER_PIPELINE;
+        return ModRenders.ARROW_MARKER_PIPELINE;
     }
 
     @Override
@@ -67,25 +67,26 @@ public record MarkerRenderState(
 
     @Override
     public Map<String, GpuBufferSlice> bufferSlices() {
-        return Map.of("MarkerUniform", markerUniform());
+        return Map.of("ArrowMarkerUniform", arrowMarkerUniform());
     }
 
     @Nullable
-    public static GpuBufferSlice createMarkerUniform(
+    public static GpuBufferSlice createArrowMarkerUniform(
         Vector2fc clipCenter,
         Vector2fc clipHalfSize,
         float clipRadius,
         float clipMode,
         Vector2fc markerCenter,
-        float markerRadius
+        float markerRadius,
+        float arrowAngle
     ) {
         if (AleeveAtlasClient.getModDynamicUniforms() == null) {
             return null;
         }
-        return AleeveAtlasClient.getModDynamicUniforms().getMarkerUbo().writeUniform(
-            new ModDynamicUniforms.MarkerUniform(
+        return AleeveAtlasClient.getModDynamicUniforms().getArrowMarkerUbo().writeUniform(
+            new ModDynamicUniforms.ArrowMarkerUniform(
                 clipCenter, clipHalfSize, clipRadius, clipMode,
-                markerCenter, markerRadius
+                markerCenter, markerRadius, arrowAngle
             )
         );
     }

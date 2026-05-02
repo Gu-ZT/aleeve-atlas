@@ -2,6 +2,7 @@ package dev.dubhe.map.client.hud;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import dev.dubhe.map.client.AtlasClientState;
+import dev.dubhe.map.client.render.state.ArrowMarkerRenderState;
 import dev.dubhe.map.client.render.state.MarkerRenderState;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -36,13 +37,12 @@ public class MinimapSelfMarkerGuiLayer implements GuiLayer {
         int cy = mapY + mapSize / 2;
 
         boolean northLocked = !AtlasClientState.isRotateWithPlayer();
-        float markerMode = northLocked ? 1.0f : 0.0f;
         float arrowAngle = 0.0f;
         if (northLocked && minecraft.player != null) {
             float yawRad = (float) Math.toRadians(minecraft.player.getYRot());
             float dirMapX = (float) -Math.sin(yawRad);
             float dirMapY = (float) Math.cos(yawRad);
-            arrowAngle = (float) Math.atan2(dirMapX, -dirMapY);
+            arrowAngle = (float) Math.atan2(dirMapX, dirMapY);
         }
 
         float playerRadiusGui = 4.0f;
@@ -59,33 +59,58 @@ public class MinimapSelfMarkerGuiLayer implements GuiLayer {
         float fbMarkerCy = (float) Math.floor(windowHeight - cy * guiScale) + 0.5f;
         float fbRadius = playerRadiusGui * (float) guiScale;
 
-        @Nullable GpuBufferSlice uniform = MarkerRenderState.createMarkerUniform(
-            new Vector2f(fbClipCx, fbClipCy),
-            new Vector2f(fbClipHalf, fbClipHalf),
-            fbClipHalf,
-            fbClipMode,
-            new Vector2f(fbMarkerCx, fbMarkerCy),
-            fbRadius,
-            markerMode,
-            arrowAngle
-        );
-
-        if (uniform == null) {
-            graphics.fill(cx - 2, cy - 2, cx + 3, cy + 3, PLAYER_COLOR);
-            return;
-        }
-
         float x0 = cx - pad;
         float y0 = cy - pad;
         float x1 = cx + pad;
         float y1 = cy + pad;
-        graphics.submitGuiElementRenderState(new MarkerRenderState(
-            graphics.pose(),
-            new Vector2f(x0, y0), new Vector2f(x1, y0),
-            new Vector2f(x1, y1), new Vector2f(x0, y1),
-            PLAYER_COLOR,
-            uniform,
-            graphics.peekScissorStack()
-        ));
+
+        if (northLocked) {
+            @Nullable GpuBufferSlice uniform = ArrowMarkerRenderState.createArrowMarkerUniform(
+                new Vector2f(fbClipCx, fbClipCy),
+                new Vector2f(fbClipHalf, fbClipHalf),
+                fbClipHalf,
+                fbClipMode,
+                new Vector2f(fbMarkerCx, fbMarkerCy),
+                fbRadius,
+                arrowAngle
+            );
+
+            if (uniform == null) {
+                graphics.fill(cx - 2, cy - 2, cx + 3, cy + 3, PLAYER_COLOR);
+                return;
+            }
+
+            graphics.submitGuiElementRenderState(new ArrowMarkerRenderState(
+                graphics.pose(),
+                new Vector2f(x0, y0), new Vector2f(x1, y0),
+                new Vector2f(x1, y1), new Vector2f(x0, y1),
+                PLAYER_COLOR,
+                uniform,
+                graphics.peekScissorStack()
+            ));
+        } else {
+            @Nullable GpuBufferSlice uniform = MarkerRenderState.createMarkerUniform(
+                new Vector2f(fbClipCx, fbClipCy),
+                new Vector2f(fbClipHalf, fbClipHalf),
+                fbClipHalf,
+                fbClipMode,
+                new Vector2f(fbMarkerCx, fbMarkerCy),
+                fbRadius
+            );
+
+            if (uniform == null) {
+                graphics.fill(cx - 2, cy - 2, cx + 3, cy + 3, PLAYER_COLOR);
+                return;
+            }
+
+            graphics.submitGuiElementRenderState(new MarkerRenderState(
+                graphics.pose(),
+                new Vector2f(x0, y0), new Vector2f(x1, y0),
+                new Vector2f(x1, y1), new Vector2f(x0, y1),
+                PLAYER_COLOR,
+                uniform,
+                graphics.peekScissorStack()
+            ));
+        }
     }
 }
