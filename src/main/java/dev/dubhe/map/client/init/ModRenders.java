@@ -20,6 +20,6 @@ public class ModRenders {
         .withVertexShader("core/position_color")
         .withFragmentShader(AleeveAtlas.of("core/map"))
         .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
-        .withUniform("RingUniform", UniformType.UNIFORM_BUFFER)
+        .withUniform("MapUniform", UniformType.UNIFORM_BUFFER)
         .build();
 }
