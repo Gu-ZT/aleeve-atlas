@@ -87,8 +87,23 @@ public final class MinimapGuiLayer implements GuiLayer {
         GpuBufferSlice mapUniform = createClipUniform(clipMask);
         Map<Long, ChunkRenderBatch> chunkBatches = new HashMap<>();
 
-        for (int gz = 0; gz < cellCount; gz++) {
-            for (int gx = 0; gx < cellCount; gx++) {
+        // When the map is square and rotates with the player, the corners of the square viewport
+        // map to world positions at distance mapHalfSize * sqrt(2). Expand the sampling loop to
+        // cover that circumscribed circle so the corners are never empty.
+        boolean expandForDiagonal = !circleMode && AtlasClientState.isRotateWithPlayer();
+        int loopExtra = expandForDiagonal ? (int) Math.ceil(1.2 * cellCount * (Math.sqrt(2.0) - 1.0) / 2.0) : 0;
+        double expandedRadiusSq = 2.0D * mapHalfSize * mapHalfSize * 1.2D; // (mapHalfSize * sqrt(2))^2
+
+        for (int gz = -loopExtra; gz < cellCount + loopExtra; gz++) {
+            for (int gx = -loopExtra; gx < cellCount + loopExtra; gx++) {
+                // Cull cells outside the circumscribed circle when in expanded mode.
+                if (expandForDiagonal) {
+                    double cellCenterLocalX = (gx + 0.5D - cellCount / 2.0D) * cellSize;
+                    double cellCenterLocalZ = (gz + 0.5D - cellCount / 2.0D) * cellSize;
+                    if (cellCenterLocalX * cellCenterLocalX + cellCenterLocalZ * cellCenterLocalZ > expandedRadiusSq) {
+                        continue;
+                    }
+                }
                 double sampleLocalX = (gx + 0.5D - cellCount / 2.0D) * blockStep;
                 double sampleLocalZ = (gz + 0.5D - cellCount / 2.0D) * blockStep;
                 int sampleX = quantizeSampleCoord(anchorX + sampleLocalX);
