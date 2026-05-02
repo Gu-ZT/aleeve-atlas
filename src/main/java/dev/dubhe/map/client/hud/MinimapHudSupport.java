@@ -28,7 +28,7 @@ public final class MinimapHudSupport {
         int mapSize = AtlasClientState.getMinimapSizePx();
         int mapX = getMinimapLeft(graphics.guiWidth());
         int mapY = getMinimapTop(graphics.guiHeight());
-        return new MinimapContext(minecraft, mapX, mapY, mapSize, getEffectiveRotationDegrees(minecraft));
+        return new MinimapContext(minecraft, mapX, mapY, mapSize, -getEffectiveRotationDegrees(minecraft));
     }
 
     public static float getEffectiveRotationDegrees(Minecraft minecraft) {

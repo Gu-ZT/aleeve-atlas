@@ -45,7 +45,7 @@ public final class WaypointRenderer {
             return;
         }
 
-        float rotationRad = (float) Math.toRadians(rotationDeg);
+        float rotationRad = (float) Math.toRadians(-rotationDeg);
         double cos = Math.cos(rotationRad);
         double sin = Math.sin(rotationRad);
         int centerX = mapX + mapSizePx / 2;

@@ -48,7 +48,7 @@ public final class AtlasRadar {
         double displayRange = Math.max(1.0D, AtlasClientState.getBlockStep() * HALF_CELL_COUNT);
         double maxDistanceSqr = scanRange * scanRange;
         double radiusPixels = mapSizePx / 2.0D - 4.0D;
-        float rotationRad = (float) Math.toRadians(rotationDeg);
+        float rotationRad = (float) Math.toRadians(-rotationDeg);
         double cos = Math.cos(rotationRad);
         double sin = Math.sin(rotationRad);
         int centerX = mapX + mapSizePx / 2;
