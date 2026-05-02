@@ -10,8 +10,8 @@ import dev.dubhe.map.client.render.state.MapRenderState;
 import dev.dubhe.map.client.render.state.MarkerRenderState;
 import dev.dubhe.map.client.waypoint.WaypointRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -27,10 +27,10 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import org.joml.Vector2f;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class MinimapHudRenderer {
@@ -73,7 +73,7 @@ public final class MinimapHudRenderer {
             drawCircleFilled(graphics, x0 + mapSize / 2, y0 + mapSize / 2, mapSize / 2, BACKGROUND_COLOR);
             drawCircleOutline(graphics, x0 + mapSize / 2, y0 + mapSize / 2, mapSize / 2, BORDER_COLOR);
         } else {
-            graphics.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, BORDER_COLOR);
+            graphics.outline(x0, y0, x1 - x0, y1 - y0, BORDER_COLOR);
             graphics.fill(x0, y0, x1, y1, BACKGROUND_COLOR);
         }
 
@@ -101,6 +101,7 @@ public final class MinimapHudRenderer {
         int mapSize,
         float rotationDeg
     ) {
+        if (minecraft.level == null || minecraft.player == null) return;
         double playerX = minecraft.player.getX();
         double playerZ = minecraft.player.getZ();
         double anchorX = Math.floor(playerX + 0.5D);
@@ -134,6 +135,7 @@ public final class MinimapHudRenderer {
                 int sampleZ = quantizeSampleCoord(anchorZ + sampleLocalZ);
                 TileSample surfaceSample = sampleSurfaceTile(minecraft, sampleX, sampleZ, gameTime);
                 TileSample northSurfaceSample = sampleSurfaceTile(minecraft, sampleX, sampleZ - northStep, gameTime);
+                if (northSurfaceSample == null || surfaceSample == null) continue;
                 int baseColor = underground
                                 ? sampleCaveColor(minecraft, sampleX, sampleZ, playerY)
                                 : surfaceSample.argb();
@@ -143,7 +145,16 @@ public final class MinimapHudRenderer {
                 double localTop = -mapHalfSize + gz * cellSize + localOffsetY;
                 double localRight = localLeft + cellSize;
                 double localBottom = localTop + cellSize;
-                TileQuad quad = createTileQuad(clipMask.centerX(), clipMask.centerY(), localLeft, localTop, localRight, localBottom, cos, sin);
+                TileQuad quad = createTileQuad(
+                    clipMask.centerX(),
+                    clipMask.centerY(),
+                    localLeft,
+                    localTop,
+                    localRight,
+                    localBottom,
+                    cos,
+                    sin
+                );
                 if (quad.maxX() <= quad.minX() || quad.maxY() <= quad.minY()) {
                     continue;
                 }
@@ -158,7 +169,7 @@ public final class MinimapHudRenderer {
         TileQuad quad,
         int color,
         MapClipMask clipMask,
-        GpuBufferSlice mapUniform
+        @Nullable GpuBufferSlice mapUniform
     ) {
         if (mapUniform != null) {
             pipelineUsage(
@@ -194,7 +205,7 @@ public final class MinimapHudRenderer {
         );
     }
 
-    private static GpuBufferSlice createClipUniform(MapClipMask clipMask) {
+    private static @Nullable GpuBufferSlice createClipUniform(MapClipMask clipMask) {
         return MapRenderState.createMapUniform(
             clipMask.framebufferCenter(),
             clipMask.framebufferHalfSize(),
@@ -326,7 +337,8 @@ public final class MinimapHudRenderer {
                && minecraft.level.getBrightness(LightLayer.SKY, playerPos.above()) < 8;
     }
 
-    private static TileSample sampleSurfaceTile(Minecraft minecraft, int x, int z, long gameTime) {
+    private static @Nullable TileSample sampleSurfaceTile(Minecraft minecraft, int x, int z, long gameTime) {
+        if (minecraft.level == null) return null;
         if (minecraft.level instanceof ClientLevel clientLevel) {
             MapCacheLifecycle.SurfaceSample sample = MapCacheLifecycle.getSurfaceSample(clientLevel, x, z);
             if (sample != null) {
@@ -353,10 +365,12 @@ public final class MinimapHudRenderer {
     }
 
     private static int sampleSurfaceColor(Minecraft minecraft, int x, int z, long gameTime) {
-        return sampleSurfaceTile(minecraft, x, z, gameTime).argb();
+        TileSample tileSample = sampleSurfaceTile(minecraft, x, z, gameTime);
+        return tileSample == null ? 0 : tileSample.argb();
     }
 
     private static int sampleCaveColor(Minecraft minecraft, int x, int z, int playerY) {
+        if (minecraft.level == null) return 0;
         int minY = minecraft.level.getMinY();
         int maxY = Math.min(minecraft.level.getMaxY() - 1, playerY + 8);
         int floorY = Math.max(minY, playerY - 24);
@@ -374,6 +388,7 @@ public final class MinimapHudRenderer {
     }
 
     private static int resolveMapColor(Minecraft minecraft, BlockPos pos) {
+        if (minecraft.level == null) return 0;
         MapColor mapColor = minecraft.level.getBlockState(pos).getMapColor(minecraft.level, pos);
         int rgb = mapColor == MapColor.NONE ? biomeFallbackColor(minecraft, pos) : mapColor.col;
         int argb = 0xFF000000 | rgb;
@@ -387,6 +402,7 @@ public final class MinimapHudRenderer {
     }
 
     private static int biomeFallbackColor(Minecraft minecraft, BlockPos pos) {
+        if (minecraft.level == null) return 0;
         Holder<Biome> biome = minecraft.level.getBiome(pos);
         float temperature = biome.value().getBaseTemperature();
         if (temperature < 0.15F) {
@@ -442,14 +458,14 @@ public final class MinimapHudRenderer {
         boolean circleClip = AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.CIRCLE;
         double guiScale = minecraft.getWindow().getGuiScale();
         int windowHeight = minecraft.getWindow().getHeight();
-        float fbClipCx   = (float) (cx * guiScale);
-        float fbClipCy   = (float) (windowHeight - cy * guiScale);
+        float fbClipCx = (float) (cx * guiScale);
+        float fbClipCy = (float) (windowHeight - cy * guiScale);
         float fbClipHalf = (float) (mapSize / 2.0 * guiScale);
         float fbClipMode = circleClip ? 1.0f : 0.0f;
 
         float fbMarkerCx = (float) Math.floor(cx * guiScale) + 0.5f;
         float fbMarkerCy = (float) Math.floor(windowHeight - cy * guiScale) + 0.5f;
-        float fbRadius   = playerRadiusGui * (float) guiScale;
+        float fbRadius = playerRadiusGui * (float) guiScale;
 
         @Nullable GpuBufferSlice uniform = MarkerRenderState.createMarkerUniform(
             new Vector2f(fbClipCx, fbClipCy),
@@ -480,6 +496,7 @@ public final class MinimapHudRenderer {
     }
 
     private static void renderHudInfo(Minecraft minecraft, GuiGraphicsExtractor graphics, int x, int y) {
+        if (minecraft.level == null || minecraft.player == null) return;
         BlockPos playerPos = minecraft.player.blockPosition();
         ResourceKey<?> dimensionKey = minecraft.level.dimension();
         String dimension = dimensionKey.identifier().toString();
@@ -624,6 +641,7 @@ public final class MinimapHudRenderer {
         return dx * dx + dy * dy <= radius * radius;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static void drawCircleFilled(GuiGraphicsExtractor graphics, int centerX, int centerY, int radius, int color) {
         for (int y = -radius; y <= radius; y++) {
             int span = (int) Math.sqrt(radius * radius - y * y);
@@ -631,6 +649,7 @@ public final class MinimapHudRenderer {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static void drawCircleOutline(GuiGraphicsExtractor graphics, int centerX, int centerY, int radius, int color) {
         for (int y = -radius; y <= radius; y++) {
             int span = (int) Math.sqrt(radius * radius - y * y);
