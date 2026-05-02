@@ -3,8 +3,6 @@ package dev.dubhe.map.client.cache;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.IntArrayTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -63,9 +61,9 @@ public class ChunkCache {
 
     public static ChunkCache create(RegionCache regionCache, LevelChunk chunk) {
         ChunkPos chunkPos = chunk.getPos();
-        short chunkX = (short) (chunkPos.x() % 64);
-        short chunkY = (short) (chunkPos.z() % 64);
-        ChunkCache chunkCache = new ChunkCache(regionCache, chunkX, chunkY);
+        short chunkX = (short) Math.floorMod(chunkPos.x(), 64);
+        short chunkZ = (short) Math.floorMod(chunkPos.z(), 64);
+        ChunkCache chunkCache = new ChunkCache(regionCache, chunkX, chunkZ);
         BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
         BlockPos.MutableBlockPos levelBlockPos = new BlockPos.MutableBlockPos();
         for (int x = 0; x < 16; x++) {
