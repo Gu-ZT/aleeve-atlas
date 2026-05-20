@@ -5,7 +5,7 @@ modDevGradle = "2.0.141"
 lombokPlugin = "8.7.1"
 lombok = "1.18.44"
 anvillib = "2.0.0+snapshot.328"
-bonded-peaks = "0.0.1+build.9"
+bonded-peaks = "0.0.1+build.10"
 
 [libraries]
 anvillib-config = { group = "dev.anvilcraft.lib", name = "anvillib-config-neoforge-26.1", version.ref = "anvillib" }

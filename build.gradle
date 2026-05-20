@@ -10,8 +10,11 @@ version = mod_version
 group = mod_group_id
 
 repositories {
-    mavenLocal()
     mavenCentral()
+    maven {
+        name = "Cjsah's Maven"
+        url = "https://server.cjsah.net:1002/maven/"
+    }
 }
 
 base {
