@@ -4,16 +4,16 @@ neoForge = "26.1.2.36-beta"
 modDevGradle = "2.0.141"
 lombokPlugin = "8.7.1"
 lombok = "1.18.44"
-anvillib = "2.0.0+snapshot.328"
+anvillib = "2.0.0+snapshot.428"
 bonded-peaks = "0.0.1+build.10"
 
 [libraries]
 anvillib-config = { group = "dev.anvilcraft.lib", name = "anvillib-config-neoforge-26.1", version.ref = "anvillib" }
-anvillib-wheel = { group = "dev.anvilcraft.lib", name = "anvillib-wheel-neoforge-26.1", version.ref = "anvillib" }
+anvillib-rendering = { group = "dev.anvilcraft.lib", name = "anvillib-rendering-neoforge-26.1", version.ref = "anvillib" }
 bonded-peaks = { group = "dev.dubhe.bonded", name = "bonded-peaks-26.1.2", version.ref = "bonded-peaks" }
 
 [bundles]
-anvillib = ["anvillib-config", "anvillib-wheel"]
+anvillib = ["anvillib-config", "anvillib-rendering"]
 
 [plugins]
 modDevGradle = { id = "net.neoforged.moddev", version.ref = "modDevGradle" }

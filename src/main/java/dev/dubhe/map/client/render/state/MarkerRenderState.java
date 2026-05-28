@@ -3,7 +3,7 @@ package dev.dubhe.map.client.render.state;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.anvilcraft.lib.v2.wheel.client.gui.render.state.LibGuiElementRenderState;
+import dev.anvilcraft.lib.v2.rendering.state.LibGuiElementRenderState;
 import dev.dubhe.map.client.AleeveAtlasClient;
 import dev.dubhe.map.client.init.ModDynamicUniforms;
 import dev.dubhe.map.client.init.ModRenders;
