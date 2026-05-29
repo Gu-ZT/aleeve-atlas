@@ -1,6 +1,7 @@
 package dev.dubhe.map.client.hud;
 
 import dev.dubhe.map.client.AtlasClientState;
+import dev.dubhe.map.client.render.MinimapRenderAccumulator;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -18,18 +19,15 @@ import java.util.Locale;
 public class MinimapTextGuiLayer implements GuiLayer {
     @Override
     public void render(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
+        MinimapRenderAccumulator.flush(guiGraphics);
         MinimapHudSupport.MinimapContext context = MinimapHudSupport.captureContext(guiGraphics);
-        if (context == null) {
-            return;
-        }
+        if (context == null) return;
 
         renderHudInfo(context.minecraft(), guiGraphics, context.mapX(), context.mapBottom() + 4);
     }
 
     private static void renderHudInfo(Minecraft minecraft, GuiGraphicsExtractor graphics, int x, int y) {
-        if (minecraft.level == null || minecraft.player == null) {
-            return;
-        }
+        if (minecraft.level == null || minecraft.player == null) return;
         BlockPos playerPos = minecraft.player.blockPosition();
         ResourceKey<?> dimensionKey = minecraft.level.dimension();
         String dimension = dimensionKey.identifier().toString();
@@ -39,71 +37,43 @@ public class MinimapTextGuiLayer implements GuiLayer {
         int dayTime = (int) (minecraft.level.getOverworldClockTime() % 24000L);
         int light = Math.max(
             minecraft.level.getBrightness(LightLayer.SKY, playerPos),
-            minecraft.level.getBrightness(LightLayer.BLOCK, playerPos)
-        );
+            minecraft.level.getBrightness(LightLayer.BLOCK, playerPos));
         int lineY = y;
 
         if (AtlasClientState.isCoordinateLineVisible()) {
-            graphics.text(
-                minecraft.font,
-                Component.literal(String.format(Locale.ROOT, "X:%d Y:%d Z:%d", playerPos.getX(), playerPos.getY(), playerPos.getZ())),
-                x,
-                lineY,
-                0xFFFFFFFF,
-                true
-            );
+            graphics.text(minecraft.font,
+                Component.literal(String.format(Locale.ROOT, "X:%d Y:%d Z:%d",
+                    playerPos.getX(), playerPos.getY(), playerPos.getZ())),
+                x, lineY, 0xFFFFFFFF, true);
             lineY += 10;
         }
 
         if (AtlasClientState.isEnvironmentLineVisible()) {
-            graphics.text(
-                minecraft.font,
+            graphics.text(minecraft.font,
                 Component.literal("Dir: " + facing + " | Zoom: " + AtlasClientState.getZoomLevel()),
-                x,
-                lineY,
-                0xFFFFFFFF,
-                true
-            );
+                x, lineY, 0xFFFFFFFF, true);
             lineY += 10;
             graphics.text(minecraft.font, Component.literal("Biome: " + biomeName), x, lineY, 0xFFFFFFFF, false);
             lineY += 10;
-            graphics.text(
-                minecraft.font,
+            graphics.text(minecraft.font,
                 Component.literal("Dim: " + dimension + " | Time: " + dayTime + " | Light: " + light),
-                x,
-                lineY,
-                0xFFFFFFFF,
-                false
-            );
+                x, lineY, 0xFFFFFFFF, false);
             lineY += 10;
             String rotMode = AtlasClientState.isRotateWithPlayer() ? "FOLLOW" : "NORTH_UP";
             String cave = MinimapGuiLayer.shouldRenderCaves(minecraft) ? "CAVE" : "SURFACE";
-            graphics.text(
-                minecraft.font,
-                Component.literal("Shape: " + AtlasClientState.getMinimapShape() + " | Rot: " + rotMode + " | Radar: " + (
-                    AtlasClientState.isRadarEnabled()
-                    ? "ON"
-                    : "OFF"
-                ) + " | " + cave),
-                x,
-                lineY,
-                0xFFFFFFFF,
-                false
-            );
+            graphics.text(minecraft.font,
+                Component.literal("Shape: " + AtlasClientState.getMinimapShape()
+                    + " | Rot: " + rotMode + " | Radar: "
+                    + (AtlasClientState.isRadarEnabled() ? "ON" : "OFF") + " | " + cave),
+                x, lineY, 0xFFFFFFFF, false);
         }
     }
 
     private static String facingText(float yaw) {
         float normalized = (yaw % 360.0F + 360.0F) % 360.0F;
-        if (normalized >= 45.0F && normalized < 135.0F) {
-            return "W";
-        }
-        if (normalized >= 135.0F && normalized < 225.0F) {
-            return "N";
-        }
-        if (normalized >= 225.0F && normalized < 315.0F) {
-            return "E";
-        }
+        if (normalized >= 45.0F && normalized < 135.0F) return "W";
+        if (normalized >= 135.0F && normalized < 225.0F) return "N";
+        if (normalized >= 225.0F && normalized < 315.0F) return "E";
         return "S";
     }
 }

@@ -3,6 +3,8 @@ package dev.dubhe.map.client;
 import dev.anvilcraft.lib.v2.config.ConfigManager;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.client.init.ModDynamicUniforms;
+import dev.dubhe.map.client.render.MinimapPictureInPictureRenderer;
+import dev.dubhe.map.client.render.state.MinimapPictureInPictureRenderState;
 import dev.dubhe.map.client.waypoint.WaypointManager;
 import lombok.Getter;
 import net.neoforged.api.distmarker.Dist;
@@ -12,6 +14,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ConfigureMainRenderTargetEvent;
+import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 
 import javax.annotation.Nullable;
 
@@ -25,8 +28,12 @@ public final class AleeveAtlasClient {
 
     public AleeveAtlasClient(IEventBus modEventBus, ModContainer modContainer) {
         WaypointManager.load();
+        modEventBus.addListener(this::registerPipRenderers);
     }
 
+    private void registerPipRenderers(RegisterPictureInPictureRenderersEvent event) {
+        event.register(MinimapPictureInPictureRenderState.class, MinimapPictureInPictureRenderer::new);
+    }
 
     @SubscribeEvent
     public static void init(ConfigureMainRenderTargetEvent event) {

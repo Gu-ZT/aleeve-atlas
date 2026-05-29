@@ -17,9 +17,7 @@ public class MinimapBackgroudGuiLayer implements GuiLayer {
     @Override
     public void render(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
         MinimapHudSupport.MinimapContext context = MinimapHudSupport.captureContext(guiGraphics);
-        if (context == null) {
-            return;
-        }
+        if (context == null) return;
 
         if (context.circleMode()) {
             renderCircularFrame(guiGraphics, context.minecraft(), context.mapX(), context.mapY(), context.mapSize());
@@ -31,25 +29,15 @@ public class MinimapBackgroudGuiLayer implements GuiLayer {
     }
 
     private static void renderCircularFrame(GuiGraphicsExtractor graphics, Minecraft minecraft, int mapX, int mapY, int mapSize) {
-        int centerX = mapX + mapSize / 2;
-        int centerY = mapY + mapSize / 2;
+        int centerX = mapX + mapSize / 2, centerY = mapY + mapSize / 2;
         float radiusGui = mapSize / 2.0F;
         float borderWidthGui = Math.max(1.0F, minecraft.getWindow().getGuiScale());
-
         double guiScale = minecraft.getWindow().getGuiScale();
         int windowHeight = minecraft.getWindow().getHeight();
-        float fbCenterX = (float) (centerX * guiScale);
-        float fbCenterY = (float) (windowHeight - centerY * guiScale);
-        float fbRadius = radiusGui * (float) guiScale;
-        float fbBorderWidth = borderWidthGui * (float) guiScale;
 
         @Nullable GpuBufferSlice frameUniform = MinimapFrameRenderState.createFrameUniform(
-            new Vector2f(fbCenterX, fbCenterY),
-            fbRadius,
-            fbBorderWidth,
-            BACKGROUND_COLOR,
-            BORDER_COLOR
-        );
+            new Vector2f((float)(centerX * guiScale), (float)(windowHeight - centerY * guiScale)),
+            radiusGui * (float)guiScale, borderWidthGui * (float)guiScale, BACKGROUND_COLOR, BORDER_COLOR);
 
         if (frameUniform == null) {
             drawCircleFilled(graphics, centerX, centerY, mapSize / 2, BACKGROUND_COLOR);
@@ -57,32 +45,18 @@ public class MinimapBackgroudGuiLayer implements GuiLayer {
             return;
         }
 
-        graphics.submitGuiElementRenderState(new MinimapFrameRenderState(
-            graphics.pose(),
-            new Vector2f(mapX, mapY),
-            new Vector2f(mapX + mapSize, mapY),
-            new Vector2f(mapX + mapSize, mapY + mapSize),
-            new Vector2f(mapX, mapY + mapSize),
-            0xFFFFFFFF,
-            frameUniform,
-            graphics.peekScissorStack()
-        ));
+        graphics.submitGuiElementRenderState(new MinimapFrameRenderState(graphics.pose(),
+            new Vector2f(mapX, mapY), new Vector2f(mapX + mapSize, mapY),
+            new Vector2f(mapX + mapSize, mapY + mapSize), new Vector2f(mapX, mapY + mapSize),
+            0xFFFFFFFF, frameUniform, graphics.peekScissorStack()));
     }
 
     @SuppressWarnings("SameParameterValue")
-    private static void drawCircleFilled(GuiGraphicsExtractor graphics, int centerX, int centerY, int radius, int color) {
-        for (int y = -radius; y <= radius; y++) {
-            int span = (int) Math.sqrt(radius * radius - y * y);
-            graphics.fill(centerX - span, centerY + y, centerX + span + 1, centerY + y + 1, color);
-        }
+    private static void drawCircleFilled(GuiGraphicsExtractor graphics, int cx, int cy, int r, int color) {
+        for (int y = -r; y <= r; y++) { int s = (int)Math.sqrt(r*r - y*y); graphics.fill(cx-s, cy+y, cx+s+1, cy+y+1, color); }
     }
-
     @SuppressWarnings("SameParameterValue")
-    private static void drawCircleOutline(GuiGraphicsExtractor graphics, int centerX, int centerY, int radius, int color) {
-        for (int y = -radius; y <= radius; y++) {
-            int span = (int) Math.sqrt(radius * radius - y * y);
-            graphics.fill(centerX - span, centerY + y, centerX - span + 1, centerY + y + 1, color);
-            graphics.fill(centerX + span, centerY + y, centerX + span + 1, centerY + y + 1, color);
-        }
+    private static void drawCircleOutline(GuiGraphicsExtractor graphics, int cx, int cy, int r, int color) {
+        for (int y = -r; y <= r; y++) { int s = (int)Math.sqrt(r*r - y*y); graphics.fill(cx-s, cy+y, cx-s+1, cy+y+1, color); graphics.fill(cx+s, cy+y, cx+s+1, cy+y+1, color); }
     }
 }

@@ -38,6 +38,13 @@ public class ModDynamicUniforms {
         GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST
     );
 
+    public void endFrame() {
+        mapUbo.endFrame();
+        markerUbo.endFrame();
+        arrowMarkerUbo.endFrame();
+        minimapFrameUbo.endFrame();
+    }
+
     public record MapUniform(
         Vector2fc clipCenter,
         Vector2fc clipHalfSize,
