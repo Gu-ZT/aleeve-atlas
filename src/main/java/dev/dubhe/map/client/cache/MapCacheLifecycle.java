@@ -1,6 +1,7 @@
 package dev.dubhe.map.client.cache;
 
 import dev.dubhe.map.AleeveAtlas;
+import lombok.extern.slf4j.Slf4j;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ServerData;
@@ -15,13 +16,15 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 
-import javax.annotation.Nullable;
+import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
+@Slf4j
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class MapCacheLifecycle {
     private static final Path CACHE_ROOT = FMLPaths.CONFIGDIR.get()
@@ -121,6 +124,18 @@ public final class MapCacheLifecycle {
 
         if ((tickCount % 200L) == 0L) {
             flushAll();
+        }
+    }
+
+    public static void clearCache(ClientLevel level) {
+        String dimensionId = dimensionId(level);
+        if (!DIMENSION_CACHES.containsKey(dimensionId)) {
+            return;
+        }
+        DIMENSION_CACHES.remove(dimensionId);
+        File file = resolveDimensionPath(level).toFile();
+        if (file.exists() && file.delete()) {
+            log.info("Cleared cache for dimension {}", dimensionId);
         }
     }
 
