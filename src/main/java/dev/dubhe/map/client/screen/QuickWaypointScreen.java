@@ -25,6 +25,57 @@ public class QuickWaypointScreen extends Screen {
         this.draft = WaypointManager.createAtCamera();
     }
 
+    private static int parseInt(String value, int fallback) {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
+    }
+
+    private void saveAndClose() {
+        Waypoint waypoint = this.draft.copy();
+        if (this.nameBox != null) {
+            waypoint.name = this.nameBox.getValue().isBlank() ? Component.translatable("screen.aleeve_atlas.quick_waypoint.default_name")
+                .getString() : this.nameBox.getValue();
+        }
+        if (this.xBox != null) {
+            waypoint.x = parseInt(this.xBox.getValue(), waypoint.x);
+        }
+        if (this.yBox != null) {
+            waypoint.y = parseInt(this.yBox.getValue(), waypoint.y);
+        }
+        if (this.zBox != null) {
+            waypoint.z = parseInt(this.zBox.getValue(), waypoint.z);
+        }
+
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level != null) {
+            waypoint.dimension = minecraft.level.dimension().identifier().toString();
+        }
+
+        WaypointManager.upsert(waypoint);
+        onClose();
+    }
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        int left = this.width / 2 - 100;
+        int top = this.height / 2 - 62;
+        guiGraphics.fill(0, 0, this.width, this.height, 0xA0101010);
+        guiGraphics.fill(left - 4, top - 4, left + 204, top + 96, 0xB0202020);
+
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.centeredText(this.font, this.title, this.width / 2, top - 12, 0xFFFFFF);
+        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.name"), left, top, 0xA0A0A0);
+        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.xyz"), left, top + 28, 0xA0A0A0);
+    }
+
+    @Override
+    public void onClose() {
+        this.minecraft.setScreen(this.parent);
+    }
+
     @Override
     protected void init() {
         super.init();
@@ -58,57 +109,6 @@ public class QuickWaypointScreen extends Screen {
             .build());
 
         setInitialFocus(this.nameBox);
-    }
-
-    private void saveAndClose() {
-        Waypoint waypoint = this.draft.copy();
-        if (this.nameBox != null) {
-            waypoint.name = this.nameBox.getValue().isBlank() ? Component.translatable("screen.aleeve_atlas.quick_waypoint.default_name")
-                                                                .getString() : this.nameBox.getValue();
-        }
-        if (this.xBox != null) {
-            waypoint.x = parseInt(this.xBox.getValue(), waypoint.x);
-        }
-        if (this.yBox != null) {
-            waypoint.y = parseInt(this.yBox.getValue(), waypoint.y);
-        }
-        if (this.zBox != null) {
-            waypoint.z = parseInt(this.zBox.getValue(), waypoint.z);
-        }
-
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level != null) {
-            waypoint.dimension = minecraft.level.dimension().identifier().toString();
-        }
-
-        WaypointManager.upsert(waypoint);
-        onClose();
-    }
-
-    private static int parseInt(String value, int fallback) {
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException ignored) {
-            return fallback;
-        }
-    }
-
-    @Override
-    public void onClose() {
-        this.minecraft.setScreen(this.parent);
-    }
-
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        int left = this.width / 2 - 100;
-        int top = this.height / 2 - 62;
-        guiGraphics.fill(0, 0, this.width, this.height, 0xA0101010);
-        guiGraphics.fill(left - 4, top - 4, left + 204, top + 96, 0xB0202020);
-
-        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.centeredText(this.font, this.title, this.width / 2, top - 12, 0xFFFFFF);
-        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.name"), left, top, 0xA0A0A0);
-        guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.xyz"), left, top + 28, 0xA0A0A0);
     }
 }
 

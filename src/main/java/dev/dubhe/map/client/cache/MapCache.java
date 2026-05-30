@@ -35,7 +35,10 @@ public class MapCache {
         int regionX = Math.floorDiv(chunkPos.x(), 64);
         int regionZ = Math.floorDiv(chunkPos.z(), 64);
         RegionPos regionPos = new RegionPos(regionX, regionZ);
-        RegionCache regionCache = regionCacheMap.computeIfAbsent(regionPos, pos -> loadRegion(pos).orElseGet(() -> new RegionCache(pos.x, pos.z)));
+        RegionCache regionCache = regionCacheMap.computeIfAbsent(
+            regionPos,
+            pos -> loadRegion(pos).orElseGet(() -> new RegionCache(pos.x, pos.z))
+        );
 
         ChunkCache newChunkCache = ChunkCache.create(regionCache, chunk);
         ChunkCache oldChunkCache = regionCache.getChunk(newChunkCache.getX(), newChunkCache.getZ());

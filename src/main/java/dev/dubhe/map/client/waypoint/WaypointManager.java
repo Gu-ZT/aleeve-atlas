@@ -3,6 +3,13 @@ package dev.dubhe.map.client.waypoint;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.dubhe.map.AleeveAtlas;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.loading.FMLPaths;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -13,13 +20,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
-import net.neoforged.fml.loading.FMLPaths;
-
 import javax.annotation.Nullable;
 
 public final class WaypointManager {

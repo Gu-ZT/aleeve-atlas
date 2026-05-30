@@ -1,6 +1,5 @@
 package dev.dubhe.map.client.hud;
 
-import dev.dubhe.map.client.AleeveAtlasClientConfig;
 import dev.dubhe.map.client.AtlasClientState;
 import dev.dubhe.map.client.cache.MapCacheLifecycle;
 import dev.dubhe.map.client.render.MinimapRenderAccumulator;
@@ -19,28 +18,17 @@ import net.minecraft.world.level.material.MapColor;
 import net.neoforged.neoforge.client.gui.GuiLayer;
 import org.joml.Vector2f;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 @SuppressWarnings("unused")
 public final class MinimapGuiLayer implements GuiLayer {
     private static final int BASE_CELL_COUNT = 23;
     private static final int MAX_CELL_COUNT = 63;
     private static final Map<Long, CachedColor> COLOR_CACHE = new HashMap<>();
-
-    @Override
-    public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-        MinimapHudSupport.MinimapContext context = MinimapHudSupport.captureContext(graphics);
-        if (context == null) {
-            return;
-        }
-
-        renderCells(context.minecraft(), graphics, context.mapX(), context.mapY(),
-            context.mapSize(), context.rotationDeg(), context.circleMode());
-    }
 
     private static void renderCells(
         Minecraft minecraft, GuiGraphicsExtractor graphics,
@@ -97,8 +85,8 @@ public final class MinimapGuiLayer implements GuiLayer {
                 if (northSurfaceSample == null || surfaceSample == null) continue;
 
                 int baseColor = underground
-                    ? sampleCaveColor(minecraft, sampleX, sampleZ, playerY)
-                    : surfaceSample.argb();
+                                ? sampleCaveColor(minecraft, sampleX, sampleZ, playerY)
+                                : surfaceSample.argb();
                 int color = applyNorthShade(baseColor, surfaceSample.height(), northSurfaceSample.height());
 
                 double localLeft = -mapHalfSize + gx * cellSize + localOffsetX;
@@ -127,10 +115,14 @@ public final class MinimapGuiLayer implements GuiLayer {
         return (count & 1) == 0 ? count + 1 : count;
     }
 
-    private static int quantizeSampleCoord(double coord) { return (int) Math.floor(coord + 0.5D); }
+    private static int quantizeSampleCoord(double coord) {
+        return (int) Math.floor(coord + 0.5D);
+    }
 
-    private static Vector2f rotateLocalPoint(double centerX, double centerY, double localX, double localY,
-                                              double cos, double sin) {
+    private static Vector2f rotateLocalPoint(
+        double centerX, double centerY, double localX, double localY,
+        double cos, double sin
+    ) {
         float x = (float) (centerX + localX * cos - localY * sin);
         float y = (float) (centerY + localX * sin + localY * cos);
         return new Vector2f(x, y);
@@ -140,7 +132,7 @@ public final class MinimapGuiLayer implements GuiLayer {
         if (!AtlasClientState.isCaveMappingEnabled() || minecraft.player == null || minecraft.level == null) return false;
         BlockPos playerPos = minecraft.player.blockPosition();
         return !minecraft.level.canSeeSky(playerPos.above())
-            && minecraft.level.getBrightness(LightLayer.SKY, playerPos.above()) < 8;
+               && minecraft.level.getBrightness(LightLayer.SKY, playerPos.above()) < 8;
     }
 
     private static @Nullable TileSample sampleSurfaceTile(Minecraft minecraft, int x, int z, long gameTime) {
@@ -151,8 +143,9 @@ public final class MinimapGuiLayer implements GuiLayer {
         }
         long key = (((long) x) << 32) ^ (z & 0xFFFFFFFFL);
         CachedColor cached = COLOR_CACHE.get(key);
-        if (cached != null && gameTime - cached.sampleTick < 20L)
+        if (cached != null && gameTime - cached.sampleTick < 20L) {
             return new TileSample(cached.argb, cached.height);
+        }
 
         int y = minecraft.level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
         y = Math.max(y, minecraft.level.getMinY());
@@ -177,8 +170,9 @@ public final class MinimapGuiLayer implements GuiLayer {
             BlockPos pos = new BlockPos(x, y, z);
             BlockState state = minecraft.level.getBlockState(pos);
             if (state.isAir()) continue;
-            if (minecraft.level.getBlockState(pos.above()).isAir())
+            if (minecraft.level.getBlockState(pos.above()).isAir()) {
                 return darken(resolveMapColor(minecraft, pos), 0.72F);
+            }
         }
         return darken(sampleSurfaceColor(minecraft, x, z, minecraft.level.getGameTime()), 0.7F);
     }
@@ -223,6 +217,22 @@ public final class MinimapGuiLayer implements GuiLayer {
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
-    private record TileSample(int argb, int height) {}
-    private record CachedColor(int argb, int height, long sampleTick) {}
+    @Override
+    public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
+        MinimapHudSupport.MinimapContext context = MinimapHudSupport.captureContext(graphics);
+        if (context == null) {
+            return;
+        }
+
+        renderCells(
+            context.minecraft(), graphics, context.mapX(), context.mapY(),
+            context.mapSize(), context.rotationDeg(), context.circleMode()
+        );
+    }
+
+    private record TileSample(int argb, int height) {
+    }
+
+    private record CachedColor(int argb, int height, long sampleTick) {
+    }
 }

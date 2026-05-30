@@ -24,16 +24,51 @@ public class ChunkCache {
         this.z = z;
     }
 
+    public static int packXz(short x, short z) {
+        return ((x & 0xFFFF) << 16) | (z & 0xFFFF);
+    }
+
+    public static ChunkCache deserialize(RegionCache regionCache, int[] arrayTag) {
+        int packXz = arrayTag[0];
+        short x = (short) ((packXz >>> 16) & 0xFFFF);
+        short z = (short) (packXz & 0xFFFF);
+        ChunkCache chunkCache = new ChunkCache(regionCache, x, z);
+        for (int i = 1; i < arrayTag.length; i++) {
+            chunkCache.addBlock(BlockCache.deserialize(chunkCache, arrayTag[i]));
+        }
+        return chunkCache;
+    }
+
+    public static ChunkCache create(RegionCache regionCache, LevelChunk chunk) {
+        ChunkPos chunkPos = chunk.getPos();
+        short chunkX = (short) Math.floorMod(chunkPos.x(), 64);
+        short chunkZ = (short) Math.floorMod(chunkPos.z(), 64);
+        ChunkCache chunkCache = new ChunkCache(regionCache, chunkX, chunkZ);
+        BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
+        BlockPos.MutableBlockPos levelBlockPos = new BlockPos.MutableBlockPos();
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                if (!chunk.hasPrimedHeightmap(Heightmap.Types.WORLD_SURFACE_WG)) {
+                    continue;
+                }
+                int y = chunk.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
+                blockPos.set(x, y, z);
+                levelBlockPos.set(chunkPos.x() * 16 + x, y, chunkPos.z() * 16 + z);
+                BlockState blockState = chunk.getBlockState(blockPos);
+                int color = blockState.getMapColor(chunk.getLevel(), levelBlockPos).col;
+                regionCache.addColor(color);
+                chunkCache.addBlock(new BlockCache(chunkCache, (byte) x, (short) y, (byte) z, color));
+            }
+        }
+        return chunkCache;
+    }
+
     public void addBlock(BlockCache blockCache) {
         blocks[blockCache.x()][blockCache.z()] = blockCache;
     }
 
     public @Nullable BlockCache getBlock(int x, int z) {
         return blocks[x][z];
-    }
-
-    public static int packXz(short x, short z) {
-        return ((x & 0xFFFF) << 16) | (z & 0xFFFF);
     }
 
     public boolean sameData(@Nullable ChunkCache other) {
@@ -76,40 +111,5 @@ public class ChunkCache {
             blocks[i] = list.get(i);
         }
         return blocks;
-    }
-
-    public static ChunkCache deserialize(RegionCache regionCache, int[] arrayTag) {
-        int packXz = arrayTag[0];
-        short x = (short) ((packXz >>> 16) & 0xFFFF);
-        short z = (short) (packXz & 0xFFFF);
-        ChunkCache chunkCache = new ChunkCache(regionCache, x, z);
-        for (int i = 1; i < arrayTag.length; i++) {
-            chunkCache.addBlock(BlockCache.deserialize(chunkCache, arrayTag[i]));
-        }
-        return chunkCache;
-    }
-
-    public static ChunkCache create(RegionCache regionCache, LevelChunk chunk) {
-        ChunkPos chunkPos = chunk.getPos();
-        short chunkX = (short) Math.floorMod(chunkPos.x(), 64);
-        short chunkZ = (short) Math.floorMod(chunkPos.z(), 64);
-        ChunkCache chunkCache = new ChunkCache(regionCache, chunkX, chunkZ);
-        BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
-        BlockPos.MutableBlockPos levelBlockPos = new BlockPos.MutableBlockPos();
-        for (int x = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
-                if (!chunk.hasPrimedHeightmap(Heightmap.Types.WORLD_SURFACE_WG)) {
-                    continue;
-                }
-                int y = chunk.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
-                blockPos.set(x, y, z);
-                levelBlockPos.set(chunkPos.x() * 16 + x, y, chunkPos.z() * 16 + z);
-                BlockState blockState = chunk.getBlockState(blockPos);
-                int color = blockState.getMapColor(chunk.getLevel(), levelBlockPos).col;
-                regionCache.addColor(color);
-                chunkCache.addBlock(new BlockCache(chunkCache, (byte) x, (short) y, (byte) z, color));
-            }
-        }
-        return chunkCache;
     }
 }

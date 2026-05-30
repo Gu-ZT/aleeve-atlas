@@ -31,12 +31,12 @@ public final class AleeveAtlasClient {
         modEventBus.addListener(this::registerPipRenderers);
     }
 
-    private void registerPipRenderers(RegisterPictureInPictureRenderersEvent event) {
-        event.register(MinimapPictureInPictureRenderState.class, MinimapPictureInPictureRenderer::new);
-    }
-
     @SubscribeEvent
     public static void init(ConfigureMainRenderTargetEvent event) {
         AleeveAtlasClient.modDynamicUniforms = new ModDynamicUniforms();
+    }
+
+    private void registerPipRenderers(RegisterPictureInPictureRenderersEvent event) {
+        event.register(MinimapPictureInPictureRenderState.class, MinimapPictureInPictureRenderer::new);
     }
 }

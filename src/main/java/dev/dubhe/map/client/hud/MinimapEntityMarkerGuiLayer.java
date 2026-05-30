@@ -12,9 +12,13 @@ public class MinimapEntityMarkerGuiLayer implements GuiLayer {
         MinimapHudSupport.MinimapContext context = MinimapHudSupport.captureContext(guiGraphics);
         if (context == null) return;
 
-        AtlasRadar.render(context.minecraft(), guiGraphics, context.mapX(), context.mapY(),
-            context.mapSize(), context.rotationDeg());
-        WaypointRenderer.renderMinimap(context.minecraft(), guiGraphics, context.mapX(), context.mapY(),
-            context.mapSize(), context.rotationDeg());
+        AtlasRadar.render(
+            context.minecraft(), guiGraphics, context.mapX(), context.mapY(),
+            context.mapSize(), context.rotationDeg()
+        );
+        WaypointRenderer.renderMinimap(
+            context.minecraft(), guiGraphics, context.mapX(), context.mapY(),
+            context.mapSize(), context.rotationDeg()
+        );
     }
 }

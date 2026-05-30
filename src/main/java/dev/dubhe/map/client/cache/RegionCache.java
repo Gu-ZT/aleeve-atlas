@@ -25,68 +25,6 @@ public class RegionCache {
         this.z = z;
     }
 
-    public void addChunk(ChunkCache chunkCache) {
-        chunks[chunkCache.getX()][chunkCache.getZ()] = chunkCache;
-    }
-
-    public @Nullable ChunkCache getChunk(short x, short z) {
-        return chunks[x][z];
-    }
-
-    public void addColor(int color) {
-        int index = colors.indexOf(color);
-        if (index == -1) {
-            colors.add(color);
-        }
-    }
-
-    public byte[] serializeToGzip() throws IOException {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        try {
-            // Encode position
-            byteBuf.writeInt(this.x);
-            byteBuf.writeInt(this.z);
-
-            // Encode chunks  - pre-count non-null chunks
-            int chunkCount = 0;
-            for (ChunkCache[] row : this.chunks) {
-                for (ChunkCache chunk : row) {
-                    if (chunk != null) chunkCount++;
-                }
-            }
-            byteBuf.writeInt(chunkCount);
-
-            // Encode each chunk's serialized IntArrayTag data
-            for (ChunkCache[] row : this.chunks) {
-                for (ChunkCache chunk : row) {
-                    if (chunk == null) continue;
-                    int[] arr = chunk.serialize();
-                    byteBuf.writeVarInt(arr.length);
-                    for (int val : arr) {
-                        byteBuf.writeInt(val);
-                    }
-                }
-            }
-
-            // Encode color palette
-            byteBuf.writeVarInt(this.colors.size());
-            for (Integer color : this.colors) {
-                byteBuf.writeInt(color);
-            }
-
-            // Compress with GZIP
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (GZIPOutputStream gzip = new GZIPOutputStream(baos)) {
-                byte[] bytes = new byte[byteBuf.readableBytes()];
-                byteBuf.getBytes(byteBuf.readerIndex(), bytes);
-                gzip.write(bytes);
-            }
-            return baos.toByteArray();
-        } finally {
-            byteBuf.release();
-        }
-    }
-
     public static RegionCache deserializeFromGzip(byte[] compressed) throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(compressed);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -148,6 +86,68 @@ public class RegionCache {
             }
 
             return cache;
+        } finally {
+            byteBuf.release();
+        }
+    }
+
+    public void addChunk(ChunkCache chunkCache) {
+        chunks[chunkCache.getX()][chunkCache.getZ()] = chunkCache;
+    }
+
+    public @Nullable ChunkCache getChunk(short x, short z) {
+        return chunks[x][z];
+    }
+
+    public void addColor(int color) {
+        int index = colors.indexOf(color);
+        if (index == -1) {
+            colors.add(color);
+        }
+    }
+
+    public byte[] serializeToGzip() throws IOException {
+        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            // Encode position
+            byteBuf.writeInt(this.x);
+            byteBuf.writeInt(this.z);
+
+            // Encode chunks  - pre-count non-null chunks
+            int chunkCount = 0;
+            for (ChunkCache[] row : this.chunks) {
+                for (ChunkCache chunk : row) {
+                    if (chunk != null) chunkCount++;
+                }
+            }
+            byteBuf.writeInt(chunkCount);
+
+            // Encode each chunk's serialized IntArrayTag data
+            for (ChunkCache[] row : this.chunks) {
+                for (ChunkCache chunk : row) {
+                    if (chunk == null) continue;
+                    int[] arr = chunk.serialize();
+                    byteBuf.writeVarInt(arr.length);
+                    for (int val : arr) {
+                        byteBuf.writeInt(val);
+                    }
+                }
+            }
+
+            // Encode color palette
+            byteBuf.writeVarInt(this.colors.size());
+            for (Integer color : this.colors) {
+                byteBuf.writeInt(color);
+            }
+
+            // Compress with GZIP
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (GZIPOutputStream gzip = new GZIPOutputStream(baos)) {
+                byte[] bytes = new byte[byteBuf.readableBytes()];
+                byteBuf.getBytes(byteBuf.readerIndex(), bytes);
+                gzip.write(bytes);
+            }
+            return baos.toByteArray();
         } finally {
             byteBuf.release();
         }

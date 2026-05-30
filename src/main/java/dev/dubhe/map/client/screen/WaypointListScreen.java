@@ -29,71 +29,23 @@ public class WaypointListScreen extends Screen {
         this.parent = parent;
     }
 
-    @Override
-    protected void init() {
-        super.init();
-        int editorLeft = this.width / 2 - 10;
-        int top = 56;
+    private static int parseInt(String value, int fallback) {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
+    }
 
-        this.nameBox = addRenderableWidget(new EditBox(
-            this.font,
-            editorLeft,
-            top,
-            160,
-            20,
-            Component.translatable("screen.aleeve_atlas.waypoint.name")
-        ));
-        this.xBox = addRenderableWidget(new EditBox(this.font, editorLeft, top + 28, 50, 20, Component.literal("X")));
-        this.yBox = addRenderableWidget(new EditBox(this.font, editorLeft + 55, top + 28, 50, 20, Component.literal("Y")));
-        this.zBox = addRenderableWidget(new EditBox(this.font, editorLeft + 110, top + 28, 50, 20, Component.literal("Z")));
-        this.colorBox = addRenderableWidget(new EditBox(
-            this.font,
-            editorLeft,
-            top + 56,
-            160,
-            20,
-            Component.translatable("screen.aleeve_atlas.waypoint.color")
-        ));
-        this.colorBox.setValue("#FF55FF");
-
-        int buttonY = top + 88;
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.previous"), ignored -> selectRelative(-1))
-            .bounds(editorLeft, buttonY, 75, 20)
-            .build());
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.next"), ignored -> selectRelative(1))
-            .bounds(editorLeft + 85, buttonY, 75, 20)
-            .build());
-
-        buttonY += 24;
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.use_player"), ignored -> fillFromPlayer())
-            .bounds(editorLeft, buttonY, 160, 20)
-            .build());
-
-        buttonY += 24;
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.new"), ignored -> newDraft())
-            .bounds(editorLeft, buttonY, 75, 20)
-            .build());
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.save"), ignored -> saveCurrent())
-            .bounds(editorLeft + 85, buttonY, 75, 20)
-            .build());
-
-        buttonY += 24;
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.delete"), ignored -> deleteCurrent())
-            .bounds(editorLeft, buttonY, 75, 20)
-            .build());
-        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.set_active"), ignored -> setActiveCurrent())
-            .bounds(editorLeft + 85, buttonY, 75, 20)
-            .build());
-
-        addRenderableWidget(Button.builder(Component.translatable("gui.done"), ignored -> onClose())
-            .bounds(this.width / 2 - 75, this.height - 28, 150, 20)
-            .build());
-
-        if (WaypointManager.getWaypoints().isEmpty()) {
-            newDraft();
-        } else {
-            this.selectedIndex = 0;
-            loadSelectedIntoInputs();
+    private static int parseColor(String raw, int fallback) {
+        String value = raw.trim().replace("#", "");
+        if (value.length() != 6) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(value, 16);
+        } catch (NumberFormatException ignored) {
+            return fallback;
         }
     }
 
@@ -216,26 +168,6 @@ public class WaypointListScreen extends Screen {
         WaypointManager.setActive(waypoints.get(this.selectedIndex).id);
     }
 
-    private static int parseInt(String value, int fallback) {
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException ignored) {
-            return fallback;
-        }
-    }
-
-    private static int parseColor(String raw, int fallback) {
-        String value = raw.trim().replace("#", "");
-        if (value.length() != 6) {
-            return fallback;
-        }
-        try {
-            return Integer.parseInt(value, 16);
-        } catch (NumberFormatException ignored) {
-            return fallback;
-        }
-    }
-
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x(), mouseY = event.y();
@@ -255,11 +187,6 @@ public class WaypointListScreen extends Screen {
             }
         }
         return false;
-    }
-
-    @Override
-    public void onClose() {
-        this.minecraft.setScreen(this.parent);
     }
 
     @Override
@@ -286,6 +213,79 @@ public class WaypointListScreen extends Screen {
         guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.name"), this.width / 2 - 10, 46, 0xA0A0A0);
         guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.xyz"), this.width / 2 - 10, 74, 0xA0A0A0);
         guiGraphics.text(this.font, Component.translatable("screen.aleeve_atlas.waypoint.color"), this.width / 2 - 10, 102, 0xA0A0A0);
+    }
+
+    @Override
+    public void onClose() {
+        this.minecraft.setScreen(this.parent);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        int editorLeft = this.width / 2 - 10;
+        int top = 56;
+
+        this.nameBox = addRenderableWidget(new EditBox(
+            this.font,
+            editorLeft,
+            top,
+            160,
+            20,
+            Component.translatable("screen.aleeve_atlas.waypoint.name")
+        ));
+        this.xBox = addRenderableWidget(new EditBox(this.font, editorLeft, top + 28, 50, 20, Component.literal("X")));
+        this.yBox = addRenderableWidget(new EditBox(this.font, editorLeft + 55, top + 28, 50, 20, Component.literal("Y")));
+        this.zBox = addRenderableWidget(new EditBox(this.font, editorLeft + 110, top + 28, 50, 20, Component.literal("Z")));
+        this.colorBox = addRenderableWidget(new EditBox(
+            this.font,
+            editorLeft,
+            top + 56,
+            160,
+            20,
+            Component.translatable("screen.aleeve_atlas.waypoint.color")
+        ));
+        this.colorBox.setValue("#FF55FF");
+
+        int buttonY = top + 88;
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.previous"), ignored -> selectRelative(-1))
+            .bounds(editorLeft, buttonY, 75, 20)
+            .build());
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.next"), ignored -> selectRelative(1))
+            .bounds(editorLeft + 85, buttonY, 75, 20)
+            .build());
+
+        buttonY += 24;
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.use_player"), ignored -> fillFromPlayer())
+            .bounds(editorLeft, buttonY, 160, 20)
+            .build());
+
+        buttonY += 24;
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.new"), ignored -> newDraft())
+            .bounds(editorLeft, buttonY, 75, 20)
+            .build());
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.save"), ignored -> saveCurrent())
+            .bounds(editorLeft + 85, buttonY, 75, 20)
+            .build());
+
+        buttonY += 24;
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.delete"), ignored -> deleteCurrent())
+            .bounds(editorLeft, buttonY, 75, 20)
+            .build());
+        addRenderableWidget(Button.builder(Component.translatable("screen.aleeve_atlas.waypoint.set_active"), ignored -> setActiveCurrent())
+            .bounds(editorLeft + 85, buttonY, 75, 20)
+            .build());
+
+        addRenderableWidget(Button.builder(Component.translatable("gui.done"), ignored -> onClose())
+            .bounds(this.width / 2 - 75, this.height - 28, 150, 20)
+            .build());
+
+        if (WaypointManager.getWaypoints().isEmpty()) {
+            newDraft();
+        } else {
+            this.selectedIndex = 0;
+            loadSelectedIntoInputs();
+        }
     }
 }
 

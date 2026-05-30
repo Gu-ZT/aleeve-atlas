@@ -35,6 +35,11 @@ public record BlockCache(ChunkCache chunkCache, byte x, short y, byte z, int col
         return packed & COLOR_MASK;
     }
 
+    public static BlockCache deserialize(ChunkCache chunkCache, int packed) {
+        int color = chunkCache.getRegionCache().getColors().get(colorIndex(packed));
+        return new BlockCache(chunkCache, x(packed), y(packed), z(packed), color);
+    }
+
     public int serialize() {
         int colorIndex = chunkCache.getRegionCache().getColors().indexOf(color);
         if (colorIndex < 0 || colorIndex > COLOR_MASK) {
@@ -44,10 +49,5 @@ public record BlockCache(ChunkCache chunkCache, byte x, short y, byte z, int col
             throw new IllegalStateException("Y out of 12-bit signed range: " + y);
         }
         return BlockCache.pack(x, y, z, colorIndex);
-    }
-
-    public static BlockCache deserialize(ChunkCache chunkCache, int packed) {
-        int color = chunkCache.getRegionCache().getColors().get(colorIndex(packed));
-        return new BlockCache(chunkCache, x(packed), y(packed), z(packed), color);
     }
 }

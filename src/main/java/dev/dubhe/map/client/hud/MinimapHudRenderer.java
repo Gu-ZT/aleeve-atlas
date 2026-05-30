@@ -16,7 +16,11 @@ public final class MinimapHudRenderer {
         event.registerAboveAll(AleeveAtlas.of("minimap_background"), new MinimapBackgroudGuiLayer());
         event.registerAbove(AleeveAtlas.of("minimap_background"), AleeveAtlas.of("minimap"), new MinimapGuiLayer());
         event.registerAbove(AleeveAtlas.of("minimap"), AleeveAtlas.of("minimap_entity_marker"), new MinimapEntityMarkerGuiLayer());
-        event.registerAbove(AleeveAtlas.of("minimap_entity_marker"), AleeveAtlas.of("minimap_self_marker"), new MinimapSelfMarkerGuiLayer());
+        event.registerAbove(
+            AleeveAtlas.of("minimap_entity_marker"),
+            AleeveAtlas.of("minimap_self_marker"),
+            new MinimapSelfMarkerGuiLayer()
+        );
         event.registerAbove(AleeveAtlas.of("minimap_self_marker"), AleeveAtlas.of("minimap_text"), new MinimapTextGuiLayer());
     }
 }

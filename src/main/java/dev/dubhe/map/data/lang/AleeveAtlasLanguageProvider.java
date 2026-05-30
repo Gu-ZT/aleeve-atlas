@@ -21,7 +21,10 @@ public class AleeveAtlasLanguageProvider extends LanguageProvider {
         this.add("key.aleeve_atlas.open_quick_waypoint", "Quick create waypoint at camera");
 
         this.add("screen.aleeve_atlas.settings", "Aleeve Atlas Settings");
-        this.add("screen.aleeve_atlas.settings.hint", "Press M to reopen this screen. Zoom is only configurable from this settings screen.");
+        this.add(
+            "screen.aleeve_atlas.settings.hint",
+            "Press M to reopen this screen. Zoom is only configurable from this settings screen."
+        );
         this.add("screen.aleeve_atlas.option.display", "Display: %s");
         this.add("screen.aleeve_atlas.option.shape", "Shape: %s");
         this.add("screen.aleeve_atlas.option.rotation", "Rotation: %s");
