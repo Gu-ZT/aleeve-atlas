@@ -15,11 +15,12 @@ public final class MinimapRenderAccumulator {
     private boolean begun;
     private int pipX0, pipY0, pipX1, pipY1;
     private @Nullable ScreenRectangle scissor;
+    private boolean circleMode;
 
     private MinimapRenderAccumulator() {
     }
 
-    public static void begin(int x0, int y0, int x1, int y1, @Nullable ScreenRectangle scissor) {
+    public static void begin(int x0, int y0, int x1, int y1, @Nullable ScreenRectangle scissor, boolean circleMode) {
         var a = INSTANCE.get();
         a.begun = true;
         a.pipX0 = x0;
@@ -27,11 +28,12 @@ public final class MinimapRenderAccumulator {
         a.pipX1 = x1;
         a.pipY1 = y1;
         a.scissor = scissor;
+        a.circleMode = circleMode;
         a.cells.clear();
     }
 
-    public static void beginIfNeeded(int x0, int y0, int x1, int y1, @Nullable ScreenRectangle scissor) {
-        if (!INSTANCE.get().begun) begin(x0, y0, x1, y1, scissor);
+    public static void beginIfNeeded(int x0, int y0, int x1, int y1, @Nullable ScreenRectangle scissor, boolean circleMode) {
+        if (!INSTANCE.get().begun) begin(x0, y0, x1, y1, scissor, circleMode);
     }
 
     public static void addCell(CellData cell) {
@@ -45,7 +47,7 @@ public final class MinimapRenderAccumulator {
             return;
         }
         graphics.submitPictureInPictureRenderState(
-            new MinimapPictureInPictureRenderState(a.pipX0, a.pipY0, a.pipX1, a.pipY1, a.scissor, List.copyOf(a.cells)));
+            new MinimapPictureInPictureRenderState(a.pipX0, a.pipY0, a.pipX1, a.pipY1, a.scissor, List.copyOf(a.cells), a.circleMode));
         a.begun = false;
     }
 }

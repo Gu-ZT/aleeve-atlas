@@ -63,8 +63,9 @@ public class MinimapPictureInPictureRenderer extends PictureInPictureRenderer<Mi
         // MapUniform
         float fbHalf = (state.x1() - pipX0) / 2f * guiScale;
         float fbCx = texW / 2f, fbCy = texH / 2f;
+        float clipMode = state.circleMode() ? 1f : 0f;
         GpuBufferSlice mapUniform = modUniforms.getMapUbo().writeUniform(
-            new ModDynamicUniforms.MapUniform(new Vector2f(fbCx, fbCy), new Vector2f(fbHalf, fbHalf), fbHalf, 1f));
+            new ModDynamicUniforms.MapUniform(new Vector2f(fbCx, fbCy), new Vector2f(fbHalf, fbHalf), fbHalf, clipMode));
 
         // Build cell vertices
         var byteBuf = new ByteBufferBuilder(state.cells().size() * 4 * 16);
