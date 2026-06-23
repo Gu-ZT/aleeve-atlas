@@ -35,7 +35,7 @@ public final class MinimapGuiLayer implements GuiLayer {
         int mapX, int mapY, int mapSize, float rotationDeg, boolean circleMode
     ) {
         if (minecraft.level == null || minecraft.player == null) return;
-        MinimapRenderAccumulator.beginIfNeeded(mapX, mapY, mapX + mapSize, mapY + mapSize, graphics.peekScissorStack(), circleMode);
+        MinimapRenderAccumulator.beginIfNeeded(mapX, mapY, mapX + mapSize, mapY + mapSize, graphics.peekScissorStack());
 
         double playerX = minecraft.player.getX();
         double playerZ = minecraft.player.getZ();

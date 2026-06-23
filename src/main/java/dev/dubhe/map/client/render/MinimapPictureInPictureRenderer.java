@@ -10,6 +10,8 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.dubhe.map.client.AleeveAtlasClient;
+import dev.dubhe.map.client.AleeveAtlasClientConfig;
+import dev.dubhe.map.client.AtlasClientState;
 import dev.dubhe.map.client.init.ModDynamicUniforms;
 import dev.dubhe.map.client.init.ModRenders;
 import dev.dubhe.map.client.render.state.MinimapPictureInPictureRenderState;
@@ -49,8 +51,6 @@ public class MinimapPictureInPictureRenderer extends PictureInPictureRenderer<Mi
         var modUniforms = AleeveAtlasClient.getModDynamicUniforms();
         if (modUniforms == null || state.cells().isEmpty()) return;
 
-        modUniforms.endFrame();
-
         float guiScale = Minecraft.getInstance().getWindow().getGuiScale();
         int pipX0 = state.x0(), pipY0 = state.y0();
         float texW = (state.x1() - pipX0) * guiScale, texH = (state.y1() - pipY0) * guiScale;
@@ -63,7 +63,7 @@ public class MinimapPictureInPictureRenderer extends PictureInPictureRenderer<Mi
         // MapUniform
         float fbHalf = (state.x1() - pipX0) / 2f * guiScale;
         float fbCx = texW / 2f, fbCy = texH / 2f;
-        float clipMode = state.circleMode() ? 1f : 0f;
+        float clipMode = AtlasClientState.getMinimapShape() == AleeveAtlasClientConfig.MapShape.CIRCLE ? 1f : 0f;
         GpuBufferSlice mapUniform = modUniforms.getMapUbo().writeUniform(
             new ModDynamicUniforms.MapUniform(new Vector2f(fbCx, fbCy), new Vector2f(fbHalf, fbHalf), fbHalf, clipMode));
 
