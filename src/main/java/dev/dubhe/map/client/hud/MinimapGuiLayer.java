@@ -228,6 +228,8 @@ public final class MinimapGuiLayer implements GuiLayer {
             context.minecraft(), graphics, context.mapX(), context.mapY(),
             context.mapSize(), context.rotationDeg(), context.circleMode()
         );
+        // Flush PIP state here so the PIP texture quad renders below markers (z-order)
+        MinimapRenderAccumulator.flush(graphics);
     }
 
     private record TileSample(int argb, int height) {

@@ -1,7 +1,6 @@
 package dev.dubhe.map.client.hud;
 
 import dev.dubhe.map.client.AtlasClientState;
-import dev.dubhe.map.client.render.MinimapRenderAccumulator;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -81,7 +80,6 @@ public class MinimapTextGuiLayer implements GuiLayer {
 
     @Override
     public void render(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
-        MinimapRenderAccumulator.flush(guiGraphics);
         MinimapHudSupport.MinimapContext context = MinimapHudSupport.captureContext(guiGraphics);
         if (context == null) return;
 
