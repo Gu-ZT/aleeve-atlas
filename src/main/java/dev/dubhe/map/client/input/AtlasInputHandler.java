@@ -13,6 +13,8 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class AtlasInputHandler {
+    private static boolean restoreMouseAfterSettingsClose;
+
     private AtlasInputHandler() {
     }
 
@@ -20,10 +22,14 @@ public final class AtlasInputHandler {
     public static void onClientTickPost(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         while (AtlasKeyMappings.OPEN_SETTINGS.consumeClick()) {
+            boolean openedFromGame = minecraft.screen == null && minecraft.player != null;
             //noinspection DataFlowIssue
             ModList.get()
                 .getModContainerById(AleeveAtlas.MOD_ID)
-                .ifPresent(container -> minecraft.setScreen(new ConfigurationScreen(container, minecraft.screen)));
+                .ifPresent(container -> {
+                    restoreMouseAfterSettingsClose |= openedFromGame;
+                    minecraft.setScreen(new ConfigurationScreen(container, minecraft.screen));
+                });
         }
         if (AtlasKeyMappings.WAYPOINT_HOTKEYS_ENABLED) {
             while (AtlasKeyMappings.OPEN_WAYPOINTS.consumeClick()) {
@@ -34,9 +40,11 @@ public final class AtlasInputHandler {
             }
         }
 
-        // Built-in config screens may leave the cursor ungrabbed on close in-game.
-        if (minecraft.screen == null && minecraft.player != null && !minecraft.mouseHandler.isMouseGrabbed()) {
-            minecraft.mouseHandler.grabMouse();
+        if (restoreMouseAfterSettingsClose && minecraft.screen == null) {
+            restoreMouseAfterSettingsClose = false;
+            if (minecraft.player != null && !minecraft.mouseHandler.isMouseGrabbed()) {
+                minecraft.mouseHandler.grabMouse();
+            }
         }
     }
 }
