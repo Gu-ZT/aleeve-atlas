@@ -1,5 +1,6 @@
 package dev.dubhe.map.config;
 
+import com.google.gson.annotations.SerializedName;
 import dev.anvilcraft.lib.v2.config.CollapsibleObject;
 import dev.anvilcraft.lib.v2.config.Comment;
 import dev.anvilcraft.lib.v2.config.Config;
@@ -27,10 +28,10 @@ public class AtlasClientConfig {
     public Caves caves = new Caves();
 
     public static class Caves {
-        @Comment("Cave mapping in ordinary dimensions: OFF, LAYERED or FULL.")
+        @Comment("Cave mapping mode in ordinary dimensions: OFF, LAYERED, or FULL.")
         public CaveMapMode mode = CaveMapMode.LAYERED;
 
-        @Comment("Cave mapping in ceiling dimensions such as the Nether: OFF, LAYERED or FULL.")
+        @Comment("Cave mapping mode in ceiling dimensions such as the Nether: OFF, LAYERED, or FULL.")
         public CaveMapMode ceilingDimensionMode = CaveMapMode.FULL;
 
         @Comment("Maximum depth below the selected top Y in layered cave mode (1 ~ 64 blocks).")
@@ -86,7 +87,7 @@ public class AtlasClientConfig {
         @Comment("Minimap outline shape.")
         public MinimapShape shape = MinimapShape.CIRCLE;
 
-        @Comment("Map coloring scheme used by both minimap and world map.")
+        @Comment("Map color scheme used by both the minimap and world map.")
         public MapColorScheme colorScheme = MapColorScheme.VANILLA;
 
         @Comment("Minimap screen size multiplier (0.5 ~ 4.0).")
@@ -195,9 +196,11 @@ public class AtlasClientConfig {
 
     public static class Territory {
         @Comment("Render territory overlays on the minimap.")
+        @SerializedName("Show on Minimap")
         public boolean showOnMinimap = true;
 
         @Comment("Render territory names on the minimap.")
+        @SerializedName("Show Label on Minimap")
         public boolean showLabelOnMinimap = false;
 
         @Comment("Centroid attraction weight used by the weighted anchor algorithm (0.3 ~ 0.5).")

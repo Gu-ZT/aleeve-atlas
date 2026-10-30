@@ -8,17 +8,17 @@ body:
   - type: markdown
     attributes:
       value: |
-        这是一个项目内部使用的 `issue` 模板，请不要使用这个模板！
-        This is an internal `issue` template for a project, please do not use this template!
+        这是一个仅供项目内部使用的 `issue` 模板，请勿使用！
+        This is an internal `issue` template for the project. Please do not use it!
 
   - type: input
     attributes:
-      label: Matters to be added to TODO - 将要加入TODO的事项
+      label: Items to be added to TODO - 要加入 TODO 的事项
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: Describe what this TODO will do - 描述这个TODO要做的事情
+      label: Describe what this TODO entails - 描述该 TODO 的具体内容
     validations:
       required: false

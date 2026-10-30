@@ -17,26 +17,26 @@ public class AleeveAtlasLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add("aleeve_atlas.structure.nearby", "Nearby: %s (%s, %s)");
         add("aleeve_atlas.structure.title", "Structures");
-        add("aleeve_atlas.structure.all_types", "All structure types");
-        add("aleeve_atlas.structure.all_records", "All known");
+        add("aleeve_atlas.structure.all_types", "All Structure Types");
+        add("aleeve_atlas.structure.all_records", "All Known");
         add("aleeve_atlas.structure.favorites_only", "Favorites");
-        add("aleeve_atlas.structure.follow", "Follow type");
-        add("aleeve_atlas.structure.unfollow", "Unfollow type");
-        add("aleeve_atlas.structure.search_known", "Search known");
-        add("aleeve_atlas.structure.search_nearest", "Find nearest");
-        add("aleeve_atlas.structure.favorite", "Favorite selected");
-        add("aleeve_atlas.structure.unfavorite", "Remove favorite");
+        add("aleeve_atlas.structure.follow", "Follow Type");
+        add("aleeve_atlas.structure.unfollow", "Unfollow Type");
+        add("aleeve_atlas.structure.search_known", "Search Known");
+        add("aleeve_atlas.structure.search_nearest", "Find Nearest");
+        add("aleeve_atlas.structure.favorite", "Favorite Selected");
+        add("aleeve_atlas.structure.unfavorite", "Remove Favorite");
         add("aleeve_atlas.structure.empty", "No known structures match. Explore nearby chunks or receive records from your team.");
         add("aleeve_atlas.structure.coordinates", "XYZ: %s, %s, %s");
         add("aleeve_atlas.structure.distance", "Horizontal distance: %s m");
-        add("aleeve_atlas.structure.locate_tip", "Find one nearest structure from your current position, including unexplored areas.");
+        add("aleeve_atlas.structure.locate_tip", "Find the nearest structure from your current position, including in unexplored areas.");
         add("aleeve_atlas.structure.searching", "Searching…");
-        add("aleeve_atlas.structure.status.found", "Structure found");
-        add("aleeve_atlas.structure.status.not_found", "No structure found within the vanilla search range");
-        add("aleeve_atlas.structure.status.disabled", "Unexplored search is disabled by the server or unsupported");
-        add("aleeve_atlas.structure.status.cooldown", "Please wait 10 seconds between searches");
-        add("aleeve_atlas.structure.status.busy", "The server is processing another structure search");
-        add("aleeve_atlas.structure.status.failed", "Structure search failed or timed out");
+        add("aleeve_atlas.structure.status.found", "Structure found.");
+        add("aleeve_atlas.structure.status.not_found", "No structure found within the vanilla search range.");
+        add("aleeve_atlas.structure.status.disabled", "Unexplored search is disabled by the server or unsupported.");
+        add("aleeve_atlas.structure.status.cooldown", "Please wait 10 seconds between searches.");
+        add("aleeve_atlas.structure.status.busy", "The server is processing another structure search.");
+        add("aleeve_atlas.structure.status.failed", "Structure search failed or timed out.");
         add("aleeve_atlas.structure.source.discovered", "Naturally discovered");
         add("aleeve_atlas.structure.source.shared", "Shared by team");
         add("aleeve_atlas.structure.source.searched", "Found by search");
@@ -133,7 +133,7 @@ public class AleeveAtlasLanguageProvider extends LanguageProvider {
         add("aleeve_atlas.territory.demo_name", "Demo Territory");
         add("aleeve_atlas.territory.demo_overlay_name", "Overlay Territory");
         add("aleeve_atlas.message.ping_channel_duplicate",
-                "Ping Wheel detected while channel mode is AUTO; depending on its settings pings may be broadcast twice.");
+                "Ping Wheel detected while channel mode is AUTO; depending on its settings, pings may be broadcast twice.");
         add("aleeve_atlas.territory.border.solid", "Solid");
         add("aleeve_atlas.territory.border.dashed", "Dashed");
         add("aleeve_atlas.radar.category.player", "Players");
@@ -174,14 +174,14 @@ public class AleeveAtlasLanguageProvider extends LanguageProvider {
                 "Color must use #RRGGBB format");
         add("aleeve_atlas.screen.world_map.share_team", "Share to Team");
         add("aleeve_atlas.screen.world_map.share_team.tip",
-                "Share all visible waypoints with your team");
-        add("aleeve_atlas.message.waypoint_none", "No waypoint to share");
+                "Share all visible waypoints with your team.");
+        add("aleeve_atlas.message.waypoint_none", "No waypoints to share");
         add("aleeve_atlas.message.waypoint_shared_team", "Shared waypoint: %s");
         add("aleeve_atlas.message.waypoints_shared_team", "Shared %s visible waypoint(s) with your team");
         add("aleeve_atlas.message.slime_seed_recorded", "World seed recorded: %s");
 
         add("aleeve_atlas.screen.world_map.teleport", "Teleport");
-        add("aleeve_atlas.screen.world_map.share_coordinates", "Send coordinates to chat");
+        add("aleeve_atlas.screen.world_map.share_coordinates", "Send Coordinates to Chat");
 
         add("aleeve_atlas.screen.world_map", "World Map");
         add("aleeve_atlas.screen.world_map.hint",

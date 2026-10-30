@@ -1,5 +1,6 @@
 package dev.dubhe.map.config;
 
+import com.google.gson.annotations.SerializedName;
 import dev.anvilcraft.lib.v2.config.BoundedDiscrete;
 import dev.anvilcraft.lib.v2.config.CollapsibleObject;
 import dev.anvilcraft.lib.v2.config.Comment;
@@ -43,11 +44,13 @@ public class AtlasServerConfig {
 
         @Comment("Bandwidth cap in bytes per second for map delta sync.")
         @BoundedDiscrete(min = 8192, max = 1048576)
+        @SerializedName("Map Delta Max Bytes per Second")
         public int mapDeltaMaxBytesPerSecond = 65536;
     }
 
     public static class Radar {
         @Comment("Visibility policy applied to non-team player markers.")
+        @SerializedName("Non-Team Player Visibility")
         public NonTeamVisibility nonTeamPlayerVisibility = NonTeamVisibility.VISIBLE_ONLY;
 
         @Comment("Maximum radar detection distance in blocks.")
@@ -56,7 +59,7 @@ public class AtlasServerConfig {
     }
 
     public static class Team {
-        @Comment("Team provider implementation: auto, vanilla, or an external mod id.")
+        @Comment("Team provider implementation: auto, vanilla, or an external mod ID.")
         public String provider = "auto";
     }
 }
