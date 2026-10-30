@@ -20,6 +20,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,13 +52,13 @@ public final class RadarRenderer {
         boolean circular = config.minimap.shape == MinimapShape.CIRCLE;
         renderMarkers(graphics, config, minecraft, new MarkerProjection() {
             @Override
-            public double screenX(Entity entity) {
-                return layout.rotatedScreenPoint(entity.getX(), entity.getZ(), rotationDegrees)[0];
+            public double screenX(Vec3 position) {
+                return layout.rotatedScreenPoint(position.x, position.z, rotationDegrees)[0];
             }
 
             @Override
-            public double screenY(Entity entity) {
-                return layout.rotatedScreenPoint(entity.getX(), entity.getZ(), rotationDegrees)[1];
+            public double screenY(Vec3 position) {
+                return layout.rotatedScreenPoint(position.x, position.z, rotationDegrees)[1];
             }
 
             @Override
@@ -91,13 +92,13 @@ public final class RadarRenderer {
             int viewWidth, int viewHeight) {
         renderMarkers(graphics, config, minecraft, new MarkerProjection() {
             @Override
-            public double screenX(Entity entity) {
-                return viewWidth / 2.0 + (entity.getX() - centerX) * pixelsPerChunk;
+            public double screenX(Vec3 position) {
+                return viewWidth / 2.0 + (position.x - centerX) * pixelsPerChunk;
             }
 
             @Override
-            public double screenY(Entity entity) {
-                return viewHeight / 2.0 + (entity.getZ() - centerZ) * pixelsPerChunk;
+            public double screenY(Vec3 position) {
+                return viewHeight / 2.0 + (position.z - centerZ) * pixelsPerChunk;
             }
 
             @Override
@@ -139,6 +140,7 @@ public final class RadarRenderer {
             }
         }
 
+        float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
         for (Entity entity : targets) {
             boolean sharedPlayer = entity instanceof Player
                     && (RadarStyle.isTeammate(entity) || ClientPlayerPositions.sharedVisible(entity.getUUID()));
@@ -158,8 +160,11 @@ public final class RadarRenderer {
                     continue;
                 }
             }
-            double screenX = projection.screenX(entity);
-            double screenY = projection.screenY(entity);
+            // 已加载实体与小地图中心使用同一帧插值；同步代理不参与世界 tick，不能使用其旧坐标插值。
+            Vec3 position = level.getEntity(entity.getId()) == entity
+                    ? entity.getPosition(partialTick) : entity.position();
+            double screenX = projection.screenX(position);
+            double screenY = projection.screenY(position);
             boolean drawHead = opacity >= 1.0F && category == RadarCategory.PLAYER
                     && shouldDrawPlayerHead(mode, playerListDown);
             boolean drawIcon = opacity >= 1.0F && expandAllIcons
@@ -198,9 +203,9 @@ public final class RadarRenderer {
 
     /// 地图坐标转换与视口裁剪。
     private interface MarkerProjection {
-        double screenX(Entity entity);
+        double screenX(Vec3 position);
 
-        double screenY(Entity entity);
+        double screenY(Vec3 position);
 
         boolean contains(double x, double y, double margin);
 
@@ -283,13 +288,15 @@ public final class RadarRenderer {
             return;
         }
         Identifier skinTexture = resolveSkinTexture(player);
-        int x = (int) Math.round(screenX) - HEAD_SIZE / 2;
-        int z = (int) Math.round(screenZ) - HEAD_SIZE / 2;
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) (screenX - HEAD_SIZE / 2.0),
+                (float) (screenZ - HEAD_SIZE / 2.0));
         // 玩家皮肤纹理中头部正面区域为 (8, 8, 8, 8)，帽子层为 (40, 8, 8, 8)。
-        graphics.blit(RenderPipelines.GUI_TEXTURED, skinTexture, x, z, 8.0F, 8.0F,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, skinTexture, 0, 0, 8.0F, 8.0F,
                 HEAD_SIZE, HEAD_SIZE, 8, 8, 64, 64);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, skinTexture, x, z, 40.0F, 8.0F,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, skinTexture, 0, 0, 40.0F, 8.0F,
                 HEAD_SIZE, HEAD_SIZE, 8, 8, 64, 64);
+        graphics.pose().popMatrix();
     }
 
     /// 解析皮肤纹理；纹理不可用时返回默认皮肤。

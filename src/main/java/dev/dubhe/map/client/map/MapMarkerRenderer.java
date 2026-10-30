@@ -56,9 +56,12 @@ public final class MapMarkerRenderer {
     private static void blit(GuiGraphics graphics, RenderPipeline pipeline,
             double centerX, double centerY, int size, int color) {
         int actualSize = Math.max(2, size);
-        int x = (int) Math.round(centerX - actualSize / 2.0);
-        int y = (int) Math.round(centerY - actualSize / 2.0);
-        graphics.blit(pipeline, WHITE_TEXTURE, x, y, 0.0F, 0.0F,
+        // 保留亚像素位置；奇数尺寸也必须精确居中，避免平移和缩放时逐像素跳动。
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) (centerX - actualSize / 2.0),
+                (float) (centerY - actualSize / 2.0));
+        graphics.blit(pipeline, WHITE_TEXTURE, 0, 0, 0.0F, 0.0F,
                 actualSize, actualSize, 2, 2, 2, 2, color);
+        graphics.pose().popMatrix();
     }
 }
