@@ -1,4 +1,11 @@
 dependencies {
+    // 直接编译可选模组 API，不打入发布 jar；开发验收时用 -PftbIntegration 安装到运行环境。
+    [libs.ftb.library, libs.ftb.teams, libs.ftb.chunks, libs.architectury].each { dependency ->
+        compileOnly(dependency) { transitive = false }
+        if (project.hasProperty('ftbIntegration')) {
+            runtimeOnly(dependency) { transitive = false }
+        }
+    }
     implementation libs.anvillib.codec
     jarJar libs.anvillib.codec
     implementation libs.anvillib.network

@@ -93,6 +93,14 @@
 
 ## 五、 常用配置项参考
 
+### FTB Teams 与 FTB Chunks 联动
+
+支持 Minecraft 1.21.11 的 FTB Teams / FTB Chunks `2111.1.1` 系列，通过 AnvilLib-Integration 按安装情况加载，未安装时仍可正常使用 Atlas。安装它们时也需安装其要求的 FTB Library 和 Architectury API。
+
+* **队伍**：服务端 `aleeve_atlas-server.toml` 中的 `team.provider` 默认为 `auto`，安装 FTB Teams 后自动使用其队伍；也可指定 `ftbteams`，或设为 `vanilla` 强制使用原版 `/team`。客户端与服务端直接读取各自的 FTB Teams manager，队伍按 UUID 识别，地图同步与标点分享沿用 Atlas 的队伍规则。
+* **领地**：客户端安装 FTB Chunks 后，小地图与世界地图自动显示其同步的认领区块、队伍名和颜色。认领、取消认领、转移队伍以及改名改色都会更新；仅显示 FTB 发给该客户端的数据，不额外索取隐藏领地。此联动不提供认领操作，认领仍使用 FTB Chunks。
+* **开发验收**：使用 `./gradlew runClient -PftbIntegration` 或 `runServer -PftbIntegration` 将可选依赖加入开发运行环境；正式 jar 不内嵌 FTB 或 Architectury。
+
 你可以在全屏世界地图（`M`）中直接打开图形化配置界面，或手动编辑 `<游戏目录>/config/aleeve_atlas-client.toml`：
 
 | 配置项键名 | 作用说明 | 默认值 / 范围 |

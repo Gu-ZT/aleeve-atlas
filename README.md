@@ -31,7 +31,7 @@ This mod depends on **AnvilLib 2.x** (`2.0.0` or later), but this dependency is 
 * **Waypoints & Death Markers**: Supports in-world markers/beacons, automatic death waypoints, and chat commands for importing and exporting waypoint data.
 * **Vanilla Map Banners**: Hold a filled map and select **Import map** on the world map to save its marked banners as persistent waypoints with their names, base colors, and exact positions. Reimporting preserves personal edits. Available in singleplayer or with a server that supports banner imports.
 * **Quick Pings (Radial Wheel)**: Middle-click directly in the world or on the fullscreen map to drop temporary pings. Hold middle-click to open the radial wheel and choose between *Go To*, *Normal*, *Warning*, and *Danger* pings.
-* **Team Map Sync**: When installed on the server, teammates automatically merge explored map regions and can share waypoints with one click.
+* **Team Map Sync**: When installed on the server, teammates automatically merge explored map regions and can share waypoints with one click. Optional [FTB Teams](https://github.com/FTBTeam/FTB-Teams) integration uses its team API; [FTB Chunks](https://github.com/FTBTeam/FTB-Chunks) claims appear on both maps through its client update events.
 * **Mod Integration & API**: Built-in support for chunk claim overlays and a developer API for external markers.
 
 ## Default Controls

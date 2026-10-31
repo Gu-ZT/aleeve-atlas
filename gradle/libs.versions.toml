@@ -3,8 +3,14 @@ minecraft = "1.21.11"
 neoForge = "21.11.48"
 modDevGradle = "2.0.148"
 anvillib = "2.0.0+snapshot.+"
+ftb = "2111.1.1"
+architectury = "19.0.1"
 
 [libraries]
+ftb-library = { group = "dev.ftb.mods", name = "ftb-library-neoforge", version.ref = "ftb" }
+ftb-teams = { group = "dev.ftb.mods", name = "ftb-teams-neoforge", version.ref = "ftb" }
+ftb-chunks = { group = "dev.ftb.mods", name = "ftb-chunks-neoforge", version.ref = "ftb" }
+architectury = { group = "dev.architectury", name = "architectury-neoforge", version.ref = "architectury" }
 anvillib-codec = { group = "dev.anvilcraft.lib", name = "anvillib-codec-neoforge-1.21.11", version.ref = "anvillib" }
 anvillib-network = { group = "dev.anvilcraft.lib", name = "anvillib-network-neoforge-1.21.11", version.ref = "anvillib" }
 anvillib-config = { group = "dev.anvilcraft.lib", name = "anvillib-config-neoforge-1.21.11", version.ref = "anvillib" }

@@ -1,4 +1,12 @@
 repositories {
+    exclusiveContent {
+        forRepository { maven { url = "https://maven.ftb.dev/releases" } }
+        filter { includeGroup "dev.ftb.mods" }
+    }
+    exclusiveContent {
+        forRepository { maven { url = "https://maven.architectury.dev/" } }
+        filter { includeGroup "dev.architectury" }
+    }
     mavenLocal()
     mavenCentral()
     maven {
