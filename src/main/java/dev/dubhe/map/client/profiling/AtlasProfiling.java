@@ -19,8 +19,31 @@ public final class AtlasProfiling {
     private static final RenderTimer CANVAS_SCROLL = new RenderTimer(SAMPLE_CAPACITY);
     /// GPU 遮挡查询提交与结果轮询的 CPU 耗时。
     private static final RenderTimer OCCLUSION = new RenderTimer(SAMPLE_CAPACITY);
+    /// 区块采样、缓存查询、纹理更新；不包含 HUD 绘制。
+    private static final RenderTimer MAP_TICK = new RenderTimer(SAMPLE_CAPACITY);
+    /// 周期写盘与导入缓存清理，单独记录以区别持续的采样卡顿。
+    private static final RenderTimer MAP_MAINTENANCE = new RenderTimer(SAMPLE_CAPACITY);
 
     private AtlasProfiling() {
+    }
+
+    public static void recordMapTick(long nanos) {
+        MAP_TICK.record(nanos);
+    }
+
+    public static void recordMapMaintenance(long nanos) {
+        MAP_MAINTENANCE.record(nanos);
+    }
+
+    public static RenderTimer mapTick() {
+        return MAP_TICK;
+    }
+
+    public static String mapUpdateSummary() {
+        return "map updates: tick avg=%.3fms max=%.3fms (n=%d), maintenance avg=%.3fms max=%.3fms (n=%d)"
+                .formatted(MAP_TICK.averageMillis(), MAP_TICK.maxNanos() / 1_000_000.0, MAP_TICK.count(),
+                        MAP_MAINTENANCE.averageMillis(), MAP_MAINTENANCE.maxNanos() / 1_000_000.0,
+                        MAP_MAINTENANCE.count());
     }
 
     /// 记录一次小地图渲染耗时。
@@ -115,5 +138,7 @@ public final class AtlasProfiling {
         CANVAS.reset();
         CANVAS_SCROLL.reset();
         OCCLUSION.reset();
+        MAP_TICK.reset();
+        MAP_MAINTENANCE.reset();
     }
 }

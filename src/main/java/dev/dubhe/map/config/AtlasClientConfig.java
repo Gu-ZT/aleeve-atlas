@@ -1,10 +1,12 @@
 package dev.dubhe.map.config;
 
 import com.google.gson.annotations.SerializedName;
+import dev.anvilcraft.lib.v2.config.BoundedDiscrete;
 import dev.anvilcraft.lib.v2.config.CollapsibleObject;
 import dev.anvilcraft.lib.v2.config.Comment;
 import dev.anvilcraft.lib.v2.config.Config;
 import dev.anvilcraft.lib.v2.config.ConfigScreenStyle;
+import dev.anvilcraft.lib.v2.config.Slider;
 import net.neoforged.fml.config.ModConfig;
 
 /// 客户端配置（`aleeve_atlas-client.toml`）。
@@ -40,6 +42,14 @@ public class AtlasClientConfig {
 
         @Comment("Darken deeper floors in layered cave maps to make height differences legible.")
         public boolean depthShading = true;
+
+        @Comment("Use a separate minimap zoom while the displayed map is a cave layer.")
+        public boolean useSeparateZoom = false;
+
+        @Comment("Minimap world view zoom in caves (1.0 ~ 4.0), when separate cave zoom is enabled.")
+        @BoundedDiscrete(min = 1.0, max = 4.0)
+        @Slider(step = 0.05)
+        public double zoom = 2.0;
     }
 
     @CollapsibleObject
@@ -59,6 +69,9 @@ public class AtlasClientConfig {
     public Ping ping = new Ping();
 
     public static class WorldMap {
+        @Comment("Pause singleplayer while the world map is open. Multiplayer and open-to-LAN worlds keep running.")
+        public boolean pauseGame = false;
+
         @Comment("Animate world map zoom. Disable to apply each wheel step immediately without continued zooming.")
         public boolean smoothZoom = true;
 
@@ -92,10 +105,17 @@ public class AtlasClientConfig {
         public MapColorScheme colorScheme = MapColorScheme.VANILLA;
 
         @Comment("Minimap screen size multiplier (0.5 ~ 4.0).")
+        @BoundedDiscrete(min = 0.5, max = 4.0)
+        @Slider(step = 0.05)
         public double scale = 1.0;
 
         @Comment("Minimap world view zoom (1.0 ~ 4.0). Higher values show a smaller area.")
+        @BoundedDiscrete(min = 1.0, max = 4.0)
+        @Slider(step = 0.05)
         public double zoom = 1.5;
+
+        @Comment("Animate minimap view zoom changes from keys, configuration, and cave transitions.")
+        public boolean smoothZoom = true;
 
         @Comment("Minimap screen corner.")
         public MinimapPosition position = MinimapPosition.TOP_RIGHT;
@@ -134,6 +154,16 @@ public class AtlasClientConfig {
     public static class Radar {
         @Comment("Entity radar display mode.")
         public RadarDisplayMode displayMode = RadarDisplayMode.HYBRID;
+
+        @Comment("Show entity names: OFF, ALWAYS, or while holding the player-list key (Tab by default).")
+        public RadarNameDisplay nameDisplay = RadarNameDisplay.OFF;
+
+        @Comment("Shape of radar dots. Entity icons and player heads keep their appearance.")
+        public RadarDotShape dotShape = RadarDotShape.CIRCLE;
+
+        @Comment("Radar dot diameter in GUI-scaled pixels (2 ~ 12).")
+        @BoundedDiscrete(min = 2, max = 12)
+        public int dotSize = 5;
 
         @Comment("Fade-out grace period in seconds for occluded markers (0.5 ~ 1.5).")
         public double fadeOutSeconds = 1.0;

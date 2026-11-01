@@ -3,8 +3,11 @@ package dev.dubhe.map.client.radar;
 import dev.dubhe.map.AtlasSession;
 import dev.dubhe.map.client.map.MapMarkerRenderer;
 import dev.dubhe.map.client.map.MinimapLayout;
+import dev.dubhe.map.client.map.WorldMapScreen;
 import dev.dubhe.map.config.AtlasClientConfig;
 import dev.dubhe.map.config.MinimapShape;
+import dev.dubhe.map.config.ConfigBounds;
+import dev.dubhe.map.config.RadarDotShape;
 import dev.dubhe.map.config.RadarDisplayMode;
 import dev.dubhe.map.map.MapPalette;
 import dev.dubhe.map.sync.ClientPlayerPositions;
@@ -121,9 +124,10 @@ public final class RadarRenderer {
         }
         RadarDisplayMode mode = config.radar.displayMode;
         boolean showIcons = mode == RadarDisplayMode.ICON;
-        boolean playerListHeld = mode == RadarDisplayMode.HYBRID;
-        boolean playerListDown = playerListHeld && minecraft.options.keyPlayerList.isDown();
-        boolean expandAllIcons = showIcons || playerListDown;
+        boolean playerListDown = playerListHeld(minecraft);
+        boolean expandAllIcons = showIcons || mode == RadarDisplayMode.HYBRID && playerListDown;
+        boolean showNames = config.radar.nameDisplay.visible(playerListDown);
+        int dotSize = ConfigBounds.clamp(config.radar.dotSize, 2, 12);
         Set<Long> itemDots = new HashSet<>();
         int maxDistance = AtlasSession.maxRadarDistance();
         double maxDistanceSq = (double) maxDistance * maxDistance;
@@ -170,7 +174,7 @@ public final class RadarRenderer {
             boolean drawIcon = opacity >= 1.0F && expandAllIcons
                     && category != RadarCategory.ITEM;
             double margin = drawHead ? Math.sqrt(2.0) * HEAD_SIZE / 2.0 + 1.0
-                    : drawIcon ? Math.sqrt(2.0) * ICON_SIZE / 2.0 + 1.0 : 4.5;
+                    : drawIcon ? Math.sqrt(2.0) * ICON_SIZE / 2.0 + 1.0 : (dotSize + 2) / 2.0 + 1.0;
             if (!projection.contains(screenX, screenY, margin)) {
                 continue;
             }
@@ -180,25 +184,51 @@ public final class RadarRenderer {
             // 头像和物品图标没有透明度参数，渐隐阶段改用圆点保持同样的衰减规则。
             if (drawHead) {
                 drawPlayerHead(graphics, entity, screenX, screenY);
-                continue;
+            } else if (!(drawIcon && drawEntityIcon(graphics, entity, screenX, screenY))) {
+                int color = applyOpacity(
+                        RadarStyle.color(config.radar.categories, category, entity), opacity);
+                if (category == RadarCategory.HOSTILE) {
+                    color = applyHeightShade(color, entity.getY() - player.getY());
+                }
+                if (category == RadarCategory.ITEM
+                        && !itemDots.add(packScreen(screenX, screenY))) {
+                    continue;
+                }
+                if (category == RadarCategory.PLAYER && RadarStyle.isTeammate(entity)) {
+                    drawTeamOutline(graphics, screenX, screenY, entity, config.radar.dotShape, dotSize);
+                }
+                drawDot(graphics, screenX, screenY, dotSize, color, config.radar.dotShape);
             }
-            if (drawIcon && drawEntityIcon(graphics, entity, screenX, screenY)) {
-                continue;
+            if (showNames) {
+                drawName(graphics, minecraft, projection, entity, screenX, screenY, margin, opacity);
             }
-            int color = applyOpacity(
-                    RadarStyle.color(config.radar.categories, category, entity), opacity);
-            if (category == RadarCategory.HOSTILE) {
-                color = applyHeightShade(color, entity.getY() - player.getY());
-            }
-            if (category == RadarCategory.ITEM
-                    && !itemDots.add(packScreen(screenX, screenY))) {
-                continue;
-            }
-            if (category == RadarCategory.PLAYER && RadarStyle.isTeammate(entity)) {
-                drawTeamOutline(graphics, screenX, screenY, entity);
-            }
-            drawDot(graphics, screenX, screenY, color);
         }
+    }
+
+    private static boolean playerListHeld(Minecraft minecraft) {
+        if (minecraft.screen instanceof WorldMapScreen map) {
+            return map.playerListKeyHeld();
+        }
+        return minecraft.screen == null && minecraft.options.keyPlayerList.isDown();
+    }
+
+    /// 名称必须完整落在地图内；圆形地图逐角检查，避免长标签穿过黑色边框。
+    private static void drawName(GuiGraphicsExtractor graphics, Minecraft minecraft, MarkerProjection projection,
+            Entity entity, double x, double y, double radius, float opacity) {
+        // 旧版字体渲染会把极低 alpha 视为未指定颜色，渐隐末尾不再提交文字。
+        if (opacity <= 0.02F) return;
+        String name = minecraft.font.plainSubstrByWidth(entity.getName().getString(), 120);
+        int textWidth = minecraft.font.width(name);
+        int left = (int) Math.round(x - textWidth / 2.0);
+        int top = (int) Math.ceil(y + radius + 1.0);
+        int right = left + textWidth;
+        int bottom = top + minecraft.font.lineHeight;
+        if (!projection.contains(left - 1, top - 1, 0)
+                || !projection.contains(right + 1, top - 1, 0)
+                || !projection.contains(left - 1, bottom + 1, 0)
+                || !projection.contains(right + 1, bottom + 1, 0)) return;
+        graphics.fill(left - 1, top - 1, right + 1, bottom + 1, applyOpacity(0x88000000, opacity));
+        graphics.text(minecraft.font, name, left, top, applyOpacity(0xFFFFFFFF, opacity), false);
     }
 
     /// 地图坐标转换与视口裁剪。
@@ -224,14 +254,14 @@ public final class RadarRenderer {
 
     /// 同队玩家圆点外层描边为队伍颜色。
     private static void drawTeamOutline(GuiGraphicsExtractor graphics, double screenX, double screenZ,
-            Entity entity) {
+            Entity entity, RadarDotShape shape, int size) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             return;
         }
         var team = TeamProviders.active().teamIdOf(entity.getUUID());
         int color = TeamProviders.active().teamColor(team);
-        MapMarkerRenderer.drawDot(graphics, screenX, screenZ, 7, color);
+        drawDot(graphics, screenX, screenZ, size + 2, color, shape);
     }
 
     /// 把屏幕坐标按 4 像素粒度打包，用于合并同格掉落物。
@@ -250,8 +280,13 @@ public final class RadarRenderer {
         return (alpha << 24) | (argb & 0xFFFFFF);
     }
 
-    private static void drawDot(GuiGraphicsExtractor graphics, double screenX, double screenZ, int color) {
-        MapMarkerRenderer.drawDot(graphics, screenX, screenZ, 5, color);
+    private static void drawDot(GuiGraphicsExtractor graphics, double screenX, double screenZ,
+            int size, int color, RadarDotShape shape) {
+        if (shape == RadarDotShape.DIAMOND) {
+            MapMarkerRenderer.drawDiamond(graphics, screenX, screenZ, size, color);
+        } else {
+            MapMarkerRenderer.drawDot(graphics, screenX, screenZ, size, color);
+        }
     }
 
     /// 生物图标：用刷怪蛋物品图标表示实体类型；无对应刷怪蛋时返回 false 由调用方回退圆点。
