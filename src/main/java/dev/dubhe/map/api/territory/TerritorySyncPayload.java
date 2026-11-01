@@ -62,8 +62,8 @@ public record TerritorySyncPayload(Action action, SyncedTerritory territory, int
                 payload.territory.displayName());
         buf.writeVarInt(payload.territory.chunks().size());
         for (ChunkPos pos : payload.territory.chunks()) {
-            buf.writeInt(pos.x);
-            buf.writeInt(pos.z);
+            buf.writeInt(pos.x());
+            buf.writeInt(pos.z());
         }
     }
 

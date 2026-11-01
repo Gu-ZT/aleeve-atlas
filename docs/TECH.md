@@ -2,7 +2,7 @@
 
 本文档面向参与 **袖里舆图（`aleeve_atlas`）** 开发的贡献者，以及需要接入本模组 API（如标点联动、领地覆盖层）的外部模组开发者。
 
-* **适用版本**：Minecraft `1.21.11`（NeoForge `21.11.x`）
+* **适用版本**：Minecraft `26.1.2`（NeoForge `26.1.2.x`）
 * **需求规格说明**：[袖里舆图（aleeve_atlas）需求规格说明书.md](<袖里舆图 (Aleeve Atlas) 需求规格说明书.md>)
 
 ---
@@ -16,11 +16,11 @@
 
 ### 2. AnvilLib 模块依赖（`>= 2.0.0`）
 
-本模组强依赖对应 MC 1.21.11 版本的 **AnvilLib**，各子模块职责如下：
+本模组强依赖对应 MC 26.1.2 版本的 **AnvilLib**，各子模块职责如下：
 
 * `anvillib_config`（**双端必需**）：负责配置管理与服务端锁定项下发。
 * `anvillib_wheel`（**客户端必需**）：提供世界内与全屏地图的 4 向标点轮盘 UI。
-* `anvillib_rendering`（**客户端必需**）：提供底层渲染辅助支持。
+* `anvillib_rendering`（**客户端必需**）：为 `anvillib_wheel` 提供底层渲染支持。
 * `anvillib_util`（**客户端必需**）：提供客户端 Tick 计数等基础工具。
 * `anvillib_integration`（*可选*）：用于接入 FTB Teams 等外部组队模组。
 
@@ -107,7 +107,7 @@ AtlasTerritory.client().upsertTerritory(
 
 ### 1. 客户端方块变更检测（Mixin 机制）
 
-* **背景**：NeoForge 1.21.11 移除了客户端层面的方块变更事件，而地图需要在方块发生变化时重新采样对应区块。
+* **背景**：NeoForge 26.1.2 移除了客户端层面的方块变更事件，而地图需要在方块发生变化时重新采样对应区块。
 * **实现**：`ClientLevel.setBlocksDirty` 是客户端接收方块更新的唯一入口。我们通过 Mixin 在该方法头部（`HEAD`）注入逻辑，将对应区块标记为“待重新采样”（Dirty）。
 * **缓存与写盘优化**：
 * 该 Mixin 仅声明在 `aleeve_atlas.mixins.json` 的 `client` 段中，专用服务端（Dedicated Server）不会加载。

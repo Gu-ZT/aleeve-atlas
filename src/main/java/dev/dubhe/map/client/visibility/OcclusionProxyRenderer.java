@@ -1,7 +1,9 @@
 package dev.dubhe.map.client.visibility;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.platform.PolygonMode;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -51,11 +53,8 @@ public final class OcclusionProxyRenderer {
             .withLocation(AleeveAtlas.id("pipeline/occlusion_proxy"))
             .withVertexShader("core/position_color")
             .withFragmentShader("core/position_color")
-            .withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST)
-            .withDepthWrite(false)
-            .withColorWrite(false, false)
-            .withoutBlend()
-            .withoutStencilTest()
+            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .withColorTargetState(new ColorTargetState(java.util.Optional.empty(), ColorTargetState.WRITE_NONE))
             .withCull(false)
             .withPolygonMode(PolygonMode.FILL)
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)

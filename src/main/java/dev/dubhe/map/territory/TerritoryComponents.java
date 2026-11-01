@@ -39,7 +39,7 @@ public final class TerritoryComponents {
                 ChunkPos current = queue.poll();
                 component.add(current);
                 for (int[] offset : NEIGHBOURS) {
-                    ChunkPos neighbour = new ChunkPos(current.x + offset[0], current.z + offset[1]);
+                    ChunkPos neighbour = new ChunkPos(current.x() + offset[0], current.z() + offset[1]);
                     if (remaining.remove(neighbour)) {
                         queue.add(neighbour);
                     }
@@ -50,8 +50,8 @@ public final class TerritoryComponents {
         components.sort((left, right) -> {
             ChunkPos a = minOf(left);
             ChunkPos b = minOf(right);
-            int byX = Integer.compare(a.x, b.x);
-            return byX != 0 ? byX : Integer.compare(a.z, b.z);
+            int byX = Integer.compare(a.x(), b.x());
+            return byX != 0 ? byX : Integer.compare(a.z(), b.z());
         });
         return components;
     }
@@ -60,7 +60,7 @@ public final class TerritoryComponents {
     public static ChunkPos minOf(Set<ChunkPos> component) {
         ChunkPos min = null;
         for (ChunkPos pos : component) {
-            if (min == null || pos.x < min.x || (pos.x == min.x && pos.z < min.z)) {
+            if (min == null || pos.x() < min.x() || (pos.x() == min.x() && pos.z() < min.z())) {
                 min = pos;
             }
         }

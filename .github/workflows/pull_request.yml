@@ -59,6 +59,6 @@ jobs:
           path: build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
 
 #      - name: gametest
-#        uses: Anvil-Dev/dedicated-server-launch-test@26.1-neoforge
+#        uses: Anvil-Dev/dedicated-server-launch-test@26.1.2-neoforge
 #        with:
 #          mod: build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar

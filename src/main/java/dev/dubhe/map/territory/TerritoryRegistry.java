@@ -82,7 +82,7 @@ public final class TerritoryRegistry implements TerritoryOverlayApi {
         for (ChunkPos center : affected) {
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
-                    expanded.add(new ChunkPos(center.x + dx, center.z + dz));
+                    expanded.add(new ChunkPos(center.x() + dx, center.z() + dz));
                 }
             }
         }
@@ -101,8 +101,8 @@ public final class TerritoryRegistry implements TerritoryOverlayApi {
     private static int compareComponents(TerritoryComponent left, TerritoryComponent right) {
         ChunkPos a = TerritoryComponents.minOf(left.chunks());
         ChunkPos b = TerritoryComponents.minOf(right.chunks());
-        int byX = Integer.compare(a.x, b.x);
-        return byX != 0 ? byX : Integer.compare(a.z, b.z);
+        int byX = Integer.compare(a.x(), b.x());
+        return byX != 0 ? byX : Integer.compare(a.z(), b.z());
     }
 
     @Override

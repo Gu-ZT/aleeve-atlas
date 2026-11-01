@@ -215,7 +215,7 @@ public final class ClientCartography {
 
     public static void message(String key, Object... args) {
         var player = Minecraft.getInstance().player;
-        if (player != null) player.displayClientMessage(text(key, args), false);
+        if (player != null) player.sendSystemMessage(text(key, args));
     }
 
     private static void clearPending() { pending = null; pendingHeld = null; callback = null; pendingScreen = null; }

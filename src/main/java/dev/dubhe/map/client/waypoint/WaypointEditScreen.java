@@ -2,7 +2,7 @@ package dev.dubhe.map.client.waypoint;
 
 import dev.dubhe.map.waypoint.Waypoint;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
@@ -222,9 +222,9 @@ public final class WaypointEditScreen extends Screen {
         if (this.original == null) {
             ClientWaypoints.add(result);
             if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(Component.translatable(
+                minecraft.player.sendOverlayMessage(Component.translatable(
                         "aleeve_atlas.message.waypoint_created", result.pos().getX(),
-                        result.pos().getY(), result.pos().getZ()), true);
+                        result.pos().getY(), result.pos().getZ()));
             }
         } else {
             ClientWaypoints.update(result);
@@ -298,10 +298,10 @@ public final class WaypointEditScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, width, height, 0xC0101010);
         final int left = width / 2 - FORM_WIDTH / 2;
-        graphics.drawString(font, title, left, 8, 0xFFFFFFFF, true);
+        graphics.text(font, title, left, 8, 0xFFFFFFFF, true);
         this.drawLabel(graphics, Component.translatable("aleeve_atlas.screen.waypoint_edit.name"),
                 left, this.formTop + 16);
         this.drawLabel(graphics, Component.translatable("aleeve_atlas.screen.waypoint_edit.coordinates"),
@@ -315,14 +315,14 @@ public final class WaypointEditScreen extends Screen {
                 Component.translatable("aleeve_atlas.screen.waypoint_edit.visible_distance"),
                 left, this.formTop + 142);
         if (this.errorMessage != null) {
-            graphics.drawCenteredString(font, this.errorMessage, width / 2, height - 44, 0xFFFF5555);
+            graphics.centeredText(font, this.errorMessage, width / 2, height - 44, 0xFFFF5555);
         }
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
-    private void drawLabel(GuiGraphics graphics, Component text, int x, int y) {
+    private void drawLabel(GuiGraphicsExtractor graphics, Component text, int x, int y) {
         if (y >= CONTENT_TOP && y + 9 <= height - 52) {
-            graphics.drawString(font, text, x, y, 0xFFAAAAAA, true);
+            graphics.text(font, text, x, y, 0xFFAAAAAA, true);
         }
     }
 

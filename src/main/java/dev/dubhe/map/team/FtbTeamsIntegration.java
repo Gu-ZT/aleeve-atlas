@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /// 由 AnvilLib 在安装 FTB Teams 时加载，直接调用正式 API。
-@Integration(value = "ftbteams", version = "[2111.1.1,2112)")
+@Integration(value = "ftbteams", version = "[26.1.2,26.2)")
 public final class FtbTeamsIntegration {
     public void apply() {
         TeamProviders.register(new FtbTeamsProvider());

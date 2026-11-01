@@ -9,7 +9,7 @@ import dev.anvilcraft.lib.v2.wheel.client.gui.screen.WheelScreen;
 import dev.dubhe.map.client.AtlasKeyMappings;
 import dev.dubhe.map.ping.MapPingData;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -51,7 +51,7 @@ final class PingWheelMenu extends WheelScreen {
             builder.action(icon.name(), icon.displayName(), (graphics, pose, width, height) -> {
                 Component label = icon.displayName();
                 var font = Minecraft.getInstance().font;
-                graphics.drawString(font, label, -font.width(label) / 2,
+                graphics.text(font, label, -font.width(label) / 2,
                         -font.lineHeight / 2, 0xFFFFFFFF, true);
             }, context -> action.accept(icon));
         }
@@ -93,12 +93,12 @@ final class PingWheelMenu extends WheelScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         this.disableFrostedBackground();
         if (this.parent != null) {
-            this.parent.render(graphics, mouseX, mouseY, partialTick);
+            this.parent.extractRenderState(graphics, mouseX, mouseY, partialTick);
         }
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override

@@ -3,7 +3,7 @@ package dev.dubhe.map.client.territory;
 import dev.anvilcraft.lib.v2.integration.Integration;
 import dev.anvilcraft.lib.v2.integration.IntegrationType;
 import dev.dubhe.map.api.territory.AtlasTerritory;
-import dev.ftb.mods.ftbchunks.api.client.event.ChunksUpdatedFromServerEvent;
+import dev.ftb.mods.ftbchunks.api.neoforge.FTBChunksClientEvent;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import net.minecraft.client.Minecraft;
@@ -13,18 +13,19 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /// 仅由 AnvilLib 在安装 FTB Chunks 的客户端加载；不访问服务端隐藏的领地。
-@Integration(value = "ftbchunks", version = "[2111.1.1,2112)", type = IntegrationType.CLIENT)
+@Integration(value = "ftbchunks", version = "[26.1.2,26.2)", type = IntegrationType.CLIENT)
 public final class FtbChunksIntegration {
     private final FtbClaimOverlays claims = new FtbClaimOverlays(AtlasTerritory.client());
     private int ticks;
 
     public void applyClient() {
-        ChunksUpdatedFromServerEvent.UPDATED.register(this::updated);
+        NeoForge.EVENT_BUS.addListener(this::updated);
         NeoForge.EVENT_BUS.addListener(this::tick);
         NeoForge.EVENT_BUS.addListener(this::logout);
     }
 
-    private void updated(ChunksUpdatedFromServerEvent event) {
+    private void updated(FTBChunksClientEvent.ChunksUpdatedFromServer update) {
+        var event = update.getEventData();
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) return;
         // FTB 在客户端 tick 中统一派发此事件，包含登录同步和后续认领、取消认领。

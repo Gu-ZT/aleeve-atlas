@@ -3,7 +3,7 @@ package dev.dubhe.map.client.map;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.config.PlayerIndicatorType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
@@ -17,7 +17,7 @@ final class PlayerIndicatorRenderer {
     private PlayerIndicatorRenderer() {
     }
 
-    static void draw(GuiGraphics graphics, PlayerIndicatorType type, double x, double y,
+    static void draw(GuiGraphicsExtractor graphics, PlayerIndicatorType type, double x, double y,
             float playerYaw, float mapRotation, float scale) {
         graphics.pose().pushMatrix();
         graphics.pose().mul(transform(x, y, playerYaw, mapRotation, scale));
@@ -39,7 +39,7 @@ final class PlayerIndicatorRenderer {
         return new Matrix3x2f().translation((float) x, (float) y).rotate(angle).scale(scale);
     }
 
-    private static void drawVanilla(GuiGraphics graphics) {
+    private static void drawVanilla(GuiGraphicsExtractor graphics) {
         var atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.MAP_DECORATIONS);
         var sprite = atlas.getSprite(PLAYER_SPRITE);
         // 原版图案可见包围框中心位于 8×8 纹理的 (4.5, 3.5)，修正其半像素偏移。

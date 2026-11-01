@@ -1,7 +1,6 @@
 package dev.dubhe.map.client.waypoint;
 
 import dev.dubhe.map.AleeveAtlas;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -35,12 +34,12 @@ public final class WorldProjection {
     @SubscribeEvent
     public static void onWorldRender(FrameGraphSetupEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
-        Camera camera = event.getCamera();
-        if (minecraft.level == null || !camera.isInitialized()) {
+        var camera = event.getCameraState();
+        if (minecraft.level == null || !camera.initialized) {
             frame = null;
             return;
         }
-        frame = new Frame(camera.position(), new Matrix4f(event.getProjectionMatrix()).mul(event.getModelViewMatrix()),
+        frame = new Frame(camera.pos, new Matrix4f(camera.projectionMatrix).mul(event.getModelViewMatrix()),
                 minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight());
     }
 

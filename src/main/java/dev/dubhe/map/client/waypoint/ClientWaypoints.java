@@ -318,8 +318,8 @@ public final class ClientWaypoints {
         upsertInDimension(death);
         var newPlayer = event.getNewPlayer();
         if (newPlayer != null) {
-            newPlayer.displayClientMessage(
-                    Component.translatable("aleeve_atlas.message.death_point_added"), true);
+            newPlayer.sendOverlayMessage(
+                    Component.translatable("aleeve_atlas.message.death_point_added"));
         }
     }
 

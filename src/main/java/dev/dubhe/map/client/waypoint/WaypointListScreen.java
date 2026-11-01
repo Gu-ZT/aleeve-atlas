@@ -6,7 +6,7 @@ import dev.dubhe.map.config.WaypointSendPolicy;
 import dev.dubhe.map.waypoint.Waypoint;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
@@ -175,9 +175,9 @@ public final class WaypointListScreen extends Screen {
         ClientWaypoints.share(waypoint);
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null) {
-            minecraft.player.displayClientMessage(Component.translatable(
+            minecraft.player.sendOverlayMessage(Component.translatable(
                     "aleeve_atlas.message.waypoint_shared_team",
-                    waypoint.displayName().getString()), true);
+                    waypoint.displayName().getString()));
         }
     }
 
@@ -205,11 +205,11 @@ public final class WaypointListScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, width, height, 0xC0101010);
-        graphics.drawString(font, title, 12, 12, 0xFFFFFFFF, true);
+        graphics.text(font, title, 12, 12, 0xFFFFFFFF, true);
         if (this.entries.isEmpty()) {
-            graphics.drawString(font,
+            graphics.text(font,
                     Component.translatable("aleeve_atlas.screen.waypoint_list.empty"),
                     12, LIST_TOP, 0xFFAAAAAA, true);
         } else {
@@ -228,14 +228,14 @@ public final class WaypointListScreen extends Screen {
                 this.drawWaypointLabel(graphics, waypoint, y, mouseX, mouseY);
             }
         }
-        graphics.drawString(font,
+        graphics.text(font,
                 Component.translatable("aleeve_atlas.screen.waypoint_list.scroll_hint"),
                 12, height - 66, 0xFF888888, true);
         this.drawScrollbar(graphics);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
-    private void drawWaypointLabel(GuiGraphics graphics, Waypoint waypoint, int y,
+    private void drawWaypointLabel(GuiGraphicsExtractor graphics, Waypoint waypoint, int y,
             int mouseX, int mouseY) {
         int labelX = 14;
         int maxWidth = Math.max(0, width - 40);
@@ -266,9 +266,9 @@ public final class WaypointListScreen extends Screen {
             graphics.enableScissor(12, y, 12 + maxWidth, y + 18);
         }
         int drawX = (int) Math.round(labelX - offset);
-        graphics.drawString(font, line, drawX, y + 5, 0xFFFFFFFF, true);
+        graphics.text(font, line, drawX, y + 5, 0xFFFFFFFF, true);
         if (waypoint.deathPoint()) {
-            graphics.drawString(font, death, drawX + font.width(line) + 6, y + 5,
+            graphics.text(font, death, drawX + font.width(line) + 6, y + 5,
                     0xFFFF5555, true);
         }
         if (overflow) {
@@ -276,7 +276,7 @@ public final class WaypointListScreen extends Screen {
         }
     }
 
-    private void drawScrollbar(GuiGraphics graphics) {
+    private void drawScrollbar(GuiGraphicsExtractor graphics) {
         int x = width - SCROLLBAR_WIDTH - 4;
         int trackHeight = this.listHeight();
         graphics.fill(x, LIST_TOP, x + SCROLLBAR_WIDTH, LIST_TOP + trackHeight, 0xFF202020);

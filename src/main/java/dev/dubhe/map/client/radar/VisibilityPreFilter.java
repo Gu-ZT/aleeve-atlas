@@ -9,7 +9,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.state.LevelRenderState;
+import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -81,7 +81,7 @@ public final class VisibilityPreFilter {
         if (currentFrustum != null) {
             return currentFrustum;
         }
-        return Minecraft.getInstance().levelRenderer.getCapturedFrustum();
+        return null;
     }
 
     /// 选出需要遮挡查询的非同队玩家。

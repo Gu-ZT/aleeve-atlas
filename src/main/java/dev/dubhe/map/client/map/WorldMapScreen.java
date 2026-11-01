@@ -36,7 +36,7 @@ import dev.dubhe.map.territory.TerritoryRuns;
 import dev.dubhe.map.waypoint.Waypoint;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
@@ -264,7 +264,7 @@ public final class WorldMapScreen extends Screen {
         ClientCartography.message("imported");
     }
 
-    private void drawCartography(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void drawCartography(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (this.importedHighlight != null && System.currentTimeMillis() < this.importedHighlightUntil) {
             var map = this.importedHighlight;
             this.drawMapRegion(graphics, map.centerX(), map.centerZ(), map.size(), 0, 0xFFFFCC55);
@@ -285,7 +285,7 @@ public final class WorldMapScreen extends Screen {
         }
     }
 
-    private void drawMapRegion(GuiGraphics graphics, int x, int z, int size, int fill, int border) {
+    private void drawMapRegion(GuiGraphicsExtractor graphics, int x, int z, int size, int fill, int border) {
         int left = (int) Math.floor(this.width / 2.0 + (x - size / 2.0 - this.centerX) * this.pixelsPerChunk);
         int top = (int) Math.floor(this.height / 2.0 + (z - size / 2.0 - this.centerZ) * this.pixelsPerChunk);
         int right = (int) Math.ceil(this.width / 2.0 + (x + size / 2.0 - this.centerX) * this.pixelsPerChunk);
@@ -360,11 +360,11 @@ public final class WorldMapScreen extends Screen {
         Component message = count == 0
                 ? Component.translatable("aleeve_atlas.message.waypoint_none")
                 : Component.translatable("aleeve_atlas.message.waypoints_shared_team", count);
-        minecraft.player.displayClientMessage(message, true);
+        minecraft.player.sendOverlayMessage(message);
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         int viewWidth = width;
         int viewHeight = height;
         float animationProgress = Mth.clamp((this.openAnimationTicks + partialTick)
@@ -472,12 +472,12 @@ public final class WorldMapScreen extends Screen {
         this.drawTerritoryLabels(graphics);
         this.drawLocationInfo(graphics, logicalMouseX, logicalMouseY);
         this.drawContextMenu(graphics, mouseX, mouseY);
-        this.structures.render(graphics, mouseX, mouseY);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        this.structures.extractRenderState(graphics, mouseX, mouseY);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         if (this.hoveredStructure != null && this.contextMenu == null && !this.structures.contains(mouseX, mouseY) && mouseY > 30) {
             graphics.setComponentTooltipForNextFrame(this.font, StructureRenderer.description(this.hoveredStructure), mouseX, mouseY);
         }
-        if (this.craftingHeld != null) graphics.drawCenteredString(this.font, ClientCartography.text("selection_help"),
+        if (this.craftingHeld != null) graphics.centeredText(this.font, ClientCartography.text("selection_help"),
                 this.width / 2, this.height - 12, 0xFFFFFFFF);
         this.pixelsPerChunk = actualPixelsPerChunk;
         this.centerX = actualCenterX;
@@ -530,7 +530,7 @@ public final class WorldMapScreen extends Screen {
     /// 领地覆层。
     ///
     /// 缩小到区块像素小于标签宽度时自动隐藏名称；悬停任一区块高亮其边框并展示信息卡片。
-    private void drawTerritories(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void drawTerritories(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
@@ -574,7 +574,7 @@ public final class WorldMapScreen extends Screen {
 
     }
 
-    private void drawTerritoryTooltip(GuiGraphics graphics, int mapMouseX, int mapMouseY,
+    private void drawTerritoryTooltip(GuiGraphicsExtractor graphics, int mapMouseX, int mapMouseY,
             int screenMouseX, int screenMouseY) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
@@ -599,7 +599,7 @@ public final class WorldMapScreen extends Screen {
     }
 
     /// 绘制简易信息卡片（避免依赖 1.21.11 的 tooltip 组件装配）。
-    private void drawTooltipLines(GuiGraphics graphics, Minecraft minecraft,
+    private void drawTooltipLines(GuiGraphicsExtractor graphics, Minecraft minecraft,
             List<Component> lines, int mouseX, int mouseY) {
         int lineHeight = 10;
         int padding = 3;
@@ -616,7 +616,7 @@ public final class WorldMapScreen extends Screen {
         graphics.fill(x, y + boxHeight - 1, x + boxWidth, y + boxHeight, 0xFF5000FF);
         int textY = y + padding;
         for (Component line : lines) {
-            graphics.drawString(minecraft.font, line, x + padding, textY, 0xFFFFFFFF, true);
+            graphics.text(minecraft.font, line, x + padding, textY, 0xFFFFFFFF, true);
             textY += lineHeight;
         }
     }
@@ -625,7 +625,7 @@ public final class WorldMapScreen extends Screen {
     ///
     /// 逐个连通分量比较其屏幕像素面积与名称文本宽度：面积不足以容纳文本时隐藏标签，
     /// 仅保留色块，避免大量飞地标签相互重叠（AC-10）。
-    private void drawTerritoryLabels(GuiGraphics graphics) {
+    private void drawTerritoryLabels(GuiGraphicsExtractor graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null || this.pixelsPerChunk < MIN_PIXELS_FOR_LABEL) {
             return;
@@ -665,7 +665,7 @@ public final class WorldMapScreen extends Screen {
                 int tx = (int) Math.round(labelCenterX) - textWidth / 2;
                 int ty = (int) Math.round(labelCenterY) - 4;
                 graphics.fill(tx - 2, ty - 2, tx + textWidth + 2, ty + 10, 0xB0000000);
-                graphics.drawString(minecraft.font, group.displayName(), tx, ty, 0xFFFFFFFF,
+                graphics.text(minecraft.font, group.displayName(), tx, ty, 0xFFFFFFFF,
                         false);
             }
         }
@@ -697,8 +697,8 @@ public final class WorldMapScreen extends Screen {
     }
 
     private int[] chunkScreenRect(ChunkPos chunk) {
-        double centerChunkX = (chunk.x << 4) + 8.0;
-        double centerChunkZ = (chunk.z << 4) + 8.0;
+        double centerChunkX = (chunk.x() << 4) + 8.0;
+        double centerChunkZ = (chunk.z() << 4) + 8.0;
         double screenX = width / 2.0 + (centerChunkX - this.centerX) * this.pixelsPerChunk;
         double screenY = height / 2.0 + (centerChunkZ - this.centerZ) * this.pixelsPerChunk;
         int size = Math.max(1, Math.round(ChunkMapData.SIZE * this.pixelsPerChunk));
@@ -711,7 +711,7 @@ public final class WorldMapScreen extends Screen {
     }
 
     /// 仅在领地与非领地交界处描边。
-    private void drawChunkOutline(GuiGraphics graphics, TerritoryGroup group, ChunkPos chunk,
+    private void drawChunkOutline(GuiGraphicsExtractor graphics, TerritoryGroup group, ChunkPos chunk,
             int[] rect, int color) {
         int borderWidth = Math.max(1, Math.round(group.borderStyle().width()));
         boolean dashed = group.borderStyle().dashed();
@@ -719,24 +719,24 @@ public final class WorldMapScreen extends Screen {
         int x = rect[0];
         int y = rect[1];
         int size = rect[2];
-        if (!chunks.contains(new ChunkPos(chunk.x, chunk.z - 1))) {
+        if (!chunks.contains(new ChunkPos(chunk.x(), chunk.z() - 1))) {
             this.drawBorderSegment(graphics, x, y, size, borderWidth, color, dashed, true);
         }
-        if (!chunks.contains(new ChunkPos(chunk.x, chunk.z + 1))) {
+        if (!chunks.contains(new ChunkPos(chunk.x(), chunk.z() + 1))) {
             this.drawBorderSegment(graphics, x, y + size - borderWidth, size, borderWidth, color,
                     dashed, true);
         }
-        if (!chunks.contains(new ChunkPos(chunk.x - 1, chunk.z))) {
+        if (!chunks.contains(new ChunkPos(chunk.x() - 1, chunk.z()))) {
             this.drawBorderSegment(graphics, x, y, borderWidth, size, color, dashed, false);
         }
-        if (!chunks.contains(new ChunkPos(chunk.x + 1, chunk.z))) {
+        if (!chunks.contains(new ChunkPos(chunk.x() + 1, chunk.z()))) {
             this.drawBorderSegment(graphics, x + size - borderWidth, y, borderWidth, size, color,
                     dashed, false);
         }
     }
 
     /// 绘制一段领地边框；虚线样式下按固定节距间隔填充。
-    private void drawBorderSegment(GuiGraphics graphics, int x, int y, int width, int height,
+    private void drawBorderSegment(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
             int color, boolean dashed, boolean horizontal) {
         if (!dashed) {
             graphics.fill(x, y, x + width, y + height, color);
@@ -770,7 +770,7 @@ public final class WorldMapScreen extends Screen {
     }
 
     /// 世界地图上的路径点标记。
-    private void drawWaypoints(GuiGraphics graphics) {
+    private void drawWaypoints(GuiGraphicsExtractor graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
@@ -788,7 +788,7 @@ public final class WorldMapScreen extends Screen {
         }
     }
 
-    private void drawStructures(GuiGraphics graphics, double mouseX, double mouseY) {
+    private void drawStructures(GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
         this.hoveredStructure = null;
         var store = ClientStructures.current();
         if (store == null) {
@@ -841,7 +841,7 @@ public final class WorldMapScreen extends Screen {
         return nearest;
     }
 
-    private void drawWaypointLabels(GuiGraphics graphics) {
+    private void drawWaypointLabels(GuiGraphicsExtractor graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
@@ -863,13 +863,13 @@ public final class WorldMapScreen extends Screen {
             if (labelY + 10 <= height) {
                 graphics.fill(labelX - 2, labelY - 1, labelX + textWidth + 2, labelY + 10,
                         0x80000000);
-                graphics.drawString(minecraft.font, name, labelX, labelY, 0xFFFFFFFF, true);
+                graphics.text(minecraft.font, name, labelX, labelY, 0xFFFFFFFF, true);
             }
         }
     }
 
     /// 世界地图上的临时标点波纹。
-    private void drawPings(GuiGraphics graphics) {
+    private void drawPings(GuiGraphicsExtractor graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
@@ -904,11 +904,11 @@ public final class WorldMapScreen extends Screen {
 
     /// 背景由 {@link #render} 自行填充，避免父类每帧二次模糊（1.21.11 限制）。
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
     }
 
     /// 玩家指示器固定使用界面尺寸，避免地形缩放改变其大小。
-    private void drawPlayerMarker(GuiGraphics graphics) {
+    private void drawPlayerMarker(GuiGraphicsExtractor graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             return;
@@ -922,7 +922,7 @@ public final class WorldMapScreen extends Screen {
                 screenX, screenY, minecraft.player.getYRot(), 0f, 1f);
     }
 
-    private void drawContextMenu(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void drawContextMenu(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (this.contextMenu == null) {
             return;
         }
@@ -939,7 +939,7 @@ public final class WorldMapScreen extends Screen {
                 y + menuHeight, 0xFFAAAAAA);
         for (int index = 0; index < this.contextMenu.actions().size(); index++) {
             Component label = this.contextMenu.actions().get(index).label();
-            graphics.drawString(this.font, this.font.plainSubstrByWidth(label.getString(), menuWidth - 16),
+            graphics.text(this.font, this.font.plainSubstrByWidth(label.getString(), menuWidth - 16),
                     x + 8, y + 10 + index * CONTEXT_MENU_ROW_HEIGHT, 0xFFFFFFFF);
             if (this.contextMenuContains(mouseX, mouseY)
                     && (mouseY - y - 4) / CONTEXT_MENU_ROW_HEIGHT == index) {
@@ -949,7 +949,7 @@ public final class WorldMapScreen extends Screen {
     }
 
     /// 显示鼠标下方的方块、群系和最高优先级领地。
-    private void drawLocationInfo(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void drawLocationInfo(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
@@ -973,13 +973,13 @@ public final class WorldMapScreen extends Screen {
         Component location = Component.translatable("aleeve_atlas.screen.world_map.location",
                 block, pos.getX(), pos.getY(), pos.getZ(), Component.translatable(biomeKey));
         List<TerritoryGroup> territories = AtlasTerritory.clientRegistry()
-                .hitAt(minecraft.level.dimension(), new ChunkPos(pos));
+                .hitAt(minecraft.level.dimension(), ChunkPos.containing(pos));
         if (!territories.isEmpty()) {
             location = Component.empty().append(location).append("  ")
                     .append(Component.translatable("aleeve_atlas.screen.world_map.territory",
                             territories.get(0).displayName()));
         }
-        graphics.drawString(minecraft.font, location, 6, height - 28, 0xFFDDDDDD);
+        graphics.text(minecraft.font, location, 6, height - 28, 0xFFDDDDDD);
     }
 
     private static double lerp(double start, double end, float progress) {
@@ -1263,7 +1263,7 @@ public final class WorldMapScreen extends Screen {
     /// 由地图缓存推断地表高度；无数据时回退到海平面以上默认值。
     private int surfaceYAt(double worldX, double worldZ) {
         ChunkPos pos = new ChunkPos((int) Math.floor(worldX) >> 4, (int) Math.floor(worldZ) >> 4);
-        var data = this.cache == null ? null : this.cache.get(pos.x, pos.z).orElse(null);
+        var data = this.cache == null ? null : this.cache.get(pos.x(), pos.z()).orElse(null);
         if (data == null) {
             return 64;
         }

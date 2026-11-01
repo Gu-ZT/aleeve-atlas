@@ -2,7 +2,9 @@ package dev.dubhe.map.client.map;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.dubhe.map.AleeveAtlas;
@@ -25,9 +27,9 @@ public final class AtlasRenderPipelines {
             .withVertexShader(AleeveAtlas.id("core/minimap_circle"))
             .withFragmentShader(AleeveAtlas.id("core/minimap_circle"))
             .withSampler("Sampler0")
-            .withBlend(BlendFunction.TRANSLUCENT)
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
-            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
             .build();
 
     /// 小地图边框独立绘制，避免玩家指示器样式影响边框。
@@ -37,9 +39,9 @@ public final class AtlasRenderPipelines {
             .withVertexShader(AleeveAtlas.id("core/minimap_overlay"))
             .withFragmentShader(AleeveAtlas.id("core/minimap_overlay"))
             .withSampler("Sampler0")
-            .withBlend(BlendFunction.TRANSLUCENT)
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
-            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
             .build();
 
     /// 世界地图光滑四角方向标，逆时针半臂使用空心轮廓。
@@ -76,9 +78,9 @@ public final class AtlasRenderPipelines {
                 .withVertexShader(AleeveAtlas.id("core/minimap_overlay"))
                 .withFragmentShader(AleeveAtlas.id(fragmentShader))
                 .withSampler("Sampler0")
-                .withBlend(BlendFunction.TRANSLUCENT)
+                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
-                .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+                .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
                 .build();
     }
 

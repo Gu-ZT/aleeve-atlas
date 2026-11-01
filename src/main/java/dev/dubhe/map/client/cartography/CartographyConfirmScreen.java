@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.cartography.Cartography;
 import dev.dubhe.map.client.map.WorldMapScreen;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.Tooltip;
@@ -105,20 +105,20 @@ public final class CartographyConfirmScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xF0181818);
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFFFF);
-        graphics.drawCenteredString(this.font, ClientCartography.text("bounds", this.centerX - 64, this.centerZ - 64,
+        graphics.centeredText(this.font, this.title, this.width / 2, 8, 0xFFFFFFFF);
+        graphics.centeredText(this.font, ClientCartography.text("bounds", this.centerX - 64, this.centerZ - 64,
                 this.centerX + 63, this.centerZ + 63), this.width / 2, 23, 0xFFCCCCCC);
         int size = Math.max(16, Math.min(256, Math.min(this.width - 24, this.height - 125)));
         graphics.blit(RenderPipelines.GUI_TEXTURED, this.textureId, (this.width - size) / 2, 37,
                 0, 0, size, size, 128, 128, 128, 128);
         boolean creative = this.minecraft.player != null && this.minecraft.player.getAbilities().instabuild;
-        graphics.drawCenteredString(this.font, ClientCartography.text(creative ? "cost_creative" : this.locked ? "cost_locked" : "cost"),
+        graphics.centeredText(this.font, ClientCartography.text(creative ? "cost_creative" : this.locked ? "cost_locked" : "cost"),
                 this.width / 2, this.height - 55, 0xFFCCCCCC);
-        graphics.drawCenteredString(this.font, this.submitting ? ClientCartography.text("submitting") : this.error,
+        graphics.centeredText(this.font, this.submitting ? ClientCartography.text("submitting") : this.error,
                 this.width / 2, this.height - 40, 0xFFFFAA55);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override public void onClose() { this.minecraft.setScreen(this.parent); }

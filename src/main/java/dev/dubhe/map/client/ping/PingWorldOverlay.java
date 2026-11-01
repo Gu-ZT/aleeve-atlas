@@ -10,7 +10,7 @@ import dev.dubhe.map.ping.MapPingData;
 import dev.dubhe.map.ping.PingRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -38,7 +38,7 @@ public final class PingWorldOverlay {
             return;
         }
         String dimension = MapPingData.dimensionId(minecraft.level.dimension());
-        GuiGraphics graphics = event.getGuiGraphics();
+        GuiGraphicsExtractor graphics = event.getGuiGraphics();
         for (MapPingData ping : ClientPings.active()) {
             if (!ping.dimensionId().equals(dimension)) {
                 continue;
@@ -53,7 +53,7 @@ public final class PingWorldOverlay {
         }
     }
 
-    private static void drawMarker(GuiGraphics graphics, Minecraft minecraft, MapPingData ping,
+    private static void drawMarker(GuiGraphicsExtractor graphics, Minecraft minecraft, MapPingData ping,
             WorldProjection.Projected projected, float opacity) {
         graphics.pose().pushMatrix();
         graphics.pose().translate((float) projected.screenX(), (float) projected.screenY());
@@ -71,7 +71,7 @@ public final class PingWorldOverlay {
         int textY = y + 9;
         graphics.fill(textX - 2, textY - 1, textX + textWidth + 2,
                 textY + minecraft.font.lineHeight + 1, DISTANCE_BACKGROUND);
-        graphics.drawString(minecraft.font, distance, textX, textY, TEXT_COLOR, true);
+        graphics.text(minecraft.font, distance, textX, textY, TEXT_COLOR, true);
         graphics.pose().popMatrix();
     }
 

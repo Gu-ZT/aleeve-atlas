@@ -77,7 +77,7 @@ public final class ClientStructures {
             updateDimension();
             for (StructureRecord record : payload.records()) {
                 if (record.dimension().equals(pendingDimension)) {
-                    PENDING.computeIfAbsent(ChunkPos.asLong(payload.chunkX(), payload.chunkZ()), key -> new HashMap<>())
+                    PENDING.computeIfAbsent(ChunkPos.pack(payload.chunkX(), payload.chunkZ()), key -> new HashMap<>())
                             .put(record.key(), record.withSource(StructureRecord.Source.DISCOVERED));
                 }
             }
@@ -90,7 +90,7 @@ public final class ClientStructures {
 
     public static void sampled(int chunkX, int chunkZ) {
         updateDimension();
-        var pending = PENDING.remove(ChunkPos.asLong(chunkX, chunkZ));
+        var pending = PENDING.remove(ChunkPos.pack(chunkX, chunkZ));
         if (pending != null) {
             StructureStore store = current();
             if (store != null) {

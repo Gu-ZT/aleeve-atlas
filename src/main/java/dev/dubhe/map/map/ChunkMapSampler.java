@@ -28,11 +28,11 @@ public final class ChunkMapSampler {
     ///
     /// 分层洞穴限制扫描深度；完整洞穴跳过每一列最外层的顶棚，适用于下界。
     public static ChunkMapData sample(Level level, ChunkPos pos, MapSlice slice) {
-        LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x, pos.z);
+        LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x(), pos.z());
         if (chunk == null) {
             return null;
         }
-        ChunkMapData data = new ChunkMapData(pos.x, pos.z);
+        ChunkMapData data = new ChunkMapData(pos.x(), pos.z());
         data.setSlice(slice);
         int minY = slice.scanBottom(level.getMinY());
         int topY = slice.scanTop(level.getMaxY());

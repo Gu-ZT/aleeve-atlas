@@ -2,7 +2,7 @@ package dev.dubhe.map.client.map;
 
 import dev.dubhe.map.config.AtlasClientConfig;
 import dev.dubhe.map.map.ChunkMapData;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /// 区块边界和史莱姆区块覆盖层。
 public final class ChunkOverlayRenderer {
@@ -13,7 +13,7 @@ public final class ChunkOverlayRenderer {
     private ChunkOverlayRenderer() {
     }
 
-    public static void renderOnWorldMap(GuiGraphics graphics, AtlasClientConfig config,
+    public static void renderOnWorldMap(GuiGraphicsExtractor graphics, AtlasClientConfig config,
             double centerX, double centerZ, float pixelsPerChunk, int width, int height) {
         if (pixelsPerChunk < WORLD_MAP_MIN_OVERLAY_PIXELS_PER_CHUNK
                 || (!config.worldMap.showChunkGrid && !config.worldMap.showSlimeChunks)) {
@@ -36,7 +36,7 @@ public final class ChunkOverlayRenderer {
         }
     }
 
-    public static void renderOnMinimap(GuiGraphics graphics, AtlasClientConfig config,
+    public static void renderOnMinimap(GuiGraphicsExtractor graphics, AtlasClientConfig config,
             MinimapLayout layout, boolean circular) {
         if (!config.minimap.showChunkGrid && !config.minimap.showSlimeChunks) {
             return;
@@ -64,7 +64,7 @@ public final class ChunkOverlayRenderer {
         }
     }
 
-    private static void drawCell(GuiGraphics graphics, boolean grid, boolean slime,
+    private static void drawCell(GuiGraphicsExtractor graphics, boolean grid, boolean slime,
             double x, double y, double width, double height, boolean circular,
             double centerX, double centerZ, double radius) {
         if (slime) {
@@ -76,7 +76,7 @@ public final class ChunkOverlayRenderer {
         }
     }
 
-    private static void fill(GuiGraphics graphics, double x, double y, double width, double height,
+    private static void fill(GuiGraphicsExtractor graphics, double x, double y, double width, double height,
             int color, boolean circular, double centerX, double centerZ, double radius) {
         if (!circular) {
             fillRect(graphics, x, y, width, height, color);
@@ -100,7 +100,7 @@ public final class ChunkOverlayRenderer {
         }
     }
 
-    private static void fillRect(GuiGraphics graphics, double x, double y, double width, double height, int color) {
+    private static void fillRect(GuiGraphicsExtractor graphics, double x, double y, double width, double height, int color) {
         graphics.pose().pushMatrix();
         graphics.pose().translate((float) x, (float) y);
         graphics.pose().scale((float) width, (float) height);

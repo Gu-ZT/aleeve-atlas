@@ -6,7 +6,7 @@ import dev.dubhe.map.client.map.MinimapLayout;
 import dev.dubhe.map.waypoint.Waypoint;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -41,7 +41,7 @@ public final class WaypointWorldOverlay {
         if (waypoints.isEmpty()) {
             return;
         }
-        GuiGraphics graphics = event.getGuiGraphics();
+        GuiGraphicsExtractor graphics = event.getGuiGraphics();
         int guiWidth = minecraft.getWindow().getGuiScaledWidth();
         int guiHeight = minecraft.getWindow().getGuiScaledHeight();
         for (Waypoint waypoint : waypoints) {
@@ -53,7 +53,7 @@ public final class WaypointWorldOverlay {
         }
     }
 
-    private static void drawMarker(GuiGraphics graphics, Minecraft minecraft, Waypoint waypoint,
+    private static void drawMarker(GuiGraphicsExtractor graphics, Minecraft minecraft, Waypoint waypoint,
             WorldProjection.Projected projected, boolean showDistance) {
         graphics.pose().pushMatrix();
         graphics.pose().translate((float) projected.screenX(), (float) projected.screenY());
@@ -66,7 +66,7 @@ public final class WaypointWorldOverlay {
                 .withStyle(ChatFormatting.WHITE);
         int nameWidth = minecraft.font.width(name);
         int nameY = y + ICON_HALF_SIZE + 3;
-        graphics.drawString(minecraft.font, name, x - nameWidth / 2, nameY, TEXT_COLOR, true);
+        graphics.text(minecraft.font, name, x - nameWidth / 2, nameY, TEXT_COLOR, true);
         if (showDistance) {
             drawDistance(graphics, minecraft, projected.distance(), x,
                     nameY + minecraft.font.lineHeight + 2);
@@ -74,7 +74,7 @@ public final class WaypointWorldOverlay {
         graphics.pose().popMatrix();
     }
 
-    private static void drawDistance(GuiGraphics graphics, Minecraft minecraft, double distance,
+    private static void drawDistance(GuiGraphicsExtractor graphics, Minecraft minecraft, double distance,
             int centerX, int textY) {
         Component label = Component.literal("%dm".formatted(Math.round(distance)))
                 .withStyle(ChatFormatting.WHITE);
@@ -82,7 +82,7 @@ public final class WaypointWorldOverlay {
         int textX = centerX - textWidth / 2;
         graphics.fill(textX - 2, textY - 1, textX + textWidth + 2,
                 textY + minecraft.font.lineHeight + 1, DISTANCE_BACKGROUND);
-        graphics.drawString(minecraft.font, label, textX, textY, TEXT_COLOR, true);
+        graphics.text(minecraft.font, label, textX, textY, TEXT_COLOR, true);
     }
 
     static int applyOpacity(int argb, float opacity) {

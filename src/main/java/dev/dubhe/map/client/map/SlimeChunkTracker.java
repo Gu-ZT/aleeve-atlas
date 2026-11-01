@@ -49,7 +49,7 @@ public final class SlimeChunkTracker {
         }
         IntegratedServer server = minecraft.getSingleplayerServer();
         if (server != null) {
-            long seed = server.getWorldData().worldGenOptions().seed();
+            long seed = server.overworld().getSeed();
             saveSeed(minecraft, serverKey, seed);
             return seed;
         }
@@ -101,8 +101,8 @@ public final class SlimeChunkTracker {
         String serverKey = ServerKey.resolve(minecraft);
         saveSeed(minecraft, serverKey, seed);
         if (minecraft.player != null) {
-            minecraft.player.displayClientMessage(Component.translatable(
-                    "aleeve_atlas.message.slime_seed_recorded", seed), true);
+            minecraft.player.sendOverlayMessage(Component.translatable(
+                    "aleeve_atlas.message.slime_seed_recorded", seed));
         }
     }
 

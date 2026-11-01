@@ -94,7 +94,7 @@ public final class WorldPingSelfTest {
         selecting = false;
         double x = wheel.width / 2.0;
         double y = wheel.height / 2.0 - Math.min(wheel.width, wheel.height) * 0.25;
-        wheel.render(event.getGuiGraphics(), (int) x, (int) y, event.getPartialTick());
+        wheel.extractRenderState(event.getGuiGraphics(), (int) x, (int) y, event.getPartialTick());
         pressMouse(Minecraft.getInstance(), GLFW.GLFW_RELEASE);
         selectionAttempted = true;
     }

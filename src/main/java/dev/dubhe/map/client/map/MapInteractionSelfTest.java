@@ -149,7 +149,7 @@ public final class MapInteractionSelfTest {
             return;
         }
         selecting = false;
-        wheel.render(event.getGuiGraphics(), (int) selectionX, (int) selectionY,
+        wheel.extractRenderState(event.getGuiGraphics(), (int) selectionX, (int) selectionY,
                 event.getPartialTick());
         if (step == 3) {
             Minecraft minecraft = Minecraft.getInstance();

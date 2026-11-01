@@ -6,7 +6,7 @@ import dev.dubhe.map.AleeveAtlas;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -20,7 +20,7 @@ public final class MapCacheIdentity extends SavedData {
             instance.group(Codec.STRING.fieldOf("id").forGetter(MapCacheIdentity::id))
                     .apply(instance, MapCacheIdentity::new));
     private static final SavedDataType<MapCacheIdentity> TYPE = new SavedDataType<>(
-            AleeveAtlas.MOD_ID + "_map_cache_identity", MapCacheIdentity::create, CODEC);
+            AleeveAtlas.id("map_cache_identity"), MapCacheIdentity::create, CODEC);
 
     private final String id;
 
@@ -44,7 +44,7 @@ public final class MapCacheIdentity extends SavedData {
         initialize(event.getServer().overworld().getDataStorage());
     }
 
-    static MapCacheIdentity initialize(DimensionDataStorage storage) {
+    static MapCacheIdentity initialize(SavedDataStorage storage) {
         MapCacheIdentity identity = storage.computeIfAbsent(TYPE);
         if (identity.isDirty()) storage.saveAndJoin();
         return identity;
