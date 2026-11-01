@@ -1,5 +1,7 @@
 package dev.dubhe.map.client.map;
 
+import com.mojang.blaze3d.platform.InputConstants;
+
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.AtlasSession;
 import dev.dubhe.map.api.ping.MapPingInput;
@@ -87,6 +89,7 @@ public final class WorldMapScreen extends Screen {
 
     private final MapCanvas canvas;
     private boolean caveView;
+    private boolean playerListKeyHeld;
     private MapDimensionCache cache;
     /// 视野中心（世界方块坐标）。
     private double centerX;
@@ -139,10 +142,14 @@ public final class WorldMapScreen extends Screen {
         this.previousCenterZ = centerZ;
         this.renderedCenterX = centerX;
         this.renderedCenterZ = centerZ;
+        // setScreen 在 init 之前会 releaseAll；扫描码绑定需要先保留当前按键状态。
+        Minecraft minecraft = Minecraft.getInstance();
+        this.playerListKeyHeld = minecraft != null && minecraft.options.keyPlayerList.isDown();
     }
 
     @Override
     protected void init() {
+        this.playerListKeyHeld = this.readPlayerListKeyHeld();
         if (!this.canvas.ready()) {
             this.canvas.register();
         }
@@ -198,6 +205,7 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public void removed() {
+        this.playerListKeyHeld = false;
         if (active == this) {
             active = null;
         }
@@ -1028,6 +1036,9 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (Minecraft.getInstance().options.keyPlayerList.matchesMouse(button)) {
+            this.playerListKeyHeld = true;
+        }
         this.middleHeld = false;
         if (this.structures.contains(mouseX, mouseY)) {
             this.contextMenu = null;
@@ -1283,6 +1294,9 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (Minecraft.getInstance().options.keyPlayerList.matchesMouse(button)) {
+            this.playerListKeyHeld = false;
+        }
         if (this.structures.contains(mouseX, mouseY)) {
             this.middleHeld = false;
             this.dragging = false;
@@ -1385,6 +1399,9 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (Minecraft.getInstance().options.keyPlayerList.matches(keyCode, scanCode)) {
+            this.playerListKeyHeld = true;
+        }
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.structures.open()) {
             this.structures.toggle();
             return true;
@@ -1406,7 +1423,34 @@ public final class WorldMapScreen extends Screen {
     }
 
     @Override
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        if (Minecraft.getInstance().options.keyPlayerList.matches(keyCode, scanCode)) {
+            this.playerListKeyHeld = false;
+        }
+        return super.keyReleased(keyCode, scanCode, modifiers);
+    }
+
+    /// 世界地图会接收界面按键事件，不能依赖仅在游戏内更新的 KeyMapping 状态。
+    private boolean readPlayerListKeyHeld() {
+        var key = this.minecraft.options.keyPlayerList.getKey();
+        if (key.getType() == InputConstants.Type.KEYSYM) {
+            return key.getValue() != GLFW.GLFW_KEY_UNKNOWN
+                    && InputConstants.isKeyDown(this.minecraft.getWindow().getWindow(), key.getValue());
+        }
+        if (key.getType() == InputConstants.Type.MOUSE) {
+            return GLFW.glfwGetMouseButton(this.minecraft.getWindow().getWindow(), key.getValue()) == GLFW.GLFW_PRESS;
+        }
+        // GLFW 没有扫描码状态查询；这类特殊键保留打开前/按键事件更新的状态。
+        return this.playerListKeyHeld;
+    }
+
+    public boolean playerListKeyHeld() {
+        return this.playerListKeyHeld;
+    }
+
+    @Override
     public void onClose() {
+        this.playerListKeyHeld = false;
         this.contextMenu = null;
         this.wheelOpened = false;
         this.middleHeld = false;
@@ -1415,7 +1459,7 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public boolean isPauseScreen() {
-        return false;
+        return AtlasClientConfigs.CONFIG.worldMap.pauseGame;
     }
 
     private record ContextMenu(double worldX, double worldZ, int screenX, int screenY, int width,

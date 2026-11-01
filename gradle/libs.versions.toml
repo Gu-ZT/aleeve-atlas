@@ -2,7 +2,7 @@
 minecraft = "1.21.8"
 neoForge = "21.8.53"
 modDevGradle = "2.0.148"
-anvillib = "2.0.0+snapshot.584"
+anvillib = "2.0.0+snapshot.603"
 
 [libraries]
 anvillib-codec = { group = "dev.anvilcraft.lib", name = "anvillib-codec-neoforge-1.21.8", version.ref = "anvillib" }
