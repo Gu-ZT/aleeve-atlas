@@ -35,6 +35,18 @@ public final class MinimapRenderer {
     private static final int BORDER_EXPANSION_PIXELS = 3;
     private static final int TEXT_COLOR = 0xFFFFFFFF;
 
+    private static void drawMap(GuiGraphics graphics, RenderType type, int size,
+            float u0, float u1, float v0, float v1, int color) {
+        var pose = graphics.pose().last().pose();
+        graphics.drawSpecial(buffers -> {
+            var vertices = buffers.getBuffer(type);
+            vertices.addVertex(pose, 0, 0, 0).setUv(u0, v0).setColor(color);
+            vertices.addVertex(pose, 0, size, 0).setUv(u0, v1).setColor(color);
+            vertices.addVertex(pose, size, size, 0).setUv(u1, v1).setColor(color);
+            vertices.addVertex(pose, size, 0, 0).setUv(u1, v0).setColor(color);
+        });
+    }
+
     private MinimapRenderer() {
     }
 
@@ -103,17 +115,17 @@ public final class MinimapRenderer {
         int drawSize = circular ? size : MinimapLayout.squareDrawSize(size);
         float drawX = centerX - drawSize / 2.0F;
         float drawY = centerY - drawSize / 2.0F;
-        int uvSize = circular ? (int) layout.coveredBlocks()
-                : MinimapLayout.squareDrawSize((int) layout.coveredBlocks());
-        float uvStartX = (float) texture.uvStartX(layout.centerWorldX(), uvSize);
-        float uvStartZ = (float) texture.uvStartZ(layout.centerWorldZ(), uvSize);
+        double uvSize = layout.coveredBlocks() * drawSize / size;
+        float uvStartX = (float) (texture.uvStartX(layout.centerWorldX(), 0) - uvSize / 2.0);
+        float uvStartZ = (float) (texture.uvStartZ(layout.centerWorldZ(), 0) - uvSize / 2.0);
         float brightness = lightBrightness(minecraft, config);
         int mapTint = circular ? encodeCircleTint(brightness, clipInset, size)
                 : brightnessColor(brightness);
         graphics.pose().pushPose();
         graphics.pose().translate(drawX, drawY, 0.0F);
-        graphics.blit(mapPipeline, texture.textureId(), 0, 0, uvStartX, uvStartZ,
-                drawSize, drawSize, uvSize, uvSize, MapTexture.PIXELS, MapTexture.PIXELS, mapTint);
+        drawMap(graphics, mapPipeline.apply(texture.textureId()), drawSize,
+                uvStartX / MapTexture.PIXELS, (float) ((uvStartX + uvSize) / MapTexture.PIXELS),
+                uvStartZ / MapTexture.PIXELS, (float) ((uvStartZ + uvSize) / MapTexture.PIXELS), mapTint);
         graphics.pose().popPose();
         TerritoryRenderer.renderOnMinimap(graphics, layout, circular);
         ChunkOverlayRenderer.renderOnMinimap(graphics, config, layout, circular);

@@ -2,6 +2,7 @@ package dev.dubhe.map.client.profiling;
 
 import dev.anvilcraft.lib.v2.util.ClientTickRecorder;
 import dev.dubhe.map.AleeveAtlas;
+import dev.dubhe.map.client.map.ClientMapManager;
 import dev.dubhe.map.team.TeamProviders;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -54,6 +55,9 @@ public final class PerformanceReporter {
             return;
         }
         lastReportedTicks = recordedTicks;
+        if (AtlasProfiling.mapTick().count() > 0) {
+            LOGGER.info("{}; {}", AtlasProfiling.mapUpdateSummary(), ClientMapManager.dirtyChunkSummary());
+        }
         if (AtlasProfiling.minimap().count() > 0) {
             LOGGER.info("{}", AtlasProfiling.minimapSummary());
         }
