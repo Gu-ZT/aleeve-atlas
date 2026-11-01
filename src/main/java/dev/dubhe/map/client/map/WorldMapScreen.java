@@ -90,6 +90,7 @@ public final class WorldMapScreen extends Screen {
 
     private final MapCanvas canvas;
     private boolean caveView;
+    private boolean playerListKeyHeld;
     private MapDimensionCache cache;
     /// 视野中心（世界方块坐标）。
     private double centerX;
@@ -142,10 +143,13 @@ public final class WorldMapScreen extends Screen {
         this.previousCenterZ = centerZ;
         this.renderedCenterX = centerX;
         this.renderedCenterZ = centerZ;
+        Minecraft minecraft = Minecraft.getInstance();
+        this.playerListKeyHeld = minecraft != null && minecraft.options.keyPlayerList.isDown();
     }
 
     @Override
     protected void init() {
+        this.playerListKeyHeld = this.readPlayerListKeyHeld();
         if (!this.canvas.ready()) {
             this.canvas.register();
         }
@@ -201,6 +205,7 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public void removed() {
+        this.playerListKeyHeld = false;
         if (active == this) {
             active = null;
         }
@@ -1031,6 +1036,9 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (Minecraft.getInstance().options.keyPlayerList.matchesMouse(event)) {
+            this.playerListKeyHeld = true;
+        }
         this.middleHeld = false;
         if (this.structures.contains(event.x(), event.y())) {
             this.contextMenu = null;
@@ -1278,6 +1286,9 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
+        if (Minecraft.getInstance().options.keyPlayerList.matchesMouse(event)) {
+            this.playerListKeyHeld = false;
+        }
         if (this.structures.contains(event.x(), event.y())) {
             this.middleHeld = false;
             this.dragging = false;
@@ -1379,6 +1390,9 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
+        if (Minecraft.getInstance().options.keyPlayerList.matches(event)) {
+            this.playerListKeyHeld = true;
+        }
         if (event.key() == InputConstants.KEY_ESCAPE && this.structures.open()) {
             this.structures.toggle();
             return true;
@@ -1400,7 +1414,35 @@ public final class WorldMapScreen extends Screen {
     }
 
     @Override
+    public boolean keyReleased(KeyEvent event) {
+        if (Minecraft.getInstance().options.keyPlayerList.matches(event)) {
+            this.playerListKeyHeld = false;
+        }
+        return super.keyReleased(event);
+    }
+
+    /// 世界地图会接收界面按键事件，不能依赖仅在游戏内更新的 KeyMapping 状态。
+    private boolean readPlayerListKeyHeld() {
+        var key = this.minecraft.options.keyPlayerList.getKey();
+        if (key.getType() == InputConstants.Type.KEYBOARD) {
+            return key.getValue() >= 0 && key != InputConstants.UNKNOWN
+                    && InputConstants.isKeyDown(key.getValue());
+        }
+        if (key.getType() == InputConstants.Type.MOUSE) {
+            int button = key.getValue();
+            return button >= 1 && button <= 32
+                    && (SDLMouse.nSDL_GetMouseState(0L, 0L) & (1 << (button - 1))) != 0;
+        }
+        return this.playerListKeyHeld;
+    }
+
+    public boolean playerListKeyHeld() {
+        return this.playerListKeyHeld;
+    }
+
+    @Override
     public void onClose() {
+        this.playerListKeyHeld = false;
         this.contextMenu = null;
         this.wheelOpened = false;
         this.middleHeld = false;
@@ -1409,7 +1451,7 @@ public final class WorldMapScreen extends Screen {
 
     @Override
     public boolean isPauseScreen() {
-        return false;
+        return AtlasClientConfigs.CONFIG.worldMap.pauseGame;
     }
 
     private record ContextMenu(double worldX, double worldZ, int screenX, int screenY, int width,

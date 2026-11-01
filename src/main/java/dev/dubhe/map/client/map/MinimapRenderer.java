@@ -13,6 +13,8 @@ import dev.dubhe.map.config.MinimapShape;
 import dev.dubhe.map.ping.PingRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.renderer.state.gui.BlitRenderState;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -22,6 +24,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import org.joml.Matrix3x2f;
 
 /// 小地图 HUD 渲染。
 ///
@@ -98,17 +101,22 @@ public final class MinimapRenderer {
         int drawSize = circular ? size : MinimapLayout.squareDrawSize(size);
         float drawX = centerX - drawSize / 2.0F;
         float drawY = centerY - drawSize / 2.0F;
-        int uvSize = circular ? (int) layout.coveredBlocks()
-                : MinimapLayout.squareDrawSize((int) layout.coveredBlocks());
-        float uvStartX = (float) texture.uvStartX(layout.centerWorldX(), uvSize);
-        float uvStartZ = (float) texture.uvStartZ(layout.centerWorldZ(), uvSize);
+        double uvSize = layout.coveredBlocks() * drawSize / size;
+        float uvStartX = (float) (texture.uvStartX(layout.centerWorldX(), 0) - uvSize / 2.0);
+        float uvStartZ = (float) (texture.uvStartZ(layout.centerWorldZ(), 0) - uvSize / 2.0);
         float brightness = lightBrightness(minecraft, config);
         int mapTint = circular ? encodeCircleTint(brightness, clipInset, size)
                 : brightnessColor(brightness);
         graphics.pose().pushMatrix();
         graphics.pose().translate(drawX, drawY);
-        graphics.blit(mapPipeline, texture.textureId(), 0, 0, uvStartX, uvStartZ,
-                drawSize, drawSize, uvSize, uvSize, MapTexture.PIXELS, MapTexture.PIXELS, mapTint);
+        // UV 跨度保持小数，与雷达和区块网格使用同一覆盖范围，缩放动画不会逐方块跳动。
+        var mapTexture = minecraft.getTextureManager().getTexture(texture.textureId());
+        graphics.submitGuiElementRenderState(new BlitRenderState(mapPipeline,
+                TextureSetup.singleTexture(mapTexture.getTextureView(), mapTexture.getSampler()),
+                new Matrix3x2f(graphics.pose()), 0, 0, drawSize, drawSize,
+                uvStartX / MapTexture.PIXELS, (float) ((uvStartX + uvSize) / MapTexture.PIXELS),
+                uvStartZ / MapTexture.PIXELS, (float) ((uvStartZ + uvSize) / MapTexture.PIXELS),
+                mapTint, graphics.peekScissorStack()));
         graphics.pose().popMatrix();
         TerritoryRenderer.renderOnMinimap(graphics, layout, circular);
         ChunkOverlayRenderer.renderOnMinimap(graphics, config, layout, circular);

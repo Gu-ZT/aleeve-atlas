@@ -2,11 +2,11 @@ package dev.dubhe.map.client;
 
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.client.map.AtlasWorldMap;
-import dev.dubhe.map.client.map.MinimapLayout;
+import dev.dubhe.map.client.map.AtlasClientMap;
+import dev.dubhe.map.client.map.MinimapZoom;
 import dev.dubhe.map.client.waypoint.ClientWaypoints;
 import dev.dubhe.map.client.waypoint.WaypointEditScreen;
 import dev.dubhe.map.config.AtlasClientConfigs;
-import dev.dubhe.map.config.ConfigBounds;
 import dev.dubhe.map.ping.ClientPings;
 import dev.dubhe.map.ping.MapPingData;
 import dev.dubhe.map.sync.ClientMapSync;
@@ -22,10 +22,14 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.config.ModConfigs;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.UUID;
 
 /// 客户端 tick 入口：在 `ClientTickEvent.Post` 中 while 消费键位。
@@ -116,14 +120,28 @@ public final class AtlasClientTick {
             minecraft.gui.setScreen(new WaypointEditScreen(null, minecraft.player.blockPosition()));
         }
         while (AtlasKeyMappings.MINIMAP_ZOOM_IN.consumeClick()) {
-            AtlasClientConfigs.CONFIG.minimap.zoom = ConfigBounds.clamp(
-                    AtlasClientConfigs.CONFIG.minimap.zoom + 0.25,
-                    MinimapLayout.MIN_ZOOM, MinimapLayout.MAX_ZOOM);
+            adjustMinimapZoom(0.25);
         }
         while (AtlasKeyMappings.MINIMAP_ZOOM_OUT.consumeClick()) {
-            AtlasClientConfigs.CONFIG.minimap.zoom = ConfigBounds.clamp(
-                    AtlasClientConfigs.CONFIG.minimap.zoom - 0.25,
-                    MinimapLayout.MIN_ZOOM, MinimapLayout.MAX_ZOOM);
+            adjustMinimapZoom(-0.25);
+        }
+    }
+
+    private static void adjustMinimapZoom(double delta) {
+        var manager = AtlasClientMap.manager();
+        boolean cave = manager != null && manager.displaySlice().cave();
+        var config = AtlasClientConfigs.CONFIG;
+        MinimapZoom.adjust(config, cave, delta);
+        // 配置界面读取 spec；同步当前模式的值，避免关页时把快捷键修改恢复成旧值。
+        List<String> path = List.of(MinimapZoom.usesCaveZoom(config, cave) ? "caves" : "minimap", "zoom");
+        for (ModConfig modConfig : ModConfigs.getModConfigs(AleeveAtlas.MOD_ID)) {
+            if (modConfig.getType() == ModConfig.Type.CLIENT
+                    && modConfig.getSpec() instanceof ModConfigSpec spec && spec.isLoaded()) {
+                Object value = spec.getValues().get(path);
+                if (value instanceof ModConfigSpec.DoubleValue zoomValue) {
+                    zoomValue.set(MinimapZoom.target(config, cave));
+                }
+            }
         }
     }
 

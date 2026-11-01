@@ -2,8 +2,8 @@ package dev.dubhe.map.config;
 
 /// 配置值区间钳制。
 ///
-/// AnvilLib `@BoundedDiscrete` 对 float/double 使用 `floor(min)` / `ceil(max)`，
-/// 无法表达 `0.5 ~ 1.5` 这类非整数区间，因此浮点配置项的范围在读取处钳制。
+/// 配置界面与配置文件通过声明的范围校验，读取处仍做钳制，
+/// 保护快捷键和其他客户端代码直接更新配置对象的路径。
 public final class ConfigBounds {
     private ConfigBounds() {
     }

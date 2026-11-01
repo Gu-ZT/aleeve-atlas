@@ -7,6 +7,7 @@ import dev.dubhe.map.map.CaveMode;
 import dev.dubhe.map.map.MapSlice;
 import dev.dubhe.map.map.ChunkMapData;
 import dev.dubhe.map.map.ChunkMapSampler;
+import dev.dubhe.map.map.DirtyChunks;
 import dev.dubhe.map.map.MapDimensionCache;
 import dev.dubhe.map.storage.AtlasPaths;
 import dev.dubhe.map.storage.ServerKey;
@@ -22,10 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /// 客户端地图数据管理器。
 ///
@@ -41,8 +40,8 @@ public final class ClientMapManager {
     ///
     /// 以 {@link ChunkPos#asLong} 编码为键。标记与消费都在客户端主线程：
     /// 标记来自方块更新包处理，消费来自客户端 tick，无需并发容器。
-    private static final Set<Long> DIRTY_SURFACE_CHUNKS = new HashSet<>();
-    private static final Set<Long> DIRTY_CAVE_CHUNKS = new HashSet<>();
+    private static final DirtyChunks DIRTY_SURFACE_CHUNKS = new DirtyChunks();
+    private static final DirtyChunks DIRTY_CAVE_CHUNKS = new DirtyChunks();
 
     private final MapTexture texture = new MapTexture(AleeveAtlas.id("minimap"));
     private final Map<String, MapDimensionCache> caches = new HashMap<>();
@@ -83,13 +82,14 @@ public final class ClientMapManager {
     /// 由客户端方块变更监听调用，使地图反映破坏与放置的结果。
     public static void markChunkChanged(int chunkX, int chunkZ) {
         long key = ChunkPos.pack(chunkX, chunkZ);
-        DIRTY_SURFACE_CHUNKS.add(key);
-        DIRTY_CAVE_CHUNKS.add(key);
+        DIRTY_SURFACE_CHUNKS.mark(key);
+        DIRTY_CAVE_CHUNKS.mark(key);
     }
 
-    /// 取出并清空当前地图模式待重采样的区块。
-    private static Set<Long> dirtySnapshot(Set<Long> dirtyChunks) {
-        return dirtyChunks.isEmpty() ? Set.of() : Set.copyOf(dirtyChunks);
+    /// 当前会话积累的地表/洞穴更新标记数，供周期性能日志诊断。
+    public static String dirtyChunkSummary() {
+        return "dirty chunks: surface=%d cave=%d".formatted(
+                DIRTY_SURFACE_CHUNKS.size(), DIRTY_CAVE_CHUNKS.size());
     }
 
     /// 每个客户端 tick 调用：采样玩家周围缺失的区块。
@@ -143,7 +143,7 @@ public final class ClientMapManager {
             // 重新进入旧层时刷新当前视距内的数据，避免复用在其它层活动期间已改变的地形。
             for (int dx = -VIEW_CHUNK_RADIUS; dx <= VIEW_CHUNK_RADIUS; dx++) {
                 for (int dz = -VIEW_CHUNK_RADIUS; dz <= VIEW_CHUNK_RADIUS; dz++) {
-                    DIRTY_CAVE_CHUNKS.add(ChunkPos.pack(center.x() + dx, center.z() + dz));
+                    DIRTY_CAVE_CHUNKS.mark(ChunkPos.pack(center.x() + dx, center.z() + dz));
                 }
             }
         }
@@ -153,11 +153,10 @@ public final class ClientMapManager {
         MapDimensionCache activeCache = caveMode ? this.caveCache : cache;
 
         // 方块变更后保留受影响区块的旧图像，直到新的采样成功完成。
-        Set<Long> activeDirtyChunks = caveMode ? DIRTY_CAVE_CHUNKS : DIRTY_SURFACE_CHUNKS;
-        Set<Long> dirtyChunks = dirtySnapshot(activeDirtyChunks);
+        // 主线程直接查询当前范围，避免每 tick 复制全部历史标记。
+        DirtyChunks dirtyChunks = caveMode ? DIRTY_CAVE_CHUNKS : DIRTY_SURFACE_CHUNKS;
 
         int sampled = 0;
-        Set<Long> refreshedDirtyChunks = new HashSet<>();
         int radius = VIEW_CHUNK_RADIUS;
         for (int ring = 0; ring <= radius && sampled < SAMPLES_PER_TICK; ring++) {
             for (int dx = -ring; dx <= ring && sampled < SAMPLES_PER_TICK; dx++) {
@@ -180,22 +179,19 @@ public final class ClientMapManager {
                         continue;
                     }
                     sampledData.setVersion(System.currentTimeMillis());
-                    if (dirtyChunks.contains(chunkKey)) {
-                        refreshedDirtyChunks.add(chunkKey);
-                    }
                     // 分层数据写入独立缓存，不污染地表地图。
                     if (caveMode) {
                         this.caveCache.put(sampledData);
                     } else {
                         cache.put(sampledData);
                     }
+                    dirtyChunks.sampled(chunkKey);
                     this.texture.putChunk(sampledData);
                     dev.dubhe.map.client.structure.ClientStructures.sampled(chunkX, chunkZ);
                     sampled++;
                 }
             }
         }
-        activeDirtyChunks.removeAll(refreshedDirtyChunks);
         // 合并本 tick 的像素改动，只上传一次纹理。
         this.texture.flushDirty();
         if (sampled > 0 || schemeChanged || sliceChanged) {

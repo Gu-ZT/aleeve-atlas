@@ -21,7 +21,7 @@
 
 本模组依赖 **AnvilLib 2.x**（`2.0.0` 及以上版本），该前置已内嵌，无需单独安装。
 
-执行 `./gradlew build` 构建项目（Windows 使用 `gradlew.bat build`）。Gradle 从[发布 Maven 仓库](https://server.cjsah.net:1002/maven/releases/)获取适用于 Minecraft 26.3 的 AnvilLib `2.0.0+snapshot.589`。
+执行 `./gradlew build` 构建项目（Windows 使用 `gradlew.bat build`）。Gradle 从[发布 Maven 仓库](https://server.cjsah.net:1002/maven/releases/)获取适用于 Minecraft 26.3 的 AnvilLib `2.0.0+snapshot.598`。
 
 ## 主要功能
 
