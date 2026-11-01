@@ -21,7 +21,7 @@ English | [简体中文](README.zh_CN.md)
 
 This mod depends on **AnvilLib 2.x** (`2.0.0` or later), but this dependency is already embedded, so no separate installation is required.
 
-Build with `./gradlew build` (`gradlew.bat build` on Windows). Gradle resolves AnvilLib `2.0.0+snapshot.588` for Minecraft 26.2 from the [release Maven repository](https://server.cjsah.net:1002/maven/releases/).
+Build with `./gradlew build` (`gradlew.bat build` on Windows). Gradle resolves AnvilLib `2.0.0+snapshot.602` for Minecraft 26.2 from the [release Maven repository](https://server.cjsah.net:1002/maven/releases/).
 
 ## Features
 

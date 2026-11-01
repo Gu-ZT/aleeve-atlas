@@ -6,6 +6,16 @@ import org.junit.jupiter.api.Test;
 /// 小地图布局的坐标映射测试。
 class MinimapLayoutTest {
     @Test
+    void fractionalZoomKeepsTerrainAndMarkersContinuous() {
+        MinimapLayout first = new MinimapLayout(0, 0, 128, 0, 0, 1.5);
+        MinimapLayout next = new MinimapLayout(0, 0, 128, 0, 0, 1.50001);
+        Assertions.assertNotEquals(first.coveredBlocks(), next.coveredBlocks());
+        double movement = next.worldToScreenX(20) - first.worldToScreenX(20);
+        Assertions.assertTrue(movement > 0.0 && movement < 0.001);
+        Assertions.assertEquals(20 * 128 / next.coveredBlocks(), next.worldToScreenX(20) - 64, 1.0E-10);
+    }
+
+    @Test
     void fullScreenCoordinateMapping() {
         // 小地图为 128 像素、覆盖 144 方块，玩家位于世界原点。
         MinimapLayout layout = new MinimapLayout(100, 20, 128, 0.0, 0.0);

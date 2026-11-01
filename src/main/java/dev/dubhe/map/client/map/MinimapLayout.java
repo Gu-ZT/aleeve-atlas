@@ -35,6 +35,7 @@ public record MinimapLayout(int x, int y, int size, double centerWorldX, double 
 
     private static double focusProgress;
     private static long lastFocusUpdate;
+    private static final MinimapZoom VIEW_ZOOM = new MinimapZoom();
 
     /// 根据配置与屏幕尺寸计算布局；玩家为空时返回 {@code null}。
     public static MinimapLayout of(AtlasClientConfig config, Minecraft minecraft) {
@@ -65,8 +66,11 @@ public record MinimapLayout(int x, int y, int size, double centerWorldX, double 
             }
         }
         var position = player.getPosition(minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false));
+        ClientMapManager manager = AtlasClientMap.manager();
+        boolean cave = manager != null && manager.displaySlice().cave();
+        double zoom = VIEW_ZOOM.sample(MinimapZoom.target(config, cave), config.minimap.smoothZoom, now);
         return new MinimapLayout(box[0], box[1], box[2],
-                position.x, position.z, config.minimap.zoom);
+                position.x, position.z, zoom);
     }
 
     /// 计算小地图的尺寸与左上角坐标：`[x, y, size]`。
@@ -104,7 +108,7 @@ public record MinimapLayout(int x, int y, int size, double centerWorldX, double 
     }
 
     public double coveredBlocks() {
-        return Math.round(COVERED_BLOCKS / this.zoom);
+        return COVERED_BLOCKS / this.zoom;
     }
 
     /// 方形旋转前的绘制边长，保证旋转后的可视方形四角均有地形。
