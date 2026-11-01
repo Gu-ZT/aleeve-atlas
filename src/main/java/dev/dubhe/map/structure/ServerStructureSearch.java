@@ -103,8 +103,8 @@ public final class ServerStructureSearch {
         if (found == null || !level.getWorldBorder().isWithinBounds(found.getFirst())) {
             return null;
         }
-        ChunkPos chunk = new ChunkPos(found.getFirst());
-        var access = level.getChunk(chunk.x, chunk.z, ChunkStatus.STRUCTURE_STARTS);
+        ChunkPos chunk = ChunkPos.containing(found.getFirst());
+        var access = level.getChunk(chunk.x(), chunk.z(), ChunkStatus.STRUCTURE_STARTS);
         var start = access.getStartForStructure(found.getSecond().value());
         return start == null ? null : ServerStructures.describe(level, start, StructureRecord.Source.SEARCHED);
     }

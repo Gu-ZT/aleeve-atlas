@@ -17,7 +17,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public final class WaypointUiSelfTest {
             return;
         }
         ticks = 0;
-        Screen screen = minecraft.screen;
+        Screen screen = minecraft.gui.screen();
         if (phase == 0) {
             if (screen == null) {
                 AtlasWorldMap.open();
@@ -74,7 +73,7 @@ public final class WaypointUiSelfTest {
                     && clickButton(screen, "gui.back");
             case 9 -> screen instanceof WorldMapScreen
                     && clickButton(screen, "aleeve_atlas.screen.world_map.client_config");
-            case 10 -> (screen instanceof ConfigurationScreen || screen instanceof SidebarConfigScreen)
+            case 10 -> screen instanceof SidebarConfigScreen
                     && clickButton(screen, "gui.done");
             case 11 -> screen instanceof WorldMapScreen;
             case 12 -> screen instanceof WorldMapScreen
@@ -90,7 +89,7 @@ public final class WaypointUiSelfTest {
         }
         LOGGER.info("Waypoint UI self-test completed phase {}", phase);
         phase++;
-        Screen current = minecraft.screen;
+        Screen current = minecraft.gui.screen();
         LOGGER.info("Waypoint UI self-test current screen after phase {}: {}", phase - 1,
                 current == null ? "game" : current.getClass().getSimpleName());
         if (phase > 13) {

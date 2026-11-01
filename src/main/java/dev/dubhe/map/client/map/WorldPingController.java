@@ -45,8 +45,8 @@ public final class WorldPingController {
             reset();
             return;
         }
-        if (holdStarted >= 0L && minecraft.screen != null
-                && !(minecraft.screen instanceof PingWheelMenu)) {
+        if (holdStarted >= 0L && minecraft.gui.screen() != null
+                && !(minecraft.gui.screen() instanceof PingWheelMenu)) {
             reset();
             return;
         }
@@ -71,7 +71,7 @@ public final class WorldPingController {
         if (!AtlasKeyMappings.WORLD_PING.matchesMouse(mouse)) {
             return;
         }
-        if (minecraft.screen != null && holdStarted < 0L) {
+        if (minecraft.gui.screen() != null && holdStarted < 0L) {
             return;
         }
         processPress(minecraft, event.getAction());
@@ -96,7 +96,7 @@ public final class WorldPingController {
             return;
         }
         if (action == GLFW.GLFW_PRESS) {
-            if (minecraft.screen == null && !holding) {
+            if (minecraft.gui.screen() == null && !holding) {
                 holding = true;
                 holdStarted = minecraft.level.getGameTime();
                 target = target(minecraft);
@@ -108,7 +108,7 @@ public final class WorldPingController {
         }
         holding = false;
         if (wheelOpened) {
-            if (minecraft.screen instanceof PingWheelMenu wheel) {
+            if (minecraft.gui.screen() instanceof PingWheelMenu wheel) {
                 wheel.triggerFromHoldRelease();
             }
             reset();

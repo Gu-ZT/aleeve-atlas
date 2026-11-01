@@ -77,7 +77,7 @@ public final class VanillaTeamProvider implements TeamProvider {
     @Override
     public int teamColor(String teamId) {
         PlayerTeam team = namedTeam(teamId);
-        Integer rgb = team == null ? null : team.getColor().getColor();
+        Integer rgb = team == null ? null : team.getColor().map(color -> color.rgb()).orElse(null);
         return rgb == null ? 0xFFFFFFFF : 0xFF000000 | rgb;
     }
 

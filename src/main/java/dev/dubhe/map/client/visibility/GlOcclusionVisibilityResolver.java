@@ -2,14 +2,10 @@ package dev.dubhe.map.client.visibility;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.dubhe.map.AleeveAtlas;
-import dev.dubhe.map.AtlasSession;
 import dev.dubhe.map.client.profiling.AtlasProfiling;
 import dev.dubhe.map.client.radar.VisibilityGate;
 import dev.dubhe.map.client.radar.VisibilityPreFilter;
-import dev.dubhe.map.config.NonTeamVisibility;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.state.LevelRenderState;
+import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -29,7 +25,7 @@ import java.util.UUID;
 
 /// GPU 硬件遮挡查询实现。
 ///
-/// 查询在 {@link RenderLevelStageEvent.AfterEntities} 提交：此时不透明地形与实体深度已绘制，
+/// 查询在 {@link RenderLevelStageEvent.AfterOpaqueFeatures} 提交：此时不透明地形与实体深度已绘制，
 /// 半透明地形尚未开始，代理盒直接复用世界深度缓冲。结果由 GPU 异步产出，
 /// 本类只读取已就绪的查询，未就绪时沿用上一有效值，不阻塞渲染线程。
 ///
@@ -101,7 +97,7 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
 
     /// 每帧提交与轮询遮挡查询。
     @SubscribeEvent
-    public static void onAfterEntities(RenderLevelStageEvent.AfterEntities event) {
+    public static void onAfterEntities(RenderLevelStageEvent.AfterOpaqueFeatures event) {
         INSTANCE.render(event);
     }
 
@@ -111,18 +107,16 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
         INSTANCE.close();
     }
 
-    private void render(RenderLevelStageEvent.AfterEntities event) {
+    private void render(RenderLevelStageEvent.AfterOpaqueFeatures event) {
         if (!this.active) {
             return;
         }
-        Minecraft minecraft = Minecraft.getInstance();
-        ClientLevel level = minecraft.level;
-        Player observer = minecraft.player;
         LevelRenderState renderState = event.getLevelRenderState();
-        if (level == null || observer == null || renderState.cameraRenderState == null) {
+        var frameTargets = renderState.getRenderData(VisibilityPreFilter.FRAME_TARGETS);
+        if (frameTargets == null) {
             return;
         }
-        if (AtlasSession.nonTeamVisibility() != NonTeamVisibility.VISIBLE_ONLY) {
+        if (!frameTargets.enabled()) {
             this.cache.clear();
             return;
         }
@@ -130,8 +124,7 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
         long started = System.nanoTime();
         try {
             this.pollReady();
-            List<VisibilityPreFilter.Target> targets = VisibilityPreFilter.selectOcclusionTargets(
-                    minecraft, renderState, observer, this.frame);
+            List<VisibilityPreFilter.Target> targets = frameTargets.targets();
             if (!targets.isEmpty()) {
                 this.issueQueries(targets, event);
                 int error = this.renderer.consumeError();
@@ -165,7 +158,7 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
 
     /// 为目标分配查询槽位并提交代理盒。
     private void issueQueries(List<VisibilityPreFilter.Target> targets,
-            RenderLevelStageEvent.AfterEntities event) {
+            RenderLevelStageEvent.AfterOpaqueFeatures event) {
         Set<Integer> occupied = this.cache.occupiedSlots();
         Matrix4fStack stack = RenderSystem.getModelViewStack();
         stack.pushMatrix();

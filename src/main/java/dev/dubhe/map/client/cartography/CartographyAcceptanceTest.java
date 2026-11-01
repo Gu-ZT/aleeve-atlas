@@ -42,7 +42,7 @@ public final class CartographyAcceptanceTest {
                 case 0 -> {
                     require(ClientCartography.available(), "new channel negotiated");
                     require(!AtlasSession.synchronizedMode(), "works with team sync disabled");
-                    AtlasWorldMap.open(); map = (WorldMapScreen) mc.screen;
+                    AtlasWorldMap.open(); map = (WorldMapScreen) mc.gui.screen();
                 }
                 case 1 -> press(ClientCartography.text("import").getString());
                 case 2 -> {
@@ -60,16 +60,16 @@ public final class CartographyAcceptanceTest {
                 case 4 -> {
                     screenshot("selection");
                     map.mouseClicked(new MouseButtonEvent(map.width / 2.0, map.height / 2.0, new MouseButtonInfo(0, 0)), false);
-                    require(mc.screen instanceof CartographyConfirmScreen, "selection opens preview");
+                    require(mc.gui.screen() instanceof CartographyConfirmScreen, "selection opens preview");
                 }
                 case 5 -> {
-                    var box = mc.screen.children().stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
+                    var box = mc.gui.screen().children().stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
                     require(box.active && !box.selected(), "glass allows opt-in locking");
                     box.onPress(null); screenshot("preview-locked");
                 }
                 case 6 -> press(Component.translatable("gui.ok").getString());
                 case 7 -> {
-                    require(mc.screen == map, "success returns to map");
+                    require(mc.gui.screen() == map, "success returns to map");
                     require(mc.player.getItemInHand(InteractionHand.OFF_HAND).getCount() == 2, "exactly one empty map consumed");
                     require(dev.dubhe.map.cartography.Cartography.glassSlot(mc.player) < 0, "glass consumed");
                     var crafted = mc.player.getInventory().getItem(1);
@@ -85,12 +85,12 @@ public final class CartographyAcceptanceTest {
                 }
                 case 8 -> map.mouseClicked(new MouseButtonEvent(map.width / 2.0, map.height / 2.0, new MouseButtonInfo(0, 0)), false);
                 case 9 -> {
-                    var box = mc.screen.children().stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
+                    var box = mc.gui.screen().children().stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
                     require(!box.active && !box.selected(), "no glass disables locking");
                     screenshot("preview-unlocked"); press(Component.translatable("gui.ok").getString());
                 }
                 case 10 -> {
-                    require(mc.screen == map && mc.player.getItemInHand(InteractionHand.OFF_HAND).getCount() == 1,
+                    require(mc.gui.screen() == map && mc.player.getItemInHand(InteractionHand.OFF_HAND).getCount() == 1,
                             "unlocked creation consumes exactly one more map");
                     finished = true;
                     LoggerFactory.getLogger(CartographyAcceptanceTest.class).info("Cartography acceptance PASSED ({})", mc.hasSingleplayerServer() ? "integrated" : "dedicated");
@@ -101,13 +101,13 @@ public final class CartographyAcceptanceTest {
         } catch (Exception e) {
             finished = true;
             LoggerFactory.getLogger(CartographyAcceptanceTest.class).error("Acceptance state: screen={}, selected={}, main={}, off={}",
-                    mc.screen, mc.player.getInventory().getSelectedSlot(), mc.player.getMainHandItem(), mc.player.getOffhandItem());
+                    mc.gui.screen(), mc.player.getInventory().getSelectedSlot(), mc.player.getMainHandItem(), mc.player.getOffhandItem());
             LoggerFactory.getLogger(CartographyAcceptanceTest.class).error("Cartography acceptance FAILED at step {}", step, e);
         }
     }
 
     private static void press(String label) {
-        var button = Minecraft.getInstance().screen.children().stream().filter(Button.class::isInstance)
+        var button = Minecraft.getInstance().gui.screen().children().stream().filter(Button.class::isInstance)
                 .map(Button.class::cast).filter(b -> b.getMessage().getString().equals(label) && b.visible && b.active)
                 .findFirst().orElseThrow();
         button.onPress(null);
@@ -115,7 +115,7 @@ public final class CartographyAcceptanceTest {
 
     private static void screenshot(String name) {
         var mc = Minecraft.getInstance();
-        Screenshot.grab(mc.gameDirectory, "cartography-" + name + ".png", mc.getMainRenderTarget(), 1, message -> { });
+        Screenshot.grab(mc.gameDirectory, "cartography-" + name + ".png", mc.gameRenderer.mainRenderTarget(), 1, message -> { });
     }
 
     private static void require(boolean value, String message) {

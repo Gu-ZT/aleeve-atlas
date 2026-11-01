@@ -32,8 +32,8 @@ final class DemoTerritory {
         if (minecraft.level == null || minecraft.player == null) {
             return;
         }
-        int baseX = minecraft.player.chunkPosition().x;
-        int baseZ = minecraft.player.chunkPosition().z;
+        int baseX = minecraft.player.chunkPosition().x();
+        int baseZ = minecraft.player.chunkPosition().z();
         Set<ChunkPos> chunks = new HashSet<>();
         // 主区域 9×9，中央挖空 3×3 形成环（验证孔洞内圈描边）。
         for (int dx = -4; dx <= 4; dx++) {

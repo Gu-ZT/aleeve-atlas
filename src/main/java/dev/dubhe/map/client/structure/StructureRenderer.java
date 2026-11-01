@@ -4,7 +4,7 @@ import dev.dubhe.map.client.map.MinimapLayout;
 import dev.dubhe.map.structure.StructureKind;
 import dev.dubhe.map.structure.StructureRecord;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.network.chat.Component;
@@ -19,7 +19,7 @@ public final class StructureRenderer {
     private StructureRenderer() {
     }
 
-    public static void icon(GuiGraphics graphics, StructureKind kind, double x, double y, boolean selected) {
+    public static void icon(GuiGraphicsExtractor graphics, StructureKind kind, double x, double y, boolean selected) {
         var atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.MAP_DECORATIONS);
         var sprite = atlas.getSprite(kind.sprite());
         graphics.pose().pushMatrix();
@@ -32,7 +32,7 @@ public final class StructureRenderer {
         graphics.pose().popMatrix();
     }
 
-    public static void minimap(GuiGraphics graphics, MinimapLayout layout, boolean circular, double rotation) {
+    public static void minimap(GuiGraphicsExtractor graphics, MinimapLayout layout, boolean circular, double rotation) {
         var store = ClientStructures.current();
         if (store == null) {
             return;

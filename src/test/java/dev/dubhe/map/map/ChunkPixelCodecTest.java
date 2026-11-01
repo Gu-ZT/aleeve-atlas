@@ -157,10 +157,10 @@ class ChunkPixelCodecTest {
     @Test
     void chunkPosPackingIsLossless() {
         ChunkPos pos = new ChunkPos(-1234, 5678);
-        long packed = (long) pos.x << 32 | (pos.z & 0xFFFFFFFFL);
+        long packed = (long) pos.x() << 32 | (pos.z() & 0xFFFFFFFFL);
         int x = (int) (packed >> 32);
         int z = (int) packed;
-        Assertions.assertEquals(pos.x, x);
-        Assertions.assertEquals(pos.z, z);
+        Assertions.assertEquals(pos.x(), x);
+        Assertions.assertEquals(pos.z(), z);
     }
 }

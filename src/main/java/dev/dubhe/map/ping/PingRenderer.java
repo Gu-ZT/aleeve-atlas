@@ -9,7 +9,7 @@ import dev.dubhe.map.config.MinimapShape;
 import dev.dubhe.map.config.NonTeamVisibility;
 import dev.dubhe.map.team.TeamProviders;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public final class PingRenderer {
     }
 
     /// 在小地图上绘制活动标点。
-    public static void renderOnMinimap(GuiGraphics graphics, MinimapLayout layout,
+    public static void renderOnMinimap(GuiGraphicsExtractor graphics, MinimapLayout layout,
             boolean circular, double rotationDegrees) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.level == null) {
@@ -83,7 +83,7 @@ public final class PingRenderer {
     }
 
     /// 超出地图范围的标点在内缩边缘显示方向箭头。
-    private static void drawOffscreenArrow(GuiGraphics graphics, MinimapLayout layout,
+    private static void drawOffscreenArrow(GuiGraphicsExtractor graphics, MinimapLayout layout,
             double screenX, double screenZ, boolean circular, MapPingData ping, float opacity) {
         double centerX = layout.x() + layout.size() / 2.0;
         double centerZ = layout.y() + layout.size() / 2.0;
@@ -99,14 +99,14 @@ public final class PingRenderer {
     }
 
     /// 在世界地图上绘制活动标点（屏幕坐标与透明度由调用方计算）。
-    public static void renderOnWorldMap(GuiGraphics graphics, double screenX, double screenZ,
+    public static void renderOnWorldMap(GuiGraphicsExtractor graphics, double screenX, double screenZ,
             MapPingData ping, float opacity) {
         // 世界地图铺满整个屏幕，波纹无需裁剪。
         drawPing(graphics, screenX, screenZ, ping, opacity);
     }
 
     /// 抗锯齿圆形中心 + 波纹扩散动画。
-    private static void drawPing(GuiGraphics graphics, double screenX, double screenZ,
+    private static void drawPing(GuiGraphicsExtractor graphics, double screenX, double screenZ,
             MapPingData ping, float opacity) {
         int x = (int) Math.round(screenX);
         int z = (int) Math.round(screenZ);
@@ -140,7 +140,7 @@ public final class PingRenderer {
     /// 按标点图标类型绘制中心标记。
     ///
     /// 四类标点通过颜色与内层符号区分：一般为圆点，危险为叉形，警告为菱形，前往为箭头。
-    static void drawIcon(GuiGraphics graphics, int x, int z, int color,
+    static void drawIcon(GuiGraphicsExtractor graphics, int x, int z, int color,
             MapPingData.PingIcon icon) {
         switch (icon) {
             case DANGER -> MapMarkerRenderer.drawCross(graphics, x, z, 6, color);

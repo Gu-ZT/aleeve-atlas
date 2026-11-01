@@ -28,7 +28,7 @@ public final class AtlasWorldMap {
         }
         MapDimensionCache cache = manager.displayCache();
         MapCanvas mapCanvas = canvas();
-        minecraft.setScreen(new WorldMapScreen(mapCanvas, cache, player.getX(), player.getZ()));
+        minecraft.gui.setScreen(new WorldMapScreen(mapCanvas, cache, player.getX(), player.getZ()));
     }
 
     /// 资源重载后标记画布失效，下次打开时重新注册纹理。

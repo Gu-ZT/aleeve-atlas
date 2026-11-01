@@ -33,15 +33,15 @@ public final class PingWheelVisualSelfTest {
         if (ticks == 60) {
             AtlasWorldMap.open();
         } else if (ticks == 90) {
-            if (minecraft.screen instanceof WorldMapScreen map) {
+            if (minecraft.gui.screen() instanceof WorldMapScreen map) {
                 PingWheelMenu.open(map);
             }
         } else if (ticks == 120) {
             Screenshot.grab(minecraft.gameDirectory, "atlas-wheel.png",
-                    minecraft.getMainRenderTarget(), 1,
+                    minecraft.gameRenderer.mainRenderTarget(), 1,
                     message -> LOGGER.info("Wheel screenshot: {}", message.getString()));
-            if (minecraft.screen != null) {
-                minecraft.screen.onClose();
+            if (minecraft.gui.screen() != null) {
+                minecraft.gui.screen().onClose();
             }
             completed = true;
             LOGGER.info("Wheel visual verification passed");

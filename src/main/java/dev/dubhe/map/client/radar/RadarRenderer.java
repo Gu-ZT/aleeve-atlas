@@ -10,7 +10,7 @@ import dev.dubhe.map.map.MapPalette;
 import dev.dubhe.map.sync.ClientPlayerPositions;
 import dev.dubhe.map.team.TeamProviders;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
@@ -47,7 +47,7 @@ public final class RadarRenderer {
     }
 
     /// 在小地图上绘制雷达标记。
-    public static void render(GuiGraphics graphics, AtlasClientConfig config,
+    public static void render(GuiGraphicsExtractor graphics, AtlasClientConfig config,
             MinimapLayout layout, Minecraft minecraft, double rotationDegrees) {
         boolean circular = config.minimap.shape == MinimapShape.CIRCLE;
         renderMarkers(graphics, config, minecraft, new MarkerProjection() {
@@ -87,7 +87,7 @@ public final class RadarRenderer {
     }
 
     /// 在世界地图上绘制雷达标记，坐标换算与全屏地图一致。
-    public static void renderOnWorldMap(GuiGraphics graphics, AtlasClientConfig config,
+    public static void renderOnWorldMap(GuiGraphicsExtractor graphics, AtlasClientConfig config,
             Minecraft minecraft, double centerX, double centerZ, float pixelsPerChunk,
             int viewWidth, int viewHeight) {
         renderMarkers(graphics, config, minecraft, new MarkerProjection() {
@@ -109,7 +109,7 @@ public final class RadarRenderer {
         });
     }
 
-    private static void renderMarkers(GuiGraphics graphics, AtlasClientConfig config,
+    private static void renderMarkers(GuiGraphicsExtractor graphics, AtlasClientConfig config,
             Minecraft minecraft, MarkerProjection projection) {
         ClientLevel level = minecraft.level;
         LocalPlayer player = minecraft.player;
@@ -223,7 +223,7 @@ public final class RadarRenderer {
     }
 
     /// 同队玩家圆点外层描边为队伍颜色。
-    private static void drawTeamOutline(GuiGraphics graphics, double screenX, double screenZ,
+    private static void drawTeamOutline(GuiGraphicsExtractor graphics, double screenX, double screenZ,
             Entity entity) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
@@ -250,22 +250,21 @@ public final class RadarRenderer {
         return (alpha << 24) | (argb & 0xFFFFFF);
     }
 
-    private static void drawDot(GuiGraphics graphics, double screenX, double screenZ, int color) {
+    private static void drawDot(GuiGraphicsExtractor graphics, double screenX, double screenZ, int color) {
         MapMarkerRenderer.drawDot(graphics, screenX, screenZ, 5, color);
     }
 
     /// 生物图标：用刷怪蛋物品图标表示实体类型；无对应刷怪蛋时返回 false 由调用方回退圆点。
-    private static boolean drawEntityIcon(GuiGraphics graphics, Entity entity, double screenX,
+    private static boolean drawEntityIcon(GuiGraphicsExtractor graphics, Entity entity, double screenX,
             double screenZ) {
-        SpawnEggItem egg =
-                SpawnEggItem.byId(entity.getType());
+        var egg = SpawnEggItem.byId(entity.getType()).orElse(null);
         if (egg == null) {
             return false;
         }
         graphics.pose().pushMatrix();
         graphics.pose().translate((float) screenX, (float) screenZ);
         graphics.pose().scale(ICON_SCALE, ICON_SCALE);
-        graphics.renderItem(new ItemStack(egg), -8, -8);
+        graphics.item(new ItemStack(egg), -8, -8);
         graphics.pose().popMatrix();
         return true;
     }
@@ -282,7 +281,7 @@ public final class RadarRenderer {
     ///
     /// 远端皮肤尚未完成异步加载时回退到默认 Steven/Alex 占位纹理，
     /// 避免绘制空白或抛错。
-    private static void drawPlayerHead(GuiGraphics graphics, Entity entity, double screenX,
+    private static void drawPlayerHead(GuiGraphicsExtractor graphics, Entity entity, double screenX,
             double screenZ) {
         if (!(entity instanceof AbstractClientPlayer player)) {
             return;

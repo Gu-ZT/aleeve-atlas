@@ -70,14 +70,12 @@ public final class ClientWaypointSync {
                         .withClickEvent(new ClickEvent.RunCommand(
                                 "/aleeve_atlas waypoint ignore " + waypoint.id())));
 
-        minecraft.player.displayClientMessage(
+        minecraft.player.sendSystemMessage(
                 Component.translatable("aleeve_atlas.message.waypoint_shared",
                         waypoint.displayName().getString(), waypoint.sourcePlayer(),
-                        waypoint.pos().getX(), waypoint.pos().getY(), waypoint.pos().getZ()),
-                false);
-        minecraft.player.displayClientMessage(
-                Component.empty().append(accept).append(Component.literal("  ")).append(ignore),
-                false);
+                        waypoint.pos().getX(), waypoint.pos().getY(), waypoint.pos().getZ()));
+        minecraft.player.sendSystemMessage(
+                Component.empty().append(accept).append(Component.literal("  ")).append(ignore));
         // 暂存待确认项，供接受命令使用。
         ClientWaypoints.pending().put(waypoint.id(), forAction(waypoint, action));
     }
@@ -104,7 +102,7 @@ public final class ClientWaypointSync {
     private static void notify(Component message) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null) {
-            minecraft.player.displayClientMessage(message, true);
+            minecraft.player.sendOverlayMessage(message);
         }
     }
 }
