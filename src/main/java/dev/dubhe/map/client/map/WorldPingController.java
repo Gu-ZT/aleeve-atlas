@@ -1,5 +1,6 @@
 package dev.dubhe.map.client.map;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.api.ping.MinimapPingAPI;
 import dev.dubhe.map.client.AtlasKeyMappings;
@@ -19,7 +20,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
-import org.lwjgl.glfw.GLFW;
 
 /// 世界内中键标点：短按创建一般标点，长按打开轮盘。
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
@@ -45,8 +45,8 @@ public final class WorldPingController {
             reset();
             return;
         }
-        if (holdStarted >= 0L && minecraft.screen != null
-                && !(minecraft.screen instanceof PingWheelMenu)) {
+        if (holdStarted >= 0L && minecraft.gui.screen() != null
+                && !(minecraft.gui.screen() instanceof PingWheelMenu)) {
             reset();
             return;
         }
@@ -71,7 +71,7 @@ public final class WorldPingController {
         if (!AtlasKeyMappings.WORLD_PING.matchesMouse(mouse)) {
             return;
         }
-        if (minecraft.screen != null && holdStarted < 0L) {
+        if (minecraft.gui.screen() != null && holdStarted < 0L) {
             return;
         }
         processPress(minecraft, event.getAction());
@@ -95,20 +95,20 @@ public final class WorldPingController {
         if (minecraft.level == null) {
             return;
         }
-        if (action == GLFW.GLFW_PRESS) {
-            if (minecraft.screen == null && !holding) {
+        if (action == InputConstants.PRESS) {
+            if (minecraft.gui.screen() == null && !holding) {
                 holding = true;
                 holdStarted = minecraft.level.getGameTime();
                 target = target(minecraft);
             }
             return;
         }
-        if (action != GLFW.GLFW_RELEASE || holdStarted < 0L) {
+        if (action != InputConstants.RELEASE || holdStarted < 0L) {
             return;
         }
         holding = false;
         if (wheelOpened) {
-            if (minecraft.screen instanceof PingWheelMenu wheel) {
+            if (minecraft.gui.screen() instanceof PingWheelMenu wheel) {
                 wheel.triggerFromHoldRelease();
             }
             reset();

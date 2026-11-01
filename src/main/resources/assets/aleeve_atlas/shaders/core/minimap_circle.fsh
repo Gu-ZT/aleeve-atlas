@@ -1,4 +1,5 @@
 #version 330
+#extension GL_ARB_separate_shader_objects : require
 
 // 小地图地图纹理的圆形裁剪。
 //
@@ -7,18 +8,18 @@
 
 layout(std140) uniform DynamicTransforms {
     mat4 ModelViewMat;
+    mat4 TextureMat;
     vec4 ColorModulator;
     vec3 ModelOffset;
-    mat4 TextureMat;
 };
 
 uniform sampler2D Sampler0;
 
-in vec2 texCoord0;
-in vec2 mapCoord;
-in vec4 vertexColor;
+layout(location = 0) in vec2 texCoord0;
+layout(location = 1) in vec2 mapCoord;
+layout(location = 2) in vec4 vertexColor;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 void main() {
     float clipRadius = max(1.0 - vertexColor.b, 0.1);

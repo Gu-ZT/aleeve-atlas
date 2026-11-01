@@ -1,13 +1,14 @@
 #version 330
+#extension GL_ARB_separate_shader_objects : require
 
 // 边框使用 G 通道传递圆形开关，A 通道传递向外扩展的比例。
 
 uniform sampler2D Sampler0;
 
-in vec2 texCoord0;
-in vec4 vertexColor;
+layout(location = 0) in vec2 texCoord0;
+layout(location = 1) in vec4 vertexColor;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 const vec4 BORDER_COLOR = vec4(0.06, 0.06, 0.06, 1.0);
 

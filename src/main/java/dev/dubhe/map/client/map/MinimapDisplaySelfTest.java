@@ -77,7 +77,7 @@ public final class MinimapDisplaySelfTest {
             }
             case 210 -> {
                 screenshot(minecraft, "atlas-world-minimum-zoom.png");
-                minecraft.setScreen(null);
+                minecraft.gui.setScreen(null);
                 lookNorth(player);
             }
             case 230 -> finish(minecraft, player);
@@ -157,14 +157,14 @@ public final class MinimapDisplaySelfTest {
     }
 
     private static void zoomOut(Minecraft minecraft, int steps) {
-        WorldMapScreen screen = (WorldMapScreen) minecraft.screen;
+        WorldMapScreen screen = (WorldMapScreen) minecraft.gui.screen();
         for (int step = 0; step < steps; step++) {
             screen.mouseScrolled(screen.width / 2.0, screen.height / 2.0, 0, -1);
         }
     }
 
     private static void screenshot(Minecraft minecraft, String name) {
-        Screenshot.grab(minecraft.gameDirectory, name, minecraft.getMainRenderTarget(), 1,
+        Screenshot.grab(minecraft.gameDirectory, name, minecraft.gameRenderer.mainRenderTarget(), 1,
                 message -> LOGGER.info("Display screenshot: {}", message.getString()));
     }
 

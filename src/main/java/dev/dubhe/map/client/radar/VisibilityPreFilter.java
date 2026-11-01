@@ -9,7 +9,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.state.LevelRenderState;
+import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,7 +20,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.event.FrameGraphSetupEvent;
+import net.neoforged.neoforge.client.event.ExtractLevelRenderStateEvent;
+import net.minecraft.util.context.ContextKey;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,6 +39,11 @@ public final class VisibilityPreFilter {
     public record Target(UUID id, AABB box, double distanceSq, long frame) {
     }
 
+    public record FrameTargets(boolean enabled, List<Target> targets) {
+    }
+
+    public static final ContextKey<FrameTargets> FRAME_TARGETS =
+            new ContextKey<>(AleeveAtlas.id("occlusion_targets"));
     private static Frustum currentFrustum;
 
     private VisibilityPreFilter() {
@@ -45,8 +51,14 @@ public final class VisibilityPreFilter {
 
     /// 缓存当前世界帧的真实视锥，包含动态 FOV 与相机变换。
     @SubscribeEvent
-    public static void onFrameGraphSetup(FrameGraphSetupEvent event) {
+    public static void onExtractLevel(ExtractLevelRenderStateEvent event) {
         currentFrustum = event.getFrustum();
+        Minecraft minecraft = Minecraft.getInstance();
+        boolean enabled = AtlasSession.nonTeamVisibility() == NonTeamVisibility.VISIBLE_ONLY;
+        List<Target> targets = enabled && minecraft.player != null
+                ? selectOcclusionTargets(minecraft, event.getRenderState(), minecraft.player, 0)
+                : List.of();
+        event.getRenderState().setRenderData(FRAME_TARGETS, new FrameTargets(enabled, List.copyOf(targets)));
     }
 
     @SubscribeEvent
@@ -81,7 +93,7 @@ public final class VisibilityPreFilter {
         if (currentFrustum != null) {
             return currentFrustum;
         }
-        return Minecraft.getInstance().levelRenderer.getCapturedFrustum();
+        return null;
     }
 
     /// 选出需要遮挡查询的非同队玩家。

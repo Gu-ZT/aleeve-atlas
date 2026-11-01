@@ -39,7 +39,7 @@ public final class ServerStructures {
     public static void sent(ChunkWatchEvent.Sent event) {
         if (event.getPlayer().connection.hasChannel(StructurePayloads.Discovery.TYPE)) {
             PENDING.computeIfAbsent(event.getPlayer().getUUID(), key -> new LinkedHashMap<>())
-                    .put(event.getPos().toLong(), new PendingChunk(event.getLevel(), event.getPos()));
+                    .put(event.getPos().pack(), new PendingChunk(event.getLevel(), event.getPos()));
         }
     }
 
@@ -47,9 +47,9 @@ public final class ServerStructures {
     public static void unwatch(ChunkWatchEvent.UnWatch event) {
         var pending = PENDING.get(event.getPlayer().getUUID());
         if (pending != null) {
-            PendingChunk task = pending.get(event.getPos().toLong());
+            PendingChunk task = pending.get(event.getPos().pack());
             if (task != null && task.level == event.getLevel()) {
-                pending.remove(event.getPos().toLong());
+                pending.remove(event.getPos().pack());
             }
         }
     }
@@ -90,12 +90,12 @@ public final class ServerStructures {
         var bounds = start.getBoundingBox();
         var position = chunk.getMiddleBlockPosition(bounds.minY());
         for (var placement : state.getPlacementsForStructure(holder)) {
-            if (placement.isStructureChunk(state, chunk.x, chunk.z)) {
+            if (placement.isStructureChunk(state, chunk.x(), chunk.z())) {
                 position = placement.getLocatePos(chunk).atY(bounds.minY());
                 break;
             }
         }
-        return new StructureRecord(level.dimension().identifier().toString(), kind, chunk.x, chunk.z, position,
+        return new StructureRecord(level.dimension().identifier().toString(), kind, chunk.x(), chunk.z(), position,
                 bounds.minX(), bounds.minY(), bounds.minZ(), bounds.maxX(), bounds.maxY(), bounds.maxZ(), source);
     }
 
@@ -155,20 +155,20 @@ public final class ServerStructures {
                     records.add(record);
                     if (records.size() == StructurePayloads.MAX_RECORDS) {
                         PacketDistributor.sendToPlayer(player,
-                                new StructurePayloads.Discovery(this.position.x, this.position.z, records));
+                                new StructurePayloads.Discovery(this.position.x(), this.position.z(), records));
                         records.clear();
                     }
                 }
             }
             if (!records.isEmpty()) {
-                PacketDistributor.sendToPlayer(player, new StructurePayloads.Discovery(this.position.x, this.position.z, records));
+                PacketDistributor.sendToPlayer(player, new StructurePayloads.Discovery(this.position.x(), this.position.z(), records));
             }
             return scan.complete;
         }
     }
 
     static Scan scanLoaded(ServerLevel level, ChunkPos position) {
-        var chunk = level.getChunkSource().getChunkNow(position.x, position.z);
+        var chunk = level.getChunkSource().getChunkNow(position.x(), position.z());
         if (chunk == null) {
             return new Scan(false, List.of());
         }
@@ -181,8 +181,8 @@ public final class ServerStructures {
                 continue;
             }
             for (long reference : entry.getValue()) {
-                ChunkPos startPos = new ChunkPos(reference);
-                var origin = level.getChunkSource().getChunkNow(startPos.x, startPos.z);
+                ChunkPos startPos = ChunkPos.unpack(reference);
+                var origin = level.getChunkSource().getChunkNow(startPos.x(), startPos.z());
                 if (origin == null) {
                     complete = false;
                 } else {
@@ -196,7 +196,7 @@ public final class ServerStructures {
         var records = new ArrayList<StructureRecord>();
         for (StructureStart start : starts) {
             StructureRecord record = describe(level, start, StructureRecord.Source.DISCOVERED);
-            if (record != null && record.intersectsChunk(position.x, position.z)) {
+            if (record != null && record.intersectsChunk(position.x(), position.z())) {
                 records.add(record);
             }
         }

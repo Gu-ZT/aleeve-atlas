@@ -43,12 +43,12 @@ public final class MapDimensionCache {
     }
 
     public Optional<ChunkMapData> get(int chunkX, int chunkZ) {
-        long key = ChunkPos.asLong(chunkX, chunkZ);
+        long key = ChunkPos.pack(chunkX, chunkZ);
         ChunkMapData cached = this.chunks.get(key);
         if (cached != null) {
             // 内存命中也要刷新所属区域的 LRU 顺序，避免热点区域被误淘汰。
             // loadedRegions 为访问序 LinkedHashMap，get 的副作用即把该区域移到队尾。
-            this.loadedRegions.get(ChunkPos.asLong(chunkX >> REGION_SHIFT, chunkZ >> REGION_SHIFT));
+            this.loadedRegions.get(ChunkPos.pack(chunkX >> REGION_SHIFT, chunkZ >> REGION_SHIFT));
             return Optional.of(cached);
         }
         RegionFile region = this.regionFor(chunkX >> REGION_SHIFT, chunkZ >> REGION_SHIFT);
@@ -66,14 +66,14 @@ public final class MapDimensionCache {
     /// 单次方块变更即写盘会在爆炸等场景下反复重写整个区域文件。
     public void invalidate(int chunkX, int chunkZ) {
         this.revision++;
-        this.chunks.remove(ChunkPos.asLong(chunkX, chunkZ));
+        this.chunks.remove(ChunkPos.pack(chunkX, chunkZ));
         this.regionFor(chunkX >> REGION_SHIFT, chunkZ >> REGION_SHIFT)
                 .remove(chunkX & (REGION_SIZE - 1), chunkZ & (REGION_SIZE - 1));
     }
 
     public void put(ChunkMapData data) {
         this.revision++;
-        long key = ChunkPos.asLong(data.chunkX(), data.chunkZ());
+        long key = ChunkPos.pack(data.chunkX(), data.chunkZ());
         this.chunks.put(key, data);
         RegionFile region = this.regionFor(data.chunkX() >> REGION_SHIFT, data.chunkZ() >> REGION_SHIFT);
         region.put(data.chunkX() & (REGION_SIZE - 1), data.chunkZ() & (REGION_SIZE - 1), data);
@@ -167,7 +167,7 @@ public final class MapDimensionCache {
     }
 
     private RegionFile regionFor(int regionX, int regionZ) {
-        long key = ChunkPos.asLong(regionX, regionZ);
+        long key = ChunkPos.pack(regionX, regionZ);
         RegionFile existing = this.loadedRegions.get(key);
         if (existing != null) {
             return existing;
@@ -197,7 +197,7 @@ public final class MapDimensionCache {
             iterator.remove();
             // 同时释放该区域内的区块缓存，避免区块对象无限堆积。
             for (ChunkMapData data : region.entries.values()) {
-                this.chunks.remove(ChunkPos.asLong(data.chunkX(), data.chunkZ()));
+                this.chunks.remove(ChunkPos.pack(data.chunkX(), data.chunkZ()));
             }
         }
     }
@@ -223,7 +223,7 @@ public final class MapDimensionCache {
                 for (String key : chunksTag.keySet()) {
                     CompoundTag chunkTag = chunksTag.getCompoundOrEmpty(key);
                     ChunkMapData data = ChunkMapData.load(chunkTag);
-                    this.entries.put(ChunkPos.asLong(data.chunkX() & (REGION_SIZE - 1),
+                    this.entries.put(ChunkPos.pack(data.chunkX() & (REGION_SIZE - 1),
                             data.chunkZ() & (REGION_SIZE - 1)), data);
                 }
             } catch (IOException | RuntimeException e) {
@@ -244,15 +244,15 @@ public final class MapDimensionCache {
         }
 
         private ChunkMapData get(int localX, int localZ) {
-            return this.entries.get(ChunkPos.asLong(localX, localZ));
+            return this.entries.get(ChunkPos.pack(localX, localZ));
         }
 
         private void put(int localX, int localZ, ChunkMapData data) {
-            this.entries.put(ChunkPos.asLong(localX, localZ), data);
+            this.entries.put(ChunkPos.pack(localX, localZ), data);
         }
 
         private boolean remove(int localX, int localZ) {
-            if (this.entries.remove(ChunkPos.asLong(localX, localZ)) == null) {
+            if (this.entries.remove(ChunkPos.pack(localX, localZ)) == null) {
                 return false;
             }
             this.dirty = true;

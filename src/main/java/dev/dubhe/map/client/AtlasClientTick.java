@@ -68,7 +68,7 @@ public final class AtlasClientTick {
         if (!scrollSelfTestDone && System.getenv("ALEEVE_ATLAS_SCROLL_SELFTEST") != null) {
             Minecraft minecraft = Minecraft.getInstance();
             if (minecraft.player != null && minecraft.level != null
-                    && minecraft.screen == null) {
+                    && minecraft.gui.screen() == null) {
                 scrollSelfTestDone = true;
                 AtlasWorldMap.open();
             }
@@ -85,10 +85,10 @@ public final class AtlasClientTick {
         String serverAddress = System.getenv("ALEEVE_ATLAS_CONNECT_SERVER");
         if (!connectSelfTestDone && serverAddress != null) {
             Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.screen instanceof TitleScreen) {
+            if (minecraft.gui.screen() instanceof TitleScreen) {
                 connectSelfTestDone = true;
                 ConnectScreen.startConnecting(
-                        minecraft.screen,
+                        minecraft.gui.screen(),
                         minecraft,
                         ServerAddress.parseString(serverAddress),
                         new ServerData(
@@ -106,14 +106,14 @@ public final class AtlasClientTick {
         ClientPings.tick();
         // 地图增量分片按 tick 限速写入本地缓存。
         ClientMapSync.tick();
-        if (minecraft.screen != null) {
+        if (minecraft.gui.screen() != null) {
             return;
         }
         while (AtlasKeyMappings.OPEN_WORLD_MAP.consumeClick()) {
             AtlasWorldMap.open();
         }
         while (AtlasKeyMappings.NEW_WAYPOINT.consumeClick()) {
-            minecraft.setScreen(new WaypointEditScreen(null, minecraft.player.blockPosition()));
+            minecraft.gui.setScreen(new WaypointEditScreen(null, minecraft.player.blockPosition()));
         }
         while (AtlasKeyMappings.MINIMAP_ZOOM_IN.consumeClick()) {
             AtlasClientConfigs.CONFIG.minimap.zoom = ConfigBounds.clamp(

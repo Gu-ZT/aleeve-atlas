@@ -1,15 +1,10 @@
 package dev.dubhe.map.client.visibility;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.dubhe.map.AleeveAtlas;
-import dev.dubhe.map.AtlasSession;
 import dev.dubhe.map.client.profiling.AtlasProfiling;
 import dev.dubhe.map.client.radar.VisibilityGate;
 import dev.dubhe.map.client.radar.VisibilityPreFilter;
-import dev.dubhe.map.config.NonTeamVisibility;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.state.LevelRenderState;
+import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -18,7 +13,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import org.joml.Matrix4fStack;
+import net.neoforged.neoforge.client.event.PrepareRenderBuffersEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +24,7 @@ import java.util.UUID;
 
 /// GPU 硬件遮挡查询实现。
 ///
-/// 查询在 {@link RenderLevelStageEvent.AfterEntities} 提交：此时不透明地形与实体深度已绘制，
+/// 查询在 {@link RenderLevelStageEvent.AfterOpaqueFeatures} 提交：此时不透明地形与实体深度已绘制，
 /// 半透明地形尚未开始，代理盒直接复用世界深度缓冲。结果由 GPU 异步产出，
 /// 本类只读取已就绪的查询，未就绪时沿用上一有效值，不阻塞渲染线程。
 ///
@@ -45,6 +40,10 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
 
     private final OcclusionProxyRenderer renderer = new OcclusionProxyRenderer();
     private final VisibilityResultCache cache = new VisibilityResultCache();
+    private record PreparedQuery(VisibilityResultCache.Entry entry, int slot) {
+    }
+
+    private final List<PreparedQuery> prepared = new ArrayList<>();
     private long frame;
     private boolean initialized;
     private boolean active;
@@ -99,9 +98,16 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
         return this.cache.isPending(id);
     }
 
-    /// 每帧提交与轮询遮挡查询。
+    /// 在世界 RenderPass 开始前读取上一帧结果并上传本帧代理盒。
     @SubscribeEvent
-    public static void onAfterEntities(RenderLevelStageEvent.AfterEntities event) {
+    public static void onPrepare(PrepareRenderBuffersEvent event) {
+        VisibilityResolverSelector.select();
+        INSTANCE.prepare(event);
+    }
+
+    /// 不透明几何体已写入深度后，在当前 RenderPass 内提交遮挡查询。
+    @SubscribeEvent
+    public static void onAfterEntities(RenderLevelStageEvent.AfterOpaqueFeatures event) {
         INSTANCE.render(event);
     }
 
@@ -111,18 +117,17 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
         INSTANCE.close();
     }
 
-    private void render(RenderLevelStageEvent.AfterEntities event) {
+    private void prepare(PrepareRenderBuffersEvent event) {
+        this.prepared.clear();
         if (!this.active) {
             return;
         }
-        Minecraft minecraft = Minecraft.getInstance();
-        ClientLevel level = minecraft.level;
-        Player observer = minecraft.player;
         LevelRenderState renderState = event.getLevelRenderState();
-        if (level == null || observer == null || renderState.cameraRenderState == null) {
+        var frameTargets = renderState.getRenderData(VisibilityPreFilter.FRAME_TARGETS);
+        if (frameTargets == null) {
             return;
         }
-        if (AtlasSession.nonTeamVisibility() != NonTeamVisibility.VISIBLE_ONLY) {
+        if (!frameTargets.enabled()) {
             this.cache.clear();
             return;
         }
@@ -130,15 +135,9 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
         long started = System.nanoTime();
         try {
             this.pollReady();
-            List<VisibilityPreFilter.Target> targets = VisibilityPreFilter.selectOcclusionTargets(
-                    minecraft, renderState, observer, this.frame);
+            List<VisibilityPreFilter.Target> targets = frameTargets.targets();
             if (!targets.isEmpty()) {
-                this.issueQueries(targets, event);
-                int error = this.renderer.consumeError();
-                if (error != 0) {
-                    throw new IllegalStateException("GL error after occlusion submission: 0x"
-                            + Integer.toHexString(error));
-                }
+                this.prepareQueries(targets, renderState);
             }
             this.prune();
         } catch (RuntimeException e) {
@@ -163,33 +162,47 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
         }
     }
 
-    /// 为目标分配查询槽位并提交代理盒。
-    private void issueQueries(List<VisibilityPreFilter.Target> targets,
-            RenderLevelStageEvent.AfterEntities event) {
+    /// 为本帧目标保留槽位；只有实际绘制后才标记为待读，避免读取从未提交的查询。
+    private void prepareQueries(List<VisibilityPreFilter.Target> targets, LevelRenderState state) {
         Set<Integer> occupied = this.cache.occupiedSlots();
-        Matrix4fStack stack = RenderSystem.getModelViewStack();
-        stack.pushMatrix();
-        try {
-            stack.set(event.getModelViewMatrix());
-            for (VisibilityPreFilter.Target target : targets) {
-                VisibilityResultCache.Entry entry = this.cache.observe(target.id(), this.frame);
-                // 上一帧查询尚未完成时保留旧结果，不覆盖查询对象。
-                if (entry.pending) {
-                    continue;
-                }
-                int slot = nextFreeSlot(occupied);
-                if (slot < 0) {
-                    break;
-                }
-                this.cache.attach(entry, slot);
+        var camera = state.cameraRenderState;
+        for (VisibilityPreFilter.Target target : targets) {
+            VisibilityResultCache.Entry entry = this.cache.observe(target.id(), this.frame);
+            if (entry.pending) {
+                continue;
+            }
+            int slot = nextFreeSlot(occupied);
+            if (slot < 0) {
+                break;
+            }
+            if (this.renderer.prepare(slot, target.box(), camera.pos, camera.viewRotationMatrix)) {
                 occupied.add(slot);
-                if (!this.renderer.submit(slot, target.box(),
-                        event.getLevelRenderState().cameraRenderState.pos)) {
-                    this.cache.cancel(entry);
+                this.prepared.add(new PreparedQuery(entry, slot));
+            }
+        }
+    }
+
+    private void render(RenderLevelStageEvent.AfterOpaqueFeatures event) {
+        if (!this.active || this.prepared.isEmpty()) {
+            return;
+        }
+        long started = System.nanoTime();
+        try {
+            for (PreparedQuery query : this.prepared) {
+                if (this.renderer.submit(query.slot(), event.getRenderPass())) {
+                    this.cache.attach(query.entry(), query.slot());
                 }
             }
+            int error = this.renderer.consumeError();
+            if (error != 0) {
+                throw new IllegalStateException("GL error after occlusion submission: 0x"
+                        + Integer.toHexString(error));
+            }
+        } catch (RuntimeException e) {
+            this.disable(e);
         } finally {
-            stack.popMatrix();
+            this.prepared.clear();
+            AtlasProfiling.recordOcclusion(System.nanoTime() - started);
         }
     }
 
@@ -211,6 +224,7 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
     /// 查询或绘制失败后释放 GL 资源，并切换到射线实现。
     private void disable(RuntimeException error) {
         LOGGER.warn("Occlusion query failed; switching to raycast visibility", error);
+        this.prepared.clear();
         this.renderer.close();
         this.cache.clear();
         this.active = false;
@@ -219,6 +233,7 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
 
     /// 释放查询资源并清空跨会话状态。
     public void close() {
+        this.prepared.clear();
         this.renderer.close();
         this.cache.clear();
         this.frame = 0;

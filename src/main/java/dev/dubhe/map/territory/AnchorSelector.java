@@ -23,8 +23,8 @@ public final class AnchorSelector {
         double centroidX = 0.0;
         double centroidZ = 0.0;
         for (ChunkPos pos : component) {
-            centroidX += pos.x;
-            centroidZ += pos.z;
+            centroidX += pos.x();
+            centroidZ += pos.z();
         }
         centroidX /= component.size();
         centroidZ /= component.size();
@@ -33,8 +33,8 @@ public final class AnchorSelector {
         double bestScore = Double.NEGATIVE_INFINITY;
         for (ChunkPos pos : component) {
             double distanceToBoundary = distanceToBoundary(component, pos);
-            double dx = pos.x - centroidX;
-            double dz = pos.z - centroidZ;
+            double dx = pos.x() - centroidX;
+            double dz = pos.z() - centroidZ;
             double distanceToCentroid = Math.sqrt(dx * dx + dz * dz);
             double score = distanceToBoundary - lambda * distanceToCentroid;
             // 得分相同时按 X 最小、再 Z 最小固定选取，保证重算不跳动。
@@ -62,7 +62,7 @@ public final class AnchorSelector {
                     if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
                         continue;
                     }
-                    ChunkPos probe = new ChunkPos(origin.x + dx, origin.z + dz);
+                    ChunkPos probe = new ChunkPos(origin.x() + dx, origin.z() + dz);
                     if (!component.contains(probe)) {
                         double distance = Math.sqrt((double) dx * dx + (double) dz * dz);
                         if (distance < best) {
@@ -79,8 +79,8 @@ public final class AnchorSelector {
         ChunkPos min = TerritoryComponents.minOf(component);
         int max = 1;
         for (ChunkPos pos : component) {
-            max = Math.max(max, Math.abs(pos.x - min.x) + 1);
-            max = Math.max(max, Math.abs(pos.z - min.z) + 1);
+            max = Math.max(max, Math.abs(pos.x() - min.x()) + 1);
+            max = Math.max(max, Math.abs(pos.z() - min.z()) + 1);
         }
         return max + 1;
     }
@@ -89,9 +89,9 @@ public final class AnchorSelector {
         if (current == null) {
             return true;
         }
-        if (candidate.x != current.x) {
-            return candidate.x < current.x;
+        if (candidate.x() != current.x()) {
+            return candidate.x() < current.x();
         }
-        return candidate.z < current.z;
+        return candidate.z() < current.z();
     }
 }

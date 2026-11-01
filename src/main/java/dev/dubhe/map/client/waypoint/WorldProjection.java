@@ -1,13 +1,12 @@
 package dev.dubhe.map.client.waypoint;
 
 import dev.dubhe.map.AleeveAtlas;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.FrameGraphSetupEvent;
+import net.neoforged.neoforge.client.event.ExtractLevelRenderStateEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -16,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
-/// 在客户端渲染线程使用本帧世界画面的相机和最终投影定位标点。
+/// 在 GUI 提取前使用本帧相机状态定位标点，避免读取上一渲染帧的投影。
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class WorldProjection {
     private static final double LOOK_TOLERANCE_PIXELS = 24.0;
@@ -33,14 +32,14 @@ public final class WorldProjection {
     }
 
     @SubscribeEvent
-    public static void onWorldRender(FrameGraphSetupEvent event) {
+    public static void onWorldExtract(ExtractLevelRenderStateEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
-        Camera camera = event.getCamera();
-        if (minecraft.level == null || !camera.isInitialized()) {
+        var camera = event.getRenderState().cameraRenderState;
+        if (minecraft.level == null || !camera.initialized) {
             frame = null;
             return;
         }
-        frame = new Frame(camera.position(), new Matrix4f(event.getProjectionMatrix()).mul(event.getModelViewMatrix()),
+        frame = new Frame(camera.pos, new Matrix4f(camera.projectionMatrix).mul(camera.viewRotationMatrix),
                 minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight());
     }
 

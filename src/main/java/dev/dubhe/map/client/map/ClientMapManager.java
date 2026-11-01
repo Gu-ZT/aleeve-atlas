@@ -82,7 +82,7 @@ public final class ClientMapManager {
     ///
     /// 由客户端方块变更监听调用，使地图反映破坏与放置的结果。
     public static void markChunkChanged(int chunkX, int chunkZ) {
-        long key = ChunkPos.asLong(chunkX, chunkZ);
+        long key = ChunkPos.pack(chunkX, chunkZ);
         DIRTY_SURFACE_CHUNKS.add(key);
         DIRTY_CAVE_CHUNKS.add(key);
     }
@@ -143,7 +143,7 @@ public final class ClientMapManager {
             // 重新进入旧层时刷新当前视距内的数据，避免复用在其它层活动期间已改变的地形。
             for (int dx = -VIEW_CHUNK_RADIUS; dx <= VIEW_CHUNK_RADIUS; dx++) {
                 for (int dz = -VIEW_CHUNK_RADIUS; dz <= VIEW_CHUNK_RADIUS; dz++) {
-                    DIRTY_CAVE_CHUNKS.add(ChunkPos.asLong(center.x + dx, center.z + dz));
+                    DIRTY_CAVE_CHUNKS.add(ChunkPos.pack(center.x() + dx, center.z() + dz));
                 }
             }
         }
@@ -165,9 +165,9 @@ public final class ClientMapManager {
                     if (Math.max(Math.abs(dx), Math.abs(dz)) != ring) {
                         continue;
                     }
-                    int chunkX = center.x + dx;
-                    int chunkZ = center.z + dz;
-                    long chunkKey = ChunkPos.asLong(chunkX, chunkZ);
+                    int chunkX = center.x() + dx;
+                    int chunkZ = center.z() + dz;
+                    long chunkKey = ChunkPos.pack(chunkX, chunkZ);
                     Optional<ChunkMapData> existing = activeCache.get(chunkX, chunkZ);
                     if (existing.isPresent() && existing.get().slice().equals(nextSlice) && !dirtyChunks.contains(chunkKey)) {
                         dev.dubhe.map.client.structure.ClientStructures.sampled(chunkX, chunkZ);
@@ -204,7 +204,7 @@ public final class ClientMapManager {
         if (sampled > 0 && !this.loggedFirstSample) {
             this.loggedFirstSample = true;
             LOGGER.info("First map sample written: {} chunk(s) around {},{}, cache dir {}",
-                    sampled, center.x, center.z, cache.dimensionDir());
+                    sampled, center.x(), center.z(), cache.dimensionDir());
         }
     }
 

@@ -1,16 +1,17 @@
 #version 330
+#extension GL_ARB_separate_shader_objects : require
 
 // 实体圆点标记。以顶点色作为填充色，外圈使用深色描边并做抗锯齿。
 layout(std140) uniform DynamicTransforms {
     mat4 ModelViewMat;
+    mat4 TextureMat;
     vec4 ColorModulator;
     vec3 ModelOffset;
-    mat4 TextureMat;
 };
 uniform sampler2D Sampler0;
-in vec2 texCoord0;
-in vec4 vertexColor;
-out vec4 fragColor;
+layout(location = 0) in vec2 texCoord0;
+layout(location = 1) in vec4 vertexColor;
+layout(location = 0) out vec4 fragColor;
 
 void main() {
     float strength = texture(Sampler0, texCoord0).a;

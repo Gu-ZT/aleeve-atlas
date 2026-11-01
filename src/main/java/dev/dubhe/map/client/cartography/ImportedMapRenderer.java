@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.cartography.MapSnapshot;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
@@ -19,7 +19,7 @@ public final class ImportedMapRenderer {
     private static final Map<MapSnapshot, Identifier> TEXTURES = new HashMap<>();
     private ImportedMapRenderer() { }
 
-    public static void draw(GuiGraphics graphics, double centerX, double centerZ, float zoom, int width, int height) {
+    public static void draw(GuiGraphicsExtractor graphics, double centerX, double centerZ, float zoom, int width, int height) {
         var store = ClientCartography.currentStore();
         if (store == null) return;
         var maps = store.intersecting((int) Math.floor(centerX - width / (2.0 * zoom)),

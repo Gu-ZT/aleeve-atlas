@@ -13,7 +13,7 @@ public final class WaypointActions {
         if (minecraft.player != null) {
             minecraft.player.connection.sendCommand("tp @s %d %d %d".formatted(
                     pos.getX(), pos.getY(), pos.getZ()));
-            minecraft.setScreen(null);
+            minecraft.gui.setScreen(null);
         }
     }
 
@@ -22,7 +22,7 @@ public final class WaypointActions {
         if (minecraft.player != null) {
             minecraft.player.connection.sendChat("%d %d %d".formatted(
                     pos.getX(), pos.getY(), pos.getZ()));
-            minecraft.setScreen(null);
+            minecraft.gui.setScreen(null);
         }
     }
 }

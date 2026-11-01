@@ -95,33 +95,7 @@
 
 ### FTB Teams 与 FTB Chunks 联动
 
-支持 Minecraft 1.21.11 的 FTB Teams / FTB Chunks `2111.1.1` 系列，通过 AnvilLib-Integration 按安装情况加载，未安装时仍可正常使用 Atlas。安装它们时也需安装其要求的 FTB Library 和 Architectury API。
-
-* **队伍**：服务端 `aleeve_atlas-server.toml` 中的 `team.provider` 默认为 `auto`，安装 FTB Teams 后自动使用其队伍；也可指定 `ftbteams`，或设为 `vanilla` 强制使用原版 `/team`。客户端与服务端直接读取各自的 FTB Teams manager，队伍按 UUID 识别，地图同步与标点分享沿用 Atlas 的队伍规则。
-* **领地**：客户端安装 FTB Chunks 后，小地图与世界地图自动显示其同步的认领区块、队伍名和颜色。认领、取消认领、转移队伍以及改名改色都会更新；仅显示 FTB 发给该客户端的数据，不额外索取隐藏领地。此联动不提供认领操作，认领仍使用 FTB Chunks。
-* **开发验收**：使用 `./gradlew runClient -PftbIntegration` 或 `runServer -PftbIntegration` 将可选依赖加入开发运行环境；正式 jar 不内嵌 FTB 或 Architectury。
-
-你可以在全屏世界地图（`M`）中直接打开图形化配置界面，或手动编辑 `<游戏目录>/config/aleeve_atlas-client.toml`：
-
-| 配置项键名 | 作用说明 | 默认值 / 范围 |
-| --- | --- | --- |
-| `caves.mode` | 普通维度洞穴模式 | `LAYERED`，可选 `OFF`、`FULL` |
-| `caves.ceiling_dimension_mode` | 有顶棚维度的洞穴模式 | `FULL`，可选 `OFF`、`LAYERED` |
-| `caves.depth` | 分层模式向下扫描的最大深度 | `30`（范围 `1 ~ 64` 格） |
-| `caves.depth_shading` | 按洞穴深度调整地面明暗 | `true` |
-| `minimap.scale` | 小地图整体 UI 尺寸缩放倍率 | `0.5` ~ `4.0` |
-| `minimap.player_indicator` | 小地图玩家自身指示器样式 | `ANTIALIASED_DROPLET`，可选 `VANILLA` |
-| `world_map.player_indicator` | 世界地图玩家自身指示器样式 | `ANTIALIASED_DROPLET`，可选 `VANILLA` |
-| `minimap.show_chunk_grid` | 在小地图上显示区块边界网格 | 布尔值 |
-| `minimap.show_slime_chunks` | 在小地图上高亮显示史莱姆区块 | 布尔值 |
-| `minimap.light_brightness` | 小地图画面亮度随玩家周围光照变化 | 布尔值 |
-| `minimap.show_time` | 在小地图下方显示当前游戏时间 | 布尔值 |
-| `world_map.show_chunk_grid` | 在全屏世界地图上显示区块网格（缩放 `<0.8` 时自动隐藏） | 布尔值 |
-| `world_map.show_slime_chunks` | 在全屏世界地图上显示史莱姆区块（缩放 `<0.8` 时自动隐藏） | 布尔值 |
-| `world_map.compass_position` | 世界地图罗盘方向标的角落位置（左上/右上/左下/右下） | 默认 `右下` |
-| `world_map.compass_size` | 世界地图罗盘方向标的尺寸大小（带半透明黑底投影） | `48`（范围 `32 ~ 192`） |
-
----
+本分支面向 Minecraft 26.3。FTB Teams / FTB Chunks 尚未提供对应版本，暂不包含可选联动；使用原版 `/team`，并保留 AnvilLib-Integration 的队伍提供者和领地 API。
 
 ## 六、 数据存储与技术说明（服主 / 开发者参考）
 

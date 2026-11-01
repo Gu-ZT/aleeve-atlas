@@ -52,7 +52,7 @@ public final class StructureServerAcceptance {
             // 只在验收准备阶段加载结构，用于随后检查正式扫描入口的加载副作用。
             var chunk = level.getChunk(record.chunkX(), record.chunkZ());
             ChunkPos tested = new ChunkPos(Math.floorDiv(record.minX(), 16), Math.floorDiv(record.minZ(), 16));
-            level.getChunk(tested.x, tested.z);
+            level.getChunk(tested.x(), tested.z());
             int before = level.getChunkSource().getLoadedChunksCount();
             var scan = ServerStructures.scanLoaded(level, tested);
             require(scan.records().stream().anyMatch(r -> r.key().equals(record.key())), "从相交区块识别 " + kind);
@@ -60,10 +60,10 @@ public final class StructureServerAcceptance {
             ChunkPos distant = new ChunkPos(1_000_000, -1_000_000);
             require(ServerStructures.scanLoaded(level, distant).records().isEmpty(), "未加载区块不产生记录");
             require(level.getChunkSource().getLoadedChunksCount() == before, "查询未加载区块不触发加载");
-            chunk.addReferenceForStructure(structure.value(), distant.toLong());
+            chunk.addReferenceForStructure(structure.value(), distant.pack());
             require(!ServerStructures.scanLoaded(level, chunk.getPos()).complete(), "未加载的引用留待后续处理");
             require(level.getChunkSource().getLoadedChunksCount() == before, "解析缺失引用不触发加载");
-            chunk.getReferencesForStructure(structure.value()).remove(distant.toLong());
+            chunk.getReferencesForStructure(structure.value()).remove(distant.pack());
             LOGGER.info("结构验收通过 {} {}", kind, record.position());
         } catch (RuntimeException e) {
             finished = true;

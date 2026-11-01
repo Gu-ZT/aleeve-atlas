@@ -115,17 +115,16 @@ public final class AtlasClientCommands {
         if (player == null) {
             return 0;
         }
-        player.displayClientMessage(AtlasProfiling.minimapDiagnostic(), false);
-        player.displayClientMessage(AtlasProfiling.canvasDiagnostic(), false);
+        player.sendSystemMessage(AtlasProfiling.minimapDiagnostic());
+        player.sendSystemMessage(AtlasProfiling.canvasDiagnostic());
         // 标点通道诊断：确认是否存在与外部模组重复广播的风险。
-        player.displayClientMessage(PingChannelPolicy.describeComponent(), false);
+        player.sendSystemMessage(PingChannelPolicy.describeComponent());
         if (PingChannelPolicy.duplicateRisk()) {
-            player.displayClientMessage(
-                    Component.translatable("aleeve_atlas.message.ping_channel_duplicate"),
-                    false);
+            player.sendSystemMessage(
+                    Component.translatable("aleeve_atlas.message.ping_channel_duplicate"));
         }
         // 队伍适配层诊断：确认当前实现与所属队伍。
-        player.displayClientMessage(TeamProviders.describeComponent(player.getUUID()), false);
+        player.sendSystemMessage(TeamProviders.describeComponent(player.getUUID()));
         AtlasProfiling.reset();
         return 1;
     }
@@ -156,13 +155,13 @@ public final class AtlasClientCommands {
             ClientWaypoints.flushAllDimensions();
             WaypointTransfer.exportTo(file,
                     ClientWaypoints.allAcrossDimensions());
-            player.displayClientMessage(Component.translatable(
-                    "aleeve_atlas.message.waypoint_exported", file.toString()), false);
+            player.sendSystemMessage(Component.translatable(
+                    "aleeve_atlas.message.waypoint_exported", file.toString()));
             return 1;
         } catch (IOException | IllegalArgumentException e) {
             LOGGER.warn("Failed to export waypoints to {}", fileName, e);
-            player.displayClientMessage(Component.translatable(
-                    "aleeve_atlas.message.waypoint_export_failed"), false);
+            player.sendSystemMessage(Component.translatable(
+                    "aleeve_atlas.message.waypoint_export_failed"));
             return 0;
         }
     }
@@ -186,14 +185,14 @@ public final class AtlasClientCommands {
             for (var waypoint : result.replaced()) {
                 ClientWaypoints.upsertInDimension(waypoint);
             }
-            player.displayClientMessage(Component.translatable(
+            player.sendSystemMessage(Component.translatable(
                     "aleeve_atlas.message.waypoint_imported",
-                    result.added().size(), result.replaced().size()), false);
+                    result.added().size(), result.replaced().size()));
             return 1;
         } catch (IOException | IllegalArgumentException e) {
             LOGGER.warn("Failed to import waypoints from {}", fileName, e);
-            player.displayClientMessage(Component.translatable(
-                    "aleeve_atlas.message.waypoint_import_failed"), false);
+            player.sendSystemMessage(Component.translatable(
+                    "aleeve_atlas.message.waypoint_import_failed"));
             return 0;
         }
     }
@@ -223,8 +222,8 @@ public final class AtlasClientCommands {
             return 0;
         }
         final var dimension = source.getLevel().dimension();
-        int baseX = player.chunkPosition().x;
-        int baseZ = player.chunkPosition().z;
+        int baseX = player.chunkPosition().x();
+        int baseZ = player.chunkPosition().z();
 
         Set<ChunkPos> chunks = new HashSet<>();
         // 主区域：7×7 实心方块。
@@ -259,8 +258,8 @@ public final class AtlasClientCommands {
                 overlay, Component.translatable("aleeve_atlas.territory.demo_overlay_name"),
                 0xFFAA33, 0.55F, BorderStyle.ofTheme(0xFFAA33), List.of(), 10));
 
-        player.displayClientMessage(
-                Component.translatable("aleeve_atlas.message.territory_demo_added"), true);
+        player.sendOverlayMessage(
+                Component.translatable("aleeve_atlas.message.territory_demo_added"));
         return 1;
     }
 
@@ -269,8 +268,8 @@ public final class AtlasClientCommands {
         AtlasTerritory.client().removeTerritory(DEMO_OVERLAY_ID);
         var player = source.getPlayer();
         if (player != null) {
-            player.displayClientMessage(
-                    Component.translatable("aleeve_atlas.message.territory_demo_cleared"), true);
+            player.sendOverlayMessage(
+                    Component.translatable("aleeve_atlas.message.territory_demo_cleared"));
         }
         return 1;
     }

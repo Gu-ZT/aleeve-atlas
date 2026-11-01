@@ -34,7 +34,7 @@ public final class ServerKey {
         // 局域网房主仍属于本地存档，即使收到了自己的握手包也不能切换目录。
         if (integrated != null) {
             return singleplayerKey(integrated.getWorldPath(LevelResource.ROOT),
-                    integrated.getWorldData().worldGenOptions().seed());
+                    integrated.overworld().getSeed());
         }
         ServerData server = minecraft.getCurrentServer();
         if (server != null && server.ip != null && !server.ip.isBlank()) {

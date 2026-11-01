@@ -97,7 +97,7 @@ public final class ClientCartography {
     }
 
     public static boolean busy() {
-        if (pending != null && (Minecraft.getInstance().screen != pendingScreen
+        if (pending != null && (Minecraft.getInstance().gui.screen() != pendingScreen
                 || pendingHeld == null || System.currentTimeMillis() - pendingSince > 15_000)) {
             var done = callback;
             clearPending();
@@ -109,7 +109,7 @@ public final class ClientCartography {
     private static UUID begin(HeldMap held, Consumer<CartographyPayloads.Result> done) {
         if (!available() || busy() || !held.valid()) return null;
         pending = UUID.randomUUID(); pendingHeld = held; callback = done;
-        pendingScreen = Minecraft.getInstance().screen; pendingSince = System.currentTimeMillis();
+        pendingScreen = Minecraft.getInstance().gui.screen(); pendingSince = System.currentTimeMillis();
         return pending;
     }
 
@@ -151,13 +151,13 @@ public final class ClientCartography {
             if (pending == null || !pending.equals(result.requestId())) return;
             // 服务端成功制图会先同步物品变化，所以成功响应不能再用旧物品比对。
             var mc = Minecraft.getInstance();
-            boolean valid = mc.screen == pendingScreen && mc.player != null
+            boolean valid = mc.gui.screen() == pendingScreen && mc.player != null
                     && mc.player.level().dimension().identifier().toString().equals(pendingHeld.dimension)
                     && (result.status().equals("crafted") || pendingHeld.valid());
             var done = callback;
             Object expectedScreen = pendingScreen;
             clearPending();
-            if (done != null && mc.screen == expectedScreen) {
+            if (done != null && mc.gui.screen() == expectedScreen) {
                 done.accept(valid ? result : new CartographyPayloads.Result(result.requestId(), "changed", -1, null));
             }
         });
@@ -215,7 +215,7 @@ public final class ClientCartography {
 
     public static void message(String key, Object... args) {
         var player = Minecraft.getInstance().player;
-        if (player != null) player.displayClientMessage(text(key, args), false);
+        if (player != null) player.sendSystemMessage(text(key, args));
     }
 
     private static void clearPending() { pending = null; pendingHeld = null; callback = null; pendingScreen = null; }

@@ -1,5 +1,6 @@
 package dev.dubhe.map.client.map;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.client.waypoint.ClientWaypoints;
 import dev.dubhe.map.client.waypoint.WaypointEditScreen;
@@ -21,7 +22,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
-import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,14 +73,14 @@ public final class MapInteractionSelfTest {
     private static void runStep(Minecraft minecraft) {
         if (step == 0) {
             AtlasWorldMap.open();
-            map = (WorldMapScreen) minecraft.screen;
+            map = (WorldMapScreen) minecraft.gui.screen();
             return;
         }
         double x = map.width / 2.0;
         double y = map.height / 2.0;
         if (step == 1) {
             ClientPings.clear();
-            MouseButtonEvent middle = mouse(x + 32, y + 32, GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
+            MouseButtonEvent middle = mouse(x + 32, y + 32, InputConstants.MOUSE_BUTTON_MIDDLE);
             map.mouseClicked(middle, false);
             map.mouseReleased(middle);
             MapPingData created = ClientPings.active().stream()
@@ -99,44 +99,44 @@ public final class MapInteractionSelfTest {
                 selectionY = y - Math.cos(angle) * radius;
                 selecting = true;
             } else {
-                require(minecraft.screen == map, "Wheel must return to same map");
+                require(minecraft.gui.screen() == map, "Wheel must return to same map");
                 MapPingData.PingIcon expected = MapPingData.PingIcon.values()[index];
                 require(ClientPings.active().stream().anyMatch(p -> p.icon() == expected),
                         "Wheel must create " + expected);
             }
         } else if (step == 10) {
             openWheel(x, y);
-            var wheel = minecraft.screen;
+            var wheel = minecraft.gui.screen();
             int before = ClientPings.active().size();
-            wheel.keyPressed(new KeyEvent(GLFW.GLFW_KEY_ESCAPE, 0, 0));
-            wheel.mouseReleased(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_MIDDLE));
-            require(minecraft.screen == map && ClientPings.active().size() == before,
+            wheel.keyPressed(new KeyEvent(InputConstants.KEY_ESCAPE, 0, 0));
+            wheel.mouseReleased(mouse(x, y, InputConstants.MOUSE_BUTTON_MIDDLE));
+            require(minecraft.gui.screen() == map && ClientPings.active().size() == before,
                     "Escape must cancel without a ping");
         } else if (step == 11) {
-            map.mouseClicked(mouse(x + 32, y + 32, GLFW.GLFW_MOUSE_BUTTON_RIGHT), false);
-            map.mouseClicked(mouse(x + 33, y + 33, GLFW.GLFW_MOUSE_BUTTON_LEFT), false);
-            require(minecraft.screen instanceof WaypointEditScreen, "Context create must open waypoint editor");
-            minecraft.screen.onClose();
+            map.mouseClicked(mouse(x + 32, y + 32, InputConstants.MOUSE_BUTTON_RIGHT), false);
+            map.mouseClicked(mouse(x + 33, y + 33, InputConstants.MOUSE_BUTTON_LEFT), false);
+            require(minecraft.gui.screen() instanceof WaypointEditScreen, "Context create must open waypoint editor");
+            minecraft.gui.screen().onClose();
         } else if (step == 12) {
             Waypoint waypoint = Waypoint.create("Map interaction test", minecraft.player.blockPosition(),
                     minecraft.level.dimension(), 0xFFFFFFFF);
             ClientWaypoints.store().upsert(waypoint);
-            map.mouseClicked(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_RIGHT), false);
-            map.mouseClicked(mouse(x + 1, y + 1, GLFW.GLFW_MOUSE_BUTTON_LEFT), false);
+            map.mouseClicked(mouse(x, y, InputConstants.MOUSE_BUTTON_RIGHT), false);
+            map.mouseClicked(mouse(x + 1, y + 1, InputConstants.MOUSE_BUTTON_LEFT), false);
             require(ClientWaypoints.store().get(waypoint.id()).isEmpty(), "Context delete must remove waypoint");
         } else if (step == 13) {
-            map.mouseClicked(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_LEFT), false);
-            map.mouseDragged(mouse(x + 280, y - 220, GLFW.GLFW_MOUSE_BUTTON_LEFT), 280, -220);
-            map.mouseDragged(mouse(x - 240, y + 180, GLFW.GLFW_MOUSE_BUTTON_LEFT), -520, 400);
-            map.mouseDragged(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_LEFT), 240, -180);
-            map.mouseReleased(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_LEFT));
+            map.mouseClicked(mouse(x, y, InputConstants.MOUSE_BUTTON_LEFT), false);
+            map.mouseDragged(mouse(x + 280, y - 220, InputConstants.MOUSE_BUTTON_LEFT), 280, -220);
+            map.mouseDragged(mouse(x - 240, y + 180, InputConstants.MOUSE_BUTTON_LEFT), -520, 400);
+            map.mouseDragged(mouse(x, y, InputConstants.MOUSE_BUTTON_LEFT), 240, -180);
+            map.mouseReleased(mouse(x, y, InputConstants.MOUSE_BUTTON_LEFT));
         } else if (step == 14) {
             verifyCanvas(minecraft);
         } else {
             AtlasClientConfigs.CONFIG.minimap.colorScheme = MapColorScheme.BIOME_SHADE;
             AtlasClientMap.manager().tick(minecraft.level);
             Screenshot.grab(minecraft.gameDirectory, "atlas-biome-shade.png",
-                    minecraft.getMainRenderTarget(), 1,
+                    minecraft.gameRenderer.mainRenderTarget(), 1,
                     message -> LOGGER.info("Biome map screenshot: {}", message.getString()));
             AtlasClientConfigs.CONFIG.minimap.colorScheme = MapColorScheme.VANILLA;
             AtlasClientMap.manager().tick(minecraft.level);
@@ -149,14 +149,14 @@ public final class MapInteractionSelfTest {
             return;
         }
         selecting = false;
-        wheel.render(event.getGuiGraphics(), (int) selectionX, (int) selectionY,
+        wheel.extractRenderState(event.getGuiGraphics(), (int) selectionX, (int) selectionY,
                 event.getPartialTick());
         if (step == 3) {
             Minecraft minecraft = Minecraft.getInstance();
-            Screenshot.grab(minecraft.gameDirectory, "atlas-wheel.png", minecraft.getMainRenderTarget(),
+            Screenshot.grab(minecraft.gameDirectory, "atlas-wheel.png", minecraft.gameRenderer.mainRenderTarget(),
                     1, message -> LOGGER.info("Wheel screenshot: {}", message.getString()));
         }
-        wheel.mouseReleased(mouse(selectionX, selectionY, GLFW.GLFW_MOUSE_BUTTON_MIDDLE));
+        wheel.mouseReleased(mouse(selectionX, selectionY, InputConstants.MOUSE_BUTTON_MIDDLE));
     }
 
     private static void verifyCanvas(Minecraft minecraft) {
@@ -255,7 +255,7 @@ public final class MapInteractionSelfTest {
         try {
             AtlasClientConfigs.CONFIG.worldMap.smoothZoom = false;
             AtlasWorldMap.open();
-            WorldMapScreen screen = (WorldMapScreen) minecraft.screen;
+            WorldMapScreen screen = (WorldMapScreen) minecraft.gui.screen();
             var field = WorldMapScreen.class.getDeclaredField("pixelsPerChunk");
             field.setAccessible(true);
             float before = field.getFloat(screen);
@@ -272,7 +272,7 @@ public final class MapInteractionSelfTest {
             throw new IllegalStateException(e);
         } finally {
             AtlasClientConfigs.CONFIG.worldMap.smoothZoom = smooth;
-            minecraft.setScreen(null);
+            minecraft.gui.setScreen(null);
         }
     }
 
@@ -298,11 +298,11 @@ public final class MapInteractionSelfTest {
     }
 
     private static void openWheel(double x, double y) {
-        map.mouseClicked(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_MIDDLE), false);
+        map.mouseClicked(mouse(x, y, InputConstants.MOUSE_BUTTON_MIDDLE), false);
         for (int tick = 0; tick < 8; tick++) {
             map.tick();
         }
-        require(Minecraft.getInstance().screen instanceof PingWheelMenu, "Long press must open AnvilLib wheel");
+        require(Minecraft.getInstance().gui.screen() instanceof PingWheelMenu, "Long press must open AnvilLib wheel");
     }
 
     private static MouseButtonEvent mouse(double x, double y, int button) {

@@ -58,20 +58,18 @@ public final class TerritoryHudNotifier {
 
         var chunk = minecraft.player.chunkPosition();
         TerritoryTracker.Change change = TRACKER.update(AtlasTerritory.clientRegistry(),
-                dimension, chunk.x, chunk.z);
+                dimension, chunk.x(), chunk.z());
         if (change == null) {
             return;
         }
         if (change.entered() && change.territory() != null) {
-            minecraft.player.displayClientMessage(
+            minecraft.player.sendOverlayMessage(
                     Component.translatable("aleeve_atlas.message.territory_entered",
-                            change.territory().displayName()).withStyle(ChatFormatting.AQUA),
-                    true);
+                            change.territory().displayName()).withStyle(ChatFormatting.AQUA));
         } else if (change.previous() != null) {
-            minecraft.player.displayClientMessage(
+            minecraft.player.sendOverlayMessage(
                     Component.translatable("aleeve_atlas.message.territory_left",
-                            change.previous().displayName()).withStyle(ChatFormatting.GRAY),
-                    true);
+                            change.previous().displayName()).withStyle(ChatFormatting.GRAY));
         }
     }
 

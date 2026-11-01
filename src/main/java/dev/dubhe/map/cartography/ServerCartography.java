@@ -141,7 +141,7 @@ public final class ServerCartography {
             player.getItemInHand(request.hand()).shrink(1);
         }
         if (player.getItemInHand(request.hand()).isEmpty()) player.setItemInHand(request.hand(), result);
-        else if (!player.getInventory().add(result)) player.drop(result, false);
+        else if (!player.getInventory().add(result)) player.drop(result, false, net.minecraft.util.Prediction.SERVER_ONLY);
         player.getInventory().setChanged();
         player.containerMenu.broadcastChanges();
         player.awardStat(Stats.ITEM_USED.get(Items.MAP));

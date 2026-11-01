@@ -1,19 +1,25 @@
 package dev.dubhe.map.client.visibility;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
-import com.mojang.blaze3d.platform.PolygonMode;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.ColorTargetState;
+import com.mojang.renderpearl.api.pipeline.DepthStencilState;
+import com.mojang.renderpearl.api.pipeline.CompareOp;
+import com.mojang.renderpearl.api.pipeline.PolygonMode;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
 import dev.dubhe.map.AleeveAtlas;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -47,25 +53,24 @@ public final class OcclusionProxyRenderer {
     private static final int WHITE = 0xFFFFFFFF;
 
     private static final RenderPipeline PROXY_PIPELINE = RenderPipeline
-            .builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+            .builder(RenderPipelines.GLOBALS_SNIPPET)
+            .withBindGroupLayout(BindGroupLayouts.PROJECTION)
+            .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
             .withLocation(AleeveAtlas.id("pipeline/occlusion_proxy"))
             .withVertexShader("core/position_color")
             .withFragmentShader("core/position_color")
-            .withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST)
-            .withDepthWrite(false)
-            .withColorWrite(false, false)
-            .withoutBlend()
-            .withoutStencilTest()
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
+            .withColorTargetState(new ColorTargetState(java.util.Optional.empty(), com.mojang.renderpearl.api.GpuFormat.RGBA8_UNORM, ColorTargetState.WRITE_NONE))
             .withCull(false)
             .withPolygonMode(PolygonMode.FILL)
-            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+            .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
+            .withPrimitiveTopology(PrimitiveTopology.QUADS)
             .build();
 
-    private static final RenderType PROXY_TYPE =
-            RenderType.create("aleeve_atlas_occlusion_proxy",
-                    RenderSetup.builder(PROXY_PIPELINE).createRenderSetup());
-
     private int[] queries;
+    private ByteBufferBuilder vertices;
+    private final GpuBuffer[] vertexBuffers = new GpuBuffer[MAX_QUERIES];
+    private final GpuBufferSlice[] transforms = new GpuBufferSlice[MAX_QUERIES];
     private boolean unavailable;
     private String failureReason = "";
 
@@ -85,7 +90,7 @@ public final class OcclusionProxyRenderer {
         if (!RenderSystem.isOnRenderThread()) {
             return this.disable("not on the render thread");
         }
-        String backend = RenderSystem.getDevice().getBackendName();
+        String backend = RenderSystem.getDevice().getDeviceInfo().backendName();
         if (backend == null || !backend.toLowerCase(Locale.ROOT).contains("opengl")) {
             return this.disable("backend is " + backend);
         }
@@ -110,6 +115,7 @@ public final class OcclusionProxyRenderer {
             return this.disable("GL error while creating queries: 0x"
                     + Integer.toHexString(error));
         }
+        this.vertices = new ByteBufferBuilder(24 * DefaultVertexFormat.POSITION_COLOR.getVertexSize());
         LOGGER.info("Occlusion queries enabled: GL_ANY_SAMPLES_PASSED, {} query slots", MAX_QUERIES);
         return true;
     }
@@ -131,21 +137,34 @@ public final class OcclusionProxyRenderer {
         return false;
     }
 
-    /// 提交一次代理盒查询；查询对象绑定到指定池槽位。
-    public boolean submit(int slot, AABB box, Vec3 cameraPos) {
+    /// 在活动绘制阶段开始前上传本帧几何体和矩阵。
+    public boolean prepare(int slot, AABB box, Vec3 cameraPos, Matrix4fc modelView) {
         if (!this.available() || slot < 0 || slot >= this.queries.length) {
             return false;
         }
-        double minX = box.minX - cameraPos.x;
-        double minY = box.minY - cameraPos.y;
-        double minZ = box.minZ - cameraPos.z;
-        double maxX = box.maxX - cameraPos.x;
-        double maxY = box.maxY - cameraPos.y;
-        double maxZ = box.maxZ - cameraPos.z;
+        this.prepareBox(slot, box.minX - cameraPos.x, box.minY - cameraPos.y, box.minZ - cameraPos.z,
+                box.maxX - cameraPos.x, box.maxY - cameraPos.y, box.maxZ - cameraPos.z);
+        this.transforms[slot] = RenderSystem.getDynamicUniforms().writeTransform(new Matrix4f(modelView));
+        RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS).requestIndexCount(36);
+        RenderSystem.getCompiledPipeline(PROXY_PIPELINE);
+        return true;
+    }
 
+    /// 在世界已有的 RenderPass 内绘制，不嵌套渲染过程或上传缓冲区。
+    public boolean submit(int slot, RenderPass pass) {
+        if (!this.available() || slot < 0 || slot >= this.queries.length
+                || this.vertexBuffers[slot] == null || this.transforms[slot] == null) {
+            return false;
+        }
         GL15C.glBeginQuery(GL33C.GL_ANY_SAMPLES_PASSED, this.queries[slot]);
         try {
-            drawBox(minX, minY, minZ, maxX, maxY, maxZ);
+            pass.setPipeline(RenderSystem.getCompiledPipeline(PROXY_PIPELINE));
+            RenderSystem.bindDefaultUniforms(pass);
+            pass.setUniform("DynamicTransforms", this.transforms[slot]);
+            pass.setVertexBuffer(0, this.vertexBuffers[slot].slice());
+            var indices = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
+            pass.setIndexBuffer(indices.getBuffer(), indices.type());
+            pass.drawIndexed(36, 1, 0, 0, 0);
         } finally {
             GL15C.glEndQuery(GL33C.GL_ANY_SAMPLES_PASSED);
         }
@@ -188,17 +207,32 @@ public final class OcclusionProxyRenderer {
         int[] ids = this.queries;
         this.queries = null;
         if (RenderSystem.isOnRenderThread()) {
-            GL15C.glDeleteQueries(ids);
+            this.releaseBuffers(ids);
         } else {
             // GL 对象只能在持有上下文的渲染线程删除。
-            Minecraft.getInstance().execute(() -> GL15C.glDeleteQueries(ids));
+            Minecraft.getInstance().execute(() -> this.releaseBuffers(ids));
         }
     }
 
-    private static void drawBox(double minX, double minY, double minZ,
+    private void releaseBuffers(int[] ids) {
+        GL15C.glDeleteQueries(ids);
+        for (int i = 0; i < this.vertexBuffers.length; i++) {
+            if (this.vertexBuffers[i] != null) {
+                this.vertexBuffers[i].close();
+                this.vertexBuffers[i] = null;
+                this.transforms[i] = null;
+            }
+        }
+        if (this.vertices != null) {
+            this.vertices.close();
+            this.vertices = null;
+        }
+    }
+
+    private void prepareBox(int slot, double minX, double minY, double minZ,
             double maxX, double maxY, double maxZ) {
-        BufferBuilder buffer = Tesselator.getInstance()
-                .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = new BufferBuilder(this.vertices,
+                PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_COLOR);
         // 六个面各自两个三角形；顶点顺序无关，管线关闭了面剔除。
         quad(buffer, minX, minY, minZ, maxX, minY, minZ, maxX, maxY, minZ, minX, maxY, minZ);
         quad(buffer, minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, minX, maxY, maxZ);
@@ -206,9 +240,17 @@ public final class OcclusionProxyRenderer {
         quad(buffer, maxX, minY, minZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxX, minY, maxZ);
         quad(buffer, minX, minY, minZ, maxX, minY, minZ, maxX, minY, maxZ, minX, minY, maxZ);
         quad(buffer, minX, maxY, minZ, maxX, maxY, minZ, maxX, maxY, maxZ, minX, maxY, maxZ);
-        MeshData mesh = buffer.buildOrThrow();
-        // RenderType.draw 负责关闭 MeshData，包括绘制异常时的清理。
-        PROXY_TYPE.draw(mesh);
+        try (MeshData mesh = buffer.buildOrThrow()) {
+            var device = RenderSystem.getDevice();
+            if (this.vertexBuffers[slot] == null) {
+                this.vertexBuffers[slot] = device.createBuffer(() -> "Atlas occlusion proxy",
+                        GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, mesh.vertexBuffer().remaining());
+            }
+            GpuBuffer vertexBuffer = this.vertexBuffers[slot];
+            device.createCommandEncoder().writeToBuffer(vertexBuffer.slice(), mesh.vertexBuffer());
+        } finally {
+            this.vertices.clear();
+        }
     }
 
     private static void quad(BufferBuilder buffer,

@@ -46,8 +46,8 @@ public final class StructureNotifier {
         if (ticks >= nextMessage) {
             var record = ALERTS.next();
             if (record != null) {
-                mc.player.displayClientMessage(ClientStructureSearch.text("nearby", Component.translatable(record.kind().translationKey()),
-                        record.position().getX(), record.position().getZ()), true);
+                mc.player.sendOverlayMessage(ClientStructureSearch.text("nearby", Component.translatable(record.kind().translationKey()),
+                        record.position().getX(), record.position().getZ()));
                 nextMessage = ticks + 80;
             }
         }

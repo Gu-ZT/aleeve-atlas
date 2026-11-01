@@ -6,7 +6,7 @@ import dev.dubhe.map.config.AtlasClientConfig;
 import dev.dubhe.map.config.MinimapShape;
 import dev.dubhe.map.waypoint.Waypoint;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public final class WaypointRenderer {
     ///
     /// 落在小地图范围内的路径点绘制在对应坐标；超出范围的钳制到边缘，
     /// 以缩小标记提示方向，避免玩家看不到视野外路径点的方位。
-    public static void renderOnMinimap(GuiGraphics graphics, MinimapLayout layout,
+    public static void renderOnMinimap(GuiGraphicsExtractor graphics, MinimapLayout layout,
             boolean circular, double rotationDegrees) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
@@ -47,7 +47,7 @@ public final class WaypointRenderer {
     }
 
     /// 小地图边缘标记：把超出范围的路径点钳制到最外圈，绘制小尺寸方向点。
-    private static void drawEdgeMarker(GuiGraphics graphics, MinimapLayout layout,
+    private static void drawEdgeMarker(GuiGraphicsExtractor graphics, MinimapLayout layout,
             double screenX, double screenZ, boolean circular, int color) {
         double centerX = layout.x() + layout.size() / 2.0;
         double centerZ = layout.y() + layout.size() / 2.0;
@@ -63,13 +63,13 @@ public final class WaypointRenderer {
     }
 
     /// 在世界地图上绘制路径点（屏幕坐标由调用方换算）。
-    public static void renderOnWorldMap(GuiGraphics graphics, double screenX, double screenZ,
+    public static void renderOnWorldMap(GuiGraphicsExtractor graphics, double screenX, double screenZ,
             int color) {
         renderOnWorldMap(graphics, screenX, screenZ, color, Waypoint.DEFAULT_ICON);
     }
 
     /// 在世界地图上按图标类型绘制路径点。
-    public static void renderOnWorldMap(GuiGraphics graphics, double screenX, double screenZ,
+    public static void renderOnWorldMap(GuiGraphicsExtractor graphics, double screenX, double screenZ,
             int color, String icon) {
         drawMarker(graphics, screenX, screenZ, color, icon);
     }
@@ -77,7 +77,7 @@ public final class WaypointRenderer {
     /// 按图标类型绘制路径点标记。
     ///
     /// 死亡点绘制叉形，其余绘制菱形，形状差异使两类路径点在缩小后仍可区分。
-    static void drawMarker(GuiGraphics graphics, double screenX, double screenZ, int color,
+    static void drawMarker(GuiGraphicsExtractor graphics, double screenX, double screenZ, int color,
             String icon) {
         if (Waypoint.DEATH_ICON.equals(icon)) {
             drawCross(graphics, screenX, screenZ, color);
@@ -87,12 +87,12 @@ public final class WaypointRenderer {
     }
 
     /// 死亡点标记：以光滑叉形与普通路径点的菱形区分。
-    private static void drawCross(GuiGraphics graphics, double screenX, double screenZ,
+    private static void drawCross(GuiGraphicsExtractor graphics, double screenX, double screenZ,
             int color) {
         MapMarkerRenderer.drawCross(graphics, screenX, screenZ, 6, color);
     }
 
-    private static void drawDiamond(GuiGraphics graphics, double screenX, double screenZ,
+    private static void drawDiamond(GuiGraphicsExtractor graphics, double screenX, double screenZ,
             int color) {
         MapMarkerRenderer.drawDiamond(graphics, screenX, screenZ, 6, color);
     }

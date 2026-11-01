@@ -8,7 +8,7 @@ import dev.dubhe.map.config.AtlasClientConfigs;
 import dev.dubhe.map.config.ConfigBounds;
 import dev.dubhe.map.territory.TerritoryRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -29,7 +29,7 @@ public final class TerritoryRenderer {
     }
 
     /// 在小地图上绘制领地覆层（默认不画标签，可由配置开启）。
-    public static void renderOnMinimap(GuiGraphics graphics, MinimapLayout layout,
+    public static void renderOnMinimap(GuiGraphicsExtractor graphics, MinimapLayout layout,
             boolean circular) {
         AtlasClientConfig config = AtlasClientConfigs.CONFIG;
         if (!config.territory.showOnMinimap) {
@@ -50,8 +50,8 @@ public final class TerritoryRenderer {
         for (TerritoryGroup group : groups) {
             renderGroup(graphics, group, dimension, topZOrder,
                     chunk -> {
-                        double worldX = (chunk.x << 4) + 8.0;
-                        double worldZ = (chunk.z << 4) + 8.0;
+                        double worldX = (chunk.x() << 4) + 8.0;
+                        double worldZ = (chunk.z() << 4) + 8.0;
                         double screenX = layout.worldToScreenX(worldX);
                         double screenZ = layout.worldToScreenZ(worldZ);
                         int size = Math.max(1, (int) Math.round(16.0 / blocksPerPixel));
@@ -65,7 +65,7 @@ public final class TerritoryRenderer {
     ///
     /// 圆形小地图下，区块矩形需与圆形求交后逐行填充，
     /// 否则矩形角部会溢出圆形边界。
-    private static void renderGroup(GuiGraphics graphics, TerritoryGroup group,
+    private static void renderGroup(GuiGraphicsExtractor graphics, TerritoryGroup group,
             ResourceKey<Level> dimension, Map<ChunkPos, Integer> topZOrder,
             ChunkProjector projector, boolean circular, MinimapLayout layout) {
         if (!group.dimension().equals(dimension)) {
@@ -98,19 +98,19 @@ public final class TerritoryRenderer {
             int x = rect[0];
             int y = rect[1];
             int size = rect[2];
-            if (!chunks.contains(new ChunkPos(chunk.x, chunk.z - 1))) {
+            if (!chunks.contains(new ChunkPos(chunk.x(), chunk.z() - 1))) {
                 borderSegment(graphics, x, y, size, borderWidth, border, circular, layout,
                         dashed, true);
             }
-            if (!chunks.contains(new ChunkPos(chunk.x, chunk.z + 1))) {
+            if (!chunks.contains(new ChunkPos(chunk.x(), chunk.z() + 1))) {
                 borderSegment(graphics, x, y + size - borderWidth, size, borderWidth, border,
                         circular, layout, dashed, true);
             }
-            if (!chunks.contains(new ChunkPos(chunk.x - 1, chunk.z))) {
+            if (!chunks.contains(new ChunkPos(chunk.x() - 1, chunk.z()))) {
                 borderSegment(graphics, x, y, borderWidth, size, border, circular, layout,
                         dashed, false);
             }
-            if (!chunks.contains(new ChunkPos(chunk.x + 1, chunk.z))) {
+            if (!chunks.contains(new ChunkPos(chunk.x() + 1, chunk.z()))) {
                 borderSegment(graphics, x + size - borderWidth, y, borderWidth, size, border,
                         circular, layout, dashed, false);
             }
@@ -128,10 +128,10 @@ public final class TerritoryRenderer {
     /// 计算对角共享角点的补角矩形；存在正交桥接或目标区块时返回 null。
     static int[] diagonalConnector(Set<ChunkPos> chunks, ChunkPos chunk, int dz,
             int x, int y, int size, int borderWidth) {
-        ChunkPos diagonal = new ChunkPos(chunk.x + 1, chunk.z + dz);
+        ChunkPos diagonal = new ChunkPos(chunk.x() + 1, chunk.z() + dz);
         if (!chunks.contains(diagonal)
-                || chunks.contains(new ChunkPos(chunk.x + 1, chunk.z))
-                || chunks.contains(new ChunkPos(chunk.x, chunk.z + dz))) {
+                || chunks.contains(new ChunkPos(chunk.x() + 1, chunk.z()))
+                || chunks.contains(new ChunkPos(chunk.x(), chunk.z() + dz))) {
             return null;
         }
         int half = Math.max(1, borderWidth) / 2;
@@ -154,7 +154,7 @@ public final class TerritoryRenderer {
     /// 绘制一段领地边框；虚线样式下按固定节距间隔填充。
     ///
     /// @param horizontal 该段是否沿 X 轴延伸
-    private static void borderSegment(GuiGraphics graphics, int x, int y, int width, int height,
+    private static void borderSegment(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
             int color, boolean circular, MinimapLayout layout, boolean dashed,
             boolean horizontal) {
         if (!dashed) {
@@ -176,7 +176,7 @@ public final class TerritoryRenderer {
     ///
     /// 相邻且在圆形内裁剪区间一致的若干行合并为一次填充，减少绘制调用：
     /// 一块领地由数十个区块组成，逐行填充会产生上千次 `fill`，显著拖慢 HUD 渲染。
-    private static void fillClipped(GuiGraphics graphics, int x, int y, int width, int height,
+    private static void fillClipped(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
             int color, boolean circular, MinimapLayout layout) {
         if (!circular) {
             // 方形由外层裁剪区在地图旋转后裁切，保留旋转进入视野的边缘区块。
@@ -193,7 +193,7 @@ public final class TerritoryRenderer {
     }
 
     /// 各连通分量的名称标签。
-    public static void renderLabelsOnMinimap(GuiGraphics graphics, MinimapLayout layout,
+    public static void renderLabelsOnMinimap(GuiGraphicsExtractor graphics, MinimapLayout layout,
             boolean circular, double rotationDegrees) {
         AtlasClientConfig config = AtlasClientConfigs.CONFIG;
         if (!config.territory.showOnMinimap || !config.territory.showLabelOnMinimap) {
@@ -213,8 +213,8 @@ public final class TerritoryRenderer {
                 if (component.anchor() == null) {
                     continue;
                 }
-                double worldX = (component.anchor().x << 4) + 8.0;
-                double worldZ = (component.anchor().z << 4) + 8.0;
+                double worldX = (component.anchor().x() << 4) + 8.0;
+                double worldZ = (component.anchor().z() << 4) + 8.0;
                 double[] rotated = layout.rotatedScreenPoint(worldX, worldZ, rotationDegrees);
                 double screenX = rotated[0];
                 double screenZ = rotated[1];
@@ -239,7 +239,7 @@ public final class TerritoryRenderer {
                                 - MinimapLayout.CLIP_INSET) {
                     continue;
                 }
-                graphics.drawString(minecraft.font, group.displayName(),
+                graphics.text(minecraft.font, group.displayName(),
                         (int) Math.round(screenX) - textWidth / 2,
                         (int) Math.round(screenZ) - 4, LABEL_COLOR, true);
             }

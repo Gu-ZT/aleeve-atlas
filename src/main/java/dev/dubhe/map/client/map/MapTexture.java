@@ -120,7 +120,7 @@ public final class MapTexture {
     /// 每 tick 都会把视野内已缓存区块重新放入，若不做版本比对会持续重绘未变更的区块，
     /// 违反「仅在区块加载或方块变更时重渲染」。
     public void putChunk(ChunkMapData data) {
-        long key = ChunkPos.asLong(data.chunkX(), data.chunkZ());
+        long key = ChunkPos.pack(data.chunkX(), data.chunkZ());
         Long drawnVersion = this.drawnVersions.get(key);
         this.source.put(key, data);
         if (!this.initialized || !this.centered) {
@@ -212,7 +212,7 @@ public final class MapTexture {
         this.drawnVersions.clear();
         for (ChunkMapData data : this.source.values()) {
             this.drawChunk(data);
-            this.drawnVersions.put(ChunkPos.asLong(data.chunkX(), data.chunkZ()), data.version());
+            this.drawnVersions.put(ChunkPos.pack(data.chunkX(), data.chunkZ()), data.version());
         }
         this.upload();
     }

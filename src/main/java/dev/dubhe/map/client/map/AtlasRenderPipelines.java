@@ -1,10 +1,6 @@
 package dev.dubhe.map.client.map;
 
-import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import dev.dubhe.map.AleeveAtlas;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.neoforged.api.distmarker.Dist;
@@ -20,26 +16,18 @@ import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 public final class AtlasRenderPipelines {
     /// 地图纹理的圆形裁剪管线：圆外直接丢弃像素，使圆形小地图之外保持游戏画面原样。
     public static final RenderPipeline MINIMAP_CIRCLE = RenderPipeline
-            .builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+            .builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
             .withLocation(AleeveAtlas.id("pipeline/minimap_circle"))
             .withVertexShader(AleeveAtlas.id("core/minimap_circle"))
             .withFragmentShader(AleeveAtlas.id("core/minimap_circle"))
-            .withSampler("Sampler0")
-            .withBlend(BlendFunction.TRANSLUCENT)
-            .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
-            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
             .build();
 
     /// 小地图边框独立绘制，避免玩家指示器样式影响边框。
     public static final RenderPipeline MINIMAP_OVERLAY = RenderPipeline
-            .builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+            .builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
             .withLocation(AleeveAtlas.id("pipeline/minimap_overlay"))
             .withVertexShader(AleeveAtlas.id("core/minimap_overlay"))
             .withFragmentShader(AleeveAtlas.id("core/minimap_overlay"))
-            .withSampler("Sampler0")
-            .withBlend(BlendFunction.TRANSLUCENT)
-            .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
-            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
             .build();
 
     /// 世界地图光滑四角方向标，逆时针半臂使用空心轮廓。
@@ -71,14 +59,10 @@ public final class AtlasRenderPipelines {
             "map_marker_arrow", "core/map_marker_arrow");
 
     private static RenderPipeline markerPipeline(String name, String fragmentShader) {
-        return RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+        return RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
                 .withLocation(AleeveAtlas.id("pipeline/" + name))
                 .withVertexShader(AleeveAtlas.id("core/minimap_overlay"))
                 .withFragmentShader(AleeveAtlas.id(fragmentShader))
-                .withSampler("Sampler0")
-                .withBlend(BlendFunction.TRANSLUCENT)
-                .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
-                .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
                 .build();
     }
 

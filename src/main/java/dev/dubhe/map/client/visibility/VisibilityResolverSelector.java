@@ -39,7 +39,7 @@ public final class VisibilityResolverSelector {
 
     /// 世界渲染开始后选取一次实现，避免每帧重复探测。
     @SubscribeEvent
-    public static void onLevelRender(RenderLevelStageEvent.AfterEntities event) {
+    public static void onLevelRender(RenderLevelStageEvent.AfterOpaqueFeatures event) {
         select();
     }
 

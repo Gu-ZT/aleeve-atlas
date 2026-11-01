@@ -1,6 +1,6 @@
 package dev.dubhe.map.client.map;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.client.profiling.AtlasProfiling;
 import dev.dubhe.map.client.radar.RadarRenderer;
@@ -12,7 +12,7 @@ import dev.dubhe.map.config.MinimapPosition;
 import dev.dubhe.map.config.MinimapShape;
 import dev.dubhe.map.ping.PingRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -45,7 +45,7 @@ public final class MinimapRenderer {
         if (minecraft.player == null || minecraft.level == null) {
             return;
         }
-        if (!config.minimap.enabled || minecraft.options.hideGui) {
+        if (!config.minimap.enabled || minecraft.gui.hud.isHidden()) {
             return;
         }
         ClientMapManager manager = AtlasClientMap.manager();
@@ -62,7 +62,7 @@ public final class MinimapRenderer {
         if (layout == null) {
             return;
         }
-        GuiGraphics graphics = event.getGuiGraphics();
+        GuiGraphicsExtractor graphics = event.getGuiGraphics();
         int x = layout.x();
         int y = layout.y();
         int size = layout.size();
@@ -220,7 +220,7 @@ public final class MinimapRenderer {
         return lines;
     }
 
-    private static void drawInfo(GuiGraphics graphics, AtlasClientConfig config, Minecraft minecraft,
+    private static void drawInfo(GuiGraphicsExtractor graphics, AtlasClientConfig config, Minecraft minecraft,
             int size, int x, int y) {
         LocalPlayer player = minecraft.player;
         if (player == null) {
@@ -238,7 +238,7 @@ public final class MinimapRenderer {
                     (int) Math.floor(player.getX()),
                     (int) Math.floor(player.getY()),
                     (int) Math.floor(player.getZ()));
-            graphics.drawCenteredString(minecraft.font, text, textX, line, TEXT_COLOR);
+            graphics.centeredText(minecraft.font, text, textX, line, TEXT_COLOR);
             line += 10;
         }
         if (config.minimap.showBiome && minecraft.level != null) {
@@ -248,21 +248,21 @@ public final class MinimapRenderer {
                             "biome." + key.identifier().toLanguageKey()))
                     .orElseGet(() -> Component.translatable(
                             "aleeve_atlas.hud.biome_unknown"));
-            graphics.drawCenteredString(minecraft.font, name, textX, line, TEXT_COLOR);
+            graphics.centeredText(minecraft.font, name, textX, line, TEXT_COLOR);
             line += 10;
         }
         if (config.minimap.showLight && minecraft.level != null) {
             int light = minecraft.level.getMaxLocalRawBrightness(player.blockPosition());
-            graphics.drawCenteredString(minecraft.font,
+            graphics.centeredText(minecraft.font,
                     Component.translatable("aleeve_atlas.hud.light", light), textX, line,
                     TEXT_COLOR);
             line += 10;
         }
         if (config.minimap.showTime && minecraft.level != null) {
-            long dayTime = minecraft.level.getDayTime() % 24000L;
+            long dayTime = minecraft.level.getOverworldClockTime() % 24000L;
             int hours = (int) ((dayTime / 1000L + 6L) % 24L);
             int minutes = (int) ((dayTime % 1000L) * 60L / 1000L);
-            graphics.drawCenteredString(minecraft.font,
+            graphics.centeredText(minecraft.font,
                     Component.translatable("aleeve_atlas.hud.time",
                             "%02d".formatted(hours), "%02d".formatted(minutes)),
                     textX, line, TEXT_COLOR);

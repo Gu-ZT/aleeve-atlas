@@ -30,7 +30,7 @@ public final class TerritoryRuns {
     public static List<Run> of(Set<ChunkPos> chunks) {
         Map<Integer, List<Integer>> rows = new HashMap<>();
         for (ChunkPos pos : chunks) {
-            rows.computeIfAbsent(pos.z, ignored -> new ArrayList<>()).add(pos.x);
+            rows.computeIfAbsent(pos.z(), ignored -> new ArrayList<>()).add(pos.x());
         }
         List<Run> runs = new ArrayList<>();
         List<Integer> sortedZ = new ArrayList<>(rows.keySet());

@@ -95,7 +95,7 @@ public record MinimapLayout(int x, int y, int size, double centerWorldX, double 
     }
 
     public static boolean focused(Minecraft minecraft) {
-        return minecraft.screen == null && AtlasKeyMappings.FOCUS_MINIMAP.isDown();
+        return minecraft.gui.screen() == null && AtlasKeyMappings.FOCUS_MINIMAP.isDown();
     }
 
     static int[] focusedBox(int screenWidth, int screenHeight) {
