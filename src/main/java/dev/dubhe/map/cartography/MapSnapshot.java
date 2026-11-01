@@ -1,9 +1,10 @@
 package dev.dubhe.map.cartography;
 
+import dev.dubhe.map.util.NbtValues;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.MapColor;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public record MapSnapshot(int mapId, String dimension, int centerX, int centerZ,
     public static final int MAX_TARGETS = 256;
 
     public MapSnapshot {
-        if (mapId < 0 || Identifier.tryParse(dimension) == null || scale < 0 || scale > 4
+        if (mapId < 0 || ResourceLocation.tryParse(dimension) == null || scale < 0 || scale > 4
                 || Math.abs((long) centerX) > 30_000_000 || Math.abs((long) centerZ) > 30_000_000
                 || targets.size() > MAX_TARGETS) {
             throw new IllegalArgumentException("Invalid map snapshot");
@@ -112,22 +113,22 @@ public record MapSnapshot(int mapId, String dimension, int centerX, int centerZ,
     }
 
     public static MapSnapshot load(CompoundTag tag) {
-        if (tag.getIntOr("format", 0) != 1) throw new IllegalArgumentException("Unknown snapshot format");
+        if (NbtValues.getInt(tag, "format", 0) != 1) throw new IllegalArgumentException("Unknown snapshot format");
         List<Target> targets = new ArrayList<>();
-        for (var entry : tag.getListOrEmpty("targets")) {
+        for (var entry : tag.getList("targets", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
             if (entry instanceof CompoundTag item) {
-                targets.add(new Target(item.getStringOr("type", ""), item.getIntOr("x", 0), item.getIntOr("z", 0)));
+                targets.add(new Target(NbtValues.getString(item, "type", ""), NbtValues.getInt(item, "x", 0), NbtValues.getInt(item, "z", 0)));
             }
         }
-        return new MapSnapshot(tag.getIntOr("id", -1), tag.getStringOr("dimension", ""),
-                tag.getIntOr("x", 0), tag.getIntOr("z", 0), tag.getIntOr("scale", -1),
-                tag.getIntOr("referenceHeight", 63),
-                tag.getByteArray("colors").orElse(new byte[0]), targets, tag.getLongOr("imported", 0));
+        return new MapSnapshot(NbtValues.getInt(tag, "id", -1), NbtValues.getString(tag, "dimension", ""),
+                NbtValues.getInt(tag, "x", 0), NbtValues.getInt(tag, "z", 0), NbtValues.getInt(tag, "scale", -1),
+                NbtValues.getInt(tag, "referenceHeight", 63),
+                tag.getByteArray("colors"), targets, NbtValues.getLong(tag, "imported", 0));
     }
 
     public record Target(String type, int x, int z) {
         public Target {
-            if (Identifier.tryParse(type) == null || Math.abs((long) x) > 30_000_000
+            if (ResourceLocation.tryParse(type) == null || Math.abs((long) x) > 30_000_000
                     || Math.abs((long) z) > 30_000_000) throw new IllegalArgumentException("Invalid target");
         }
     }

@@ -39,7 +39,7 @@ public final class ClientMapSyncScheduler {
         if (level == null) {
             return;
         }
-        String current = level.dimension().identifier().toString();
+        String current = level.dimension().location().toString();
         if (!current.equals(dimension)) {
             dimension = current;
             reportedOnce = false;

@@ -23,7 +23,7 @@ final class BannerWaypoints {
         var seen = new HashSet<UUID>();
         for (BannerMarker banner : banners) {
             var pos = banner.pos();
-            String identity = "atlas-banner/" + existing.dimension().identifier() + "/"
+            String identity = "atlas-banner/" + existing.dimension().location() + "/"
                     + pos.getX() + "/" + pos.getY() + "/" + pos.getZ();
             UUID id = UUID.nameUUIDFromBytes(identity.getBytes(StandardCharsets.UTF_8));
             if (existing.get(id).isPresent() || !seen.add(id)) {

@@ -14,8 +14,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
+import dev.dubhe.map.client.map.AtlasRenderPipelines;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -40,8 +40,8 @@ public final class RadarRenderer {
     /// 掉落物合并粒度（像素），同格内只绘制一个圆点。
     private static final double ITEM_MERGE_PIXELS = 4.0;
     /// 皮肤未就绪时的占位纹理。
-    private static final Identifier DEFAULT_SKIN_TEXTURE =
-            Identifier.withDefaultNamespace("textures/entity/player/wide/steve.png");
+    private static final ResourceLocation DEFAULT_SKIN_TEXTURE =
+            ResourceLocation.withDefaultNamespace("textures/entity/player/wide/steve.png");
 
     private RadarRenderer() {
     }
@@ -262,11 +262,11 @@ public final class RadarRenderer {
         if (egg == null) {
             return false;
         }
-        graphics.pose().pushMatrix();
-        graphics.pose().translate((float) screenX, (float) screenZ);
-        graphics.pose().scale(ICON_SCALE, ICON_SCALE);
+        graphics.pose().pushPose();
+        graphics.pose().translate((float) screenX, (float) screenZ, 0.0F);
+        graphics.pose().scale(ICON_SCALE, ICON_SCALE, 1.0F);
         graphics.renderItem(new ItemStack(egg), -8, -8);
-        graphics.pose().popMatrix();
+        graphics.pose().popPose();
         return true;
     }
 
@@ -287,23 +287,23 @@ public final class RadarRenderer {
         if (!(entity instanceof AbstractClientPlayer player)) {
             return;
         }
-        Identifier skinTexture = resolveSkinTexture(player);
-        graphics.pose().pushMatrix();
+        ResourceLocation skinTexture = resolveSkinTexture(player);
+        graphics.pose().pushPose();
         graphics.pose().translate((float) (screenX - HEAD_SIZE / 2.0),
-                (float) (screenZ - HEAD_SIZE / 2.0));
+                (float) (screenZ - HEAD_SIZE / 2.0), 0.0F);
         // 玩家皮肤纹理中头部正面区域为 (8, 8, 8, 8)，帽子层为 (40, 8, 8, 8)。
-        graphics.blit(RenderPipelines.GUI_TEXTURED, skinTexture, 0, 0, 8.0F, 8.0F,
+        graphics.blit(AtlasRenderPipelines.GUI_TEXTURED, skinTexture, 0, 0, 8.0F, 8.0F,
                 HEAD_SIZE, HEAD_SIZE, 8, 8, 64, 64);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, skinTexture, 0, 0, 40.0F, 8.0F,
+        graphics.blit(AtlasRenderPipelines.GUI_TEXTURED, skinTexture, 0, 0, 40.0F, 8.0F,
                 HEAD_SIZE, HEAD_SIZE, 8, 8, 64, 64);
-        graphics.pose().popMatrix();
+        graphics.pose().popPose();
     }
 
     /// 解析皮肤纹理；纹理不可用时返回默认皮肤。
-    private static Identifier resolveSkinTexture(AbstractClientPlayer player) {
-        var texture = player.getSkin().body();
-        if (texture != null && texture.texturePath() != null) {
-            return texture.texturePath();
+    private static ResourceLocation resolveSkinTexture(AbstractClientPlayer player) {
+        var texture = player.getSkin().texture();
+        if (texture != null) {
+            return texture;
         }
         return DEFAULT_SKIN_TEXTURE;
     }

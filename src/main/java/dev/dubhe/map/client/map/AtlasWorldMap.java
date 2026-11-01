@@ -4,7 +4,7 @@ import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.map.MapDimensionCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /// 全屏世界地图的入口与画布持有者。
 ///
@@ -51,7 +51,7 @@ public final class AtlasWorldMap {
 
     private static MapCanvas canvas() {
         if (canvas == null) {
-            Identifier textureId = AleeveAtlas.id("world_map_canvas");
+            ResourceLocation textureId = AleeveAtlas.id("world_map_canvas");
             canvas = new MapCanvas(textureId);
         }
         return canvas;

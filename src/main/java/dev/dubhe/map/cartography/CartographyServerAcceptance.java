@@ -35,7 +35,7 @@ public final class CartographyServerAcceptance {
         if (System.getenv("ALEEVE_ATLAS_CARTOGRAPHY_SERVER_TEST") == null) return;
         try {
             var player = FakePlayerFactory.getMinecraft(event.getServer().overworld());
-            player.getInventory().clearContent(); player.getInventory().setSelectedSlot(0);
+            player.getInventory().clearContent(); player.getInventory().selected = 0;
             player.setGameMode(GameType.SURVIVAL);
             byte[] pixels = new byte[MapSnapshot.PIXELS]; pixels[12] = 7; pixels[130] = 50;
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.MAP));
@@ -103,17 +103,17 @@ public final class CartographyServerAcceptance {
         var data = MapItemSavedData.createFresh(-1_000_000, 1_000_000, (byte) 4, true, false, Level.NETHER);
         BlockPos position = new BlockPos(-1_000_003, 90, 1_000_005);
         var banner = new MapBanner(position, DyeColor.CYAN, Optional.of(Component.literal("example")));
-        CompoundTag saved = (CompoundTag) MapItemSavedData.CODEC.encodeStart(NbtOps.INSTANCE, data).getOrThrow();
+        CompoundTag saved = data.save(new CompoundTag(), player.registryAccess());
         ListTag banners = new ListTag();
         banners.add(MapBanner.CODEC.encodeStart(NbtOps.INSTANCE, banner).getOrThrow());
         saved.put("banners", banners);
-        data = MapItemSavedData.CODEC.parse(NbtOps.INSTANCE, saved).getOrThrow().locked();
+        data = MapItemSavedData.load(saved, player.registryAccess()).locked();
         var mapId = level.getFreeMapId();
         level.setMapData(mapId, data);
         ItemStack map = new ItemStack(Items.FILLED_MAP);
         map.set(DataComponents.MAP_ID, mapId);
         player.getInventory().clearContent();
-        player.getInventory().setSelectedSlot(0);
+        player.getInventory().selected = 0;
         int loadedChunks = level.getChunkSource().getLoadedChunksCount();
         for (InteractionHand hand : InteractionHand.values()) {
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
@@ -126,9 +126,9 @@ public final class CartographyServerAcceptance {
             require(result.banners().equals(List.of(new BannerMarker(position, DyeColor.CYAN, "example"))),
                     "flag keeps saved name, color and height");
             require(player.getItemInHand(hand).getCount() == 1, "import keeps held map");
-            player.getInventory().setSelectedSlot(1);
+            player.getInventory().selected = 1;
             require(ServerCartography.executeImport(player, request).status().equals("changed"), "changed slot rejected");
-            player.getInventory().setSelectedSlot(0);
+            player.getInventory().selected = 0;
             var wrongMap = new CartographyPayloads.ImportRequest(UUID.randomUUID(), hand, 0, mapId.id() + 1);
             require(ServerCartography.executeImport(player, wrongMap).status().equals("changed"), "changed map id rejected");
         }

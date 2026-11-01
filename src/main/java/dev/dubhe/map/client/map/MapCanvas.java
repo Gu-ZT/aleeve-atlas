@@ -15,7 +15,7 @@ import dev.dubhe.map.map.MapPalette;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ public final class MapCanvas {
 
     private final DynamicTexture texture;
     private final NativeImage image;
-    private final Identifier textureId;
+    private final ResourceLocation textureId;
     private int originChunkX;
     private int originChunkZ;
     private boolean initialized;
@@ -192,10 +192,10 @@ public final class MapCanvas {
         if (this.initialized) this.texture.upload();
     }
 
-    public MapCanvas(Identifier textureId) {
+    public MapCanvas(ResourceLocation textureId) {
         this.textureId = textureId;
         this.image = new NativeImage(PIXELS, PIXELS, false);
-        this.texture = new DynamicTexture(() -> "aleeve_atlas world map", this.image);
+        this.texture = new DynamicTexture(this.image);
     }
 
     public void register() {
@@ -213,7 +213,7 @@ public final class MapCanvas {
         this.positioned = false;
     }
 
-    public Identifier textureId() {
+    public ResourceLocation textureId() {
         return this.textureId;
     }
 

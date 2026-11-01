@@ -1,10 +1,11 @@
 package dev.dubhe.map.structure;
 
+import dev.dubhe.map.util.NbtValues;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,27 +110,27 @@ public final class StructureStore {
         }
         try {
             CompoundTag root = NbtIo.readCompressed(this.file, NbtAccounter.create(64 * 1024 * 1024));
-            if (root.getIntOr("version", -1) != 1 || !this.dimension.equals(root.getStringOr("dimension", ""))) {
+            if (NbtValues.getInt(root, "version", -1) != 1 || !this.dimension.equals(NbtValues.getString(root, "dimension", ""))) {
                 LOGGER.warn("跳过格式或维度不匹配的结构文件 {}", this.file);
                 return;
             }
-            ListTag list = root.getListOrEmpty("records");
+            ListTag list = root.getList("records", net.minecraft.nbt.Tag.TAG_COMPOUND);
             for (int i = 0; i < list.size(); i++) {
                 try {
-                    CompoundTag tag = list.getCompoundOrEmpty(i);
+                    CompoundTag tag = list.getCompound(i);
                     StructureRecord record = StructureRecord.load(tag);
                     this.put(record);
-                    if (tag.getBooleanOr("favorite", false)) {
+                    if (NbtValues.getBoolean(tag, "favorite", false)) {
                         this.favorites.add(record.key());
                     }
                 } catch (RuntimeException e) {
                     LOGGER.warn("跳过结构文件 {} 中的无效记录 {}", this.file, i, e);
                 }
             }
-            CompoundTag follows = root.getCompoundOrEmpty("followed");
-            for (String key : follows.keySet()) {
-                StructureKind kind = StructureKind.fromId(Identifier.parse(key));
-                if (kind != null && follows.getBooleanOr(key, false)) {
+            CompoundTag follows = root.getCompound("followed");
+            for (String key : follows.getAllKeys()) {
+                StructureKind kind = StructureKind.fromId(ResourceLocation.parse(key));
+                if (kind != null && NbtValues.getBoolean(follows, key, false)) {
                     this.followed.add(kind);
                 }
             }

@@ -29,7 +29,7 @@ public final class StructureNotifier {
             reset();
             return;
         }
-        String current = mc.level.dimension().identifier().toString();
+        String current = mc.level.dimension().location().toString();
         if (!dimension.equals(current)) {
             reset();
             dimension = current;

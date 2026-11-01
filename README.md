@@ -2,7 +2,7 @@
 
 # Aleeve Atlas 袖里舆图
 
-**A minimap and world map mod for Minecraft 1.21.11 featuring waypoints, entity radar, team map syncing, and quick pings.**
+**A minimap and world map mod for Minecraft 1.21.4 featuring waypoints, entity radar, team map syncing, and quick pings.**
 
 English | [简体中文](README.zh_CN.md)
 
@@ -10,14 +10,14 @@ English | [简体中文](README.zh_CN.md)
 
 ## Overview
 
-**Aleeve Atlas (`aleeve_atlas`)** is a NeoForge map mod for Minecraft 1.21.11 that provides both a customizable HUD minimap and an interactive fullscreen world map. Beyond standard terrain mapping, waypoints, and entity radar, it is built with **multiplayer co-op** in mind—allowing teammates to sync explored chunks in real time, share waypoints, and drop quick tactical pings using a middle-click radial wheel.
+**Aleeve Atlas (`aleeve_atlas`)** is a NeoForge map mod for Minecraft 1.21.4 that provides both a customizable HUD minimap and an interactive fullscreen world map. Beyond standard terrain mapping, waypoints, and entity radar, it is built with **multiplayer co-op** in mind—allowing teammates to sync explored chunks in real time, share waypoints, and drop quick tactical pings using a middle-click radial wheel.
 
 * **Singleplayer / Client-Only**: Works on any server out of the box for local terrain mapping, waypoints, and radar.
 * **Client + Server**: Unlocks live team map syncing, waypoint sharing, and multiplayer quick pings.
 
 ## Requirements & Installation
 
-**Base Environment**: Minecraft `1.21.11` + NeoForge `21.11.x`
+**Base Environment**: Minecraft `1.21.4` + NeoForge `21.4.x`
 
 This mod depends on **AnvilLib 2.x** (`2.0.0` or later), but this dependency is already embedded, so no separate installation is required.
 
@@ -31,7 +31,7 @@ This mod depends on **AnvilLib 2.x** (`2.0.0` or later), but this dependency is 
 * **Waypoints & Death Markers**: Supports in-world markers/beacons, automatic death waypoints, and chat commands for importing and exporting waypoint data.
 * **Vanilla Map Banners**: Hold a filled map and select **Import map** on the world map to save its marked banners as persistent waypoints with their names, base colors, and exact positions. Reimporting preserves personal edits. Available in singleplayer or with a server that supports banner imports.
 * **Quick Pings (Radial Wheel)**: Middle-click directly in the world or on the fullscreen map to drop temporary pings. Hold middle-click to open the radial wheel and choose between *Go To*, *Normal*, *Warning*, and *Danger* pings.
-* **Team Map Sync**: When installed on the server, teammates automatically merge explored map regions and can share waypoints with one click. Optional [FTB Teams](https://github.com/FTBTeam/FTB-Teams) integration uses its team API; [FTB Chunks](https://github.com/FTBTeam/FTB-Chunks) claims appear on both maps through its client update events.
+* **Team Map Sync**: When installed on the server, teammates automatically merge explored map regions and can share waypoints with one click.
 * **Mod Integration & API**: Built-in support for chunk claim overlays and a developer API for external markers.
 
 ## Default Controls

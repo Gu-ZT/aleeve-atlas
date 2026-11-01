@@ -12,7 +12,7 @@ import dev.dubhe.map.network.ChunkDeltaPayload;
 import dev.dubhe.map.network.ChunkDigestPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +67,7 @@ public final class ClientMapSync {
         if (manager == null || minecraft.player == null || minecraft.level == null) {
             return;
         }
-        String dimension = minecraft.level.dimension().identifier().toString();
+        String dimension = minecraft.level.dimension().location().toString();
         Key key = new Key(minecraft.player.getUUID(), dimension);
         Session current = session;
         if (!current.working.add(key)) {
@@ -216,7 +216,7 @@ public final class ClientMapSync {
             if (!BUDGET.canSend(bytes)) {
                 break;
             }
-            ClientPacketDistributor.sendToServer(next.packet());
+            PacketDistributor.sendToServer(next.packet());
             current.outgoing.poll();
             BUDGET.record(bytes);
         }

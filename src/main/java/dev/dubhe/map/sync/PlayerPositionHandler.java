@@ -45,8 +45,8 @@ public final class PlayerPositionHandler {
     }
 
     private static PlayerPositionPayload positionOf(ServerPlayer player) {
-        return new PlayerPositionPayload(player.getUUID(), player.getGameProfile().name(),
-                player.level().dimension().identifier().toString(),
+        return new PlayerPositionPayload(player.getUUID(), player.getGameProfile().getName(),
+                player.level().dimension().location().toString(),
                 player.getX(), player.getY(), player.getZ(), false);
     }
 

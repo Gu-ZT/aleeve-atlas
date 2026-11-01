@@ -17,7 +17,7 @@ import org.lwjgl.glfw.GLFW;
 /// 游戏内键位使用 `IN_GAME` 冲突上下文，并注册独立 `KeyMapping.Category`。
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class AtlasKeyMappings {
-    public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(AleeveAtlas.id("main"));
+    public static final String CATEGORY = "key.category.aleeve_atlas.main";
 
     public static final KeyMapping OPEN_WORLD_MAP = new KeyMapping(
             "key.aleeve_atlas.open_world_map",
@@ -72,7 +72,6 @@ public final class AtlasKeyMappings {
 
     @SubscribeEvent
     public static void register(RegisterKeyMappingsEvent event) {
-        event.registerCategory(CATEGORY);
         event.register(OPEN_WORLD_MAP);
         event.register(NEW_WAYPOINT);
         event.register(MINIMAP_ZOOM_IN);

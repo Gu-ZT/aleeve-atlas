@@ -21,7 +21,7 @@ public final class AtlasIntegrations {
         }
         manager = new IntegrationManager(AleeveAtlas.MOD_ID);
         manager.compileContent();
-        if (FMLEnvironment.getDist().isClient()) {
+        if (FMLEnvironment.dist.isClient()) {
             manager.loadAllClientIntegrations();
         }
         manager.loadAllIntegrations();

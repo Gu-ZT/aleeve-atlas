@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jspecify.annotations.Nullable;
@@ -43,7 +43,7 @@ public final class ClientPings {
         MapPingData ping = new MapPingData(
                 UUID.randomUUID(),
                 minecraft.player.getUUID(),
-                minecraft.player.getGameProfile().name(),
+                minecraft.player.getGameProfile().getName(),
                 0xFFFFFFFF,
                 MapPingData.dimensionId(minecraft.level.dimension()),
                 position,
@@ -58,7 +58,7 @@ public final class ClientPings {
         // 连续发起时按冷却间隔丢弃后续广播，本地标记仍保留。
         if (AtlasSession.synchronizedMode() && PingChannelPolicy.shouldBroadcast()
                 && BROADCAST_COOLDOWN.tryAcquire(System.currentTimeMillis())) {
-            ClientPacketDistributor.sendToServer(new PingPayload(ping));
+            PacketDistributor.sendToServer(new PingPayload(ping));
         }
         return ping;
     }
@@ -81,7 +81,7 @@ public final class ClientPings {
         // 独立模式下服务端无同步能力，与本地发起路径保持一致，不发送网络包。
         if (AtlasSession.synchronizedMode() && PingChannelPolicy.relaysExternalPings()
                 && BROADCAST_COOLDOWN.tryAcquire(System.currentTimeMillis())) {
-            ClientPacketDistributor.sendToServer(new PingPayload(ping));
+            PacketDistributor.sendToServer(new PingPayload(ping));
         }
     }
 
@@ -99,8 +99,12 @@ public final class ClientPings {
         ClientLevel level = minecraft.level;
         tick(System.currentTimeMillis(), level == null ? null : MapPingData.dimensionId(level.dimension()),
                 targetId -> {
-                    Entity target = level == null ? null : level.getEntity(targetId);
-                    return target == null ? null : target.position();
+                    if (level != null) {
+                        for (Entity entity : level.entitiesForRendering()) {
+                            if (entity.getUUID().equals(targetId)) return entity.position();
+                        }
+                    }
+                    return null;
                 });
     }
 

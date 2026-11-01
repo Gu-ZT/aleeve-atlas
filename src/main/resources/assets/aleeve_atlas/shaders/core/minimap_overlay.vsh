@@ -1,16 +1,10 @@
-#version 330
+#version 150
 
 // 地图覆盖层共用顶点变换，具体形状和颜色由各自的片元着色器决定。
 
-layout(std140) uniform DynamicTransforms {
-    mat4 ModelViewMat;
-    vec4 ColorModulator;
-    vec3 ModelOffset;
-    mat4 TextureMat;
-};
-layout(std140) uniform Projection {
-    mat4 ProjMat;
-};
+uniform mat4 ModelViewMat;
+uniform vec4 ColorModulator;
+uniform mat4 ProjMat;
 
 in vec3 Position;
 in vec2 UV0;

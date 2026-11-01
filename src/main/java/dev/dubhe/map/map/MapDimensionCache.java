@@ -219,9 +219,9 @@ public final class MapDimensionCache {
             }
             try {
                 CompoundTag tag = NbtIo.readCompressed(this.path, NbtAccounter.unlimitedHeap());
-                CompoundTag chunksTag = tag.getCompoundOrEmpty("chunks");
-                for (String key : chunksTag.keySet()) {
-                    CompoundTag chunkTag = chunksTag.getCompoundOrEmpty(key);
+                CompoundTag chunksTag = tag.getCompound("chunks");
+                for (String key : chunksTag.getAllKeys()) {
+                    CompoundTag chunkTag = chunksTag.getCompound(key);
                     ChunkMapData data = ChunkMapData.load(chunkTag);
                     this.entries.put(ChunkPos.asLong(data.chunkX() & (REGION_SIZE - 1),
                             data.chunkZ() & (REGION_SIZE - 1)), data);

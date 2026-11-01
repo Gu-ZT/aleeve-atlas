@@ -9,14 +9,14 @@ import dev.dubhe.map.structure.StructurePayloads;
 import dev.dubhe.map.structure.StructureRecord;
 import dev.dubhe.map.structure.StructureStore;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jspecify.annotations.Nullable;
 
@@ -53,17 +53,17 @@ public final class ClientStructures {
             serverKey = key;
         }
         return STORES.computeIfAbsent(dimension, d -> new StructureStore(
-                AtlasPaths.dimensionDir(mc.gameDirectory.toPath(), key, Identifier.parse(d)).resolve("structures.nbt"), d));
+                AtlasPaths.dimensionDir(mc.gameDirectory.toPath(), key, ResourceLocation.parse(d)).resolve("structures.nbt"), d));
     }
 
     public static @Nullable StructureStore current() {
         var level = Minecraft.getInstance().level;
-        return level == null ? null : store(level.dimension().identifier().toString());
+        return level == null ? null : store(level.dimension().location().toString());
     }
 
     private static void updateDimension() {
         var level = Minecraft.getInstance().level;
-        String dimension = level == null ? "" : level.dimension().identifier().toString();
+        String dimension = level == null ? "" : level.dimension().location().toString();
         if (!pendingDimension.equals(dimension)) {
             PENDING.clear();
             pendingDimension = dimension;
@@ -120,7 +120,7 @@ public final class ClientStructures {
         }
         shareCursor %= records.size();
         int end = Math.min(records.size(), shareCursor + StructurePayloads.MAX_RECORDS);
-        ClientPacketDistributor.sendToServer(new StructurePayloads.Share(records.subList(shareCursor, end)));
+        PacketDistributor.sendToServer(new StructurePayloads.Share(records.subList(shareCursor, end)));
         shareRemaining = Math.max(0, shareRemaining - (end - shareCursor));
         shareCursor = end % records.size();
         lastShareTick = ticks;

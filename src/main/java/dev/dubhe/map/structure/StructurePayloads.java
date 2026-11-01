@@ -26,12 +26,15 @@ public final class StructurePayloads {
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("structures-1").optional();
-        registrar.playToClient(Discovery.TYPE, Discovery.CODEC, ClientStructures::receiveDiscovery);
-        registrar.playToClient(Policy.TYPE, Policy.CODEC, ClientStructureSearch::policy);
+        registrar.playToClient(Discovery.TYPE, Discovery.CODEC, (payload, context) -> ClientStructures.receiveDiscovery(payload, context));
+        registrar.playToClient(Policy.TYPE, Policy.CODEC, (payload, context) -> ClientStructureSearch.policy(payload, context));
         registrar.playToServer(Search.TYPE, Search.CODEC, ServerStructureSearch::request);
-        registrar.playToClient(SearchResult.TYPE, SearchResult.CODEC, ClientStructureSearch::result);
+        registrar.playToClient(SearchResult.TYPE, SearchResult.CODEC, (payload, context) -> ClientStructureSearch.result(payload, context));
         registrar.playBidirectional(Share.TYPE, Share.CODEC,
-                ServerStructures::share, ClientStructures::receiveShare);
+                (payload, context) -> {
+                    if (context.flow().isClientbound()) ClientStructures.receiveShare(payload, context);
+                    else ServerStructures.share(payload, context);
+                });
     }
 
     private static List<StructureRecord> readRecords(FriendlyByteBuf buffer) {

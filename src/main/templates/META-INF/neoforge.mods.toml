@@ -30,7 +30,7 @@ versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
-# 配置模块双端必需；轮盘、渲染和工具模块仅在客户端必需。
+# 配置模块双端必需；轮盘和工具模块仅在客户端必需。
 [[dependencies."${mod_id}"]]
 modId = "anvillib_config"
 type = "required"
@@ -65,13 +65,6 @@ type = "optional"
 versionRange = "[2.0.0-0,3.0.0)"
 ordering = "AFTER"
 side = "BOTH"
-
-[[dependencies."${mod_id}"]]
-modId = "anvillib_rendering"
-type = "required"
-versionRange = "[2.0.0-0,3.0.0)"
-ordering = "AFTER"
-side = "CLIENT"
 
 [[dependencies."${mod_id}"]]
 modId = "anvillib_util"

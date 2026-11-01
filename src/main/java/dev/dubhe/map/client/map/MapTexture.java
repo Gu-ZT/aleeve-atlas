@@ -12,7 +12,7 @@ import dev.dubhe.map.map.MapPalette;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public final class MapTexture {
 
     private static final int CAVE_BACKGROUND = 0x80000000;
 
-    private final Identifier textureId;
+    private final ResourceLocation textureId;
     /// 是否存在待上传的像素改动。
     private boolean dirty;
 
@@ -61,10 +61,10 @@ public final class MapTexture {
         if (this.centered) this.redrawAll();
     }
 
-    public MapTexture(Identifier textureId) {
+    public MapTexture(ResourceLocation textureId) {
         this.textureId = textureId;
         this.image = new NativeImage(PIXELS, PIXELS, false);
-        this.texture = new DynamicTexture(() -> "aleeve_atlas minimap", this.image);
+        this.texture = new DynamicTexture(this.image);
     }
 
     /// 注册纹理到纹理管理器；须在客户端资源管理器可用后调用。
@@ -73,7 +73,7 @@ public final class MapTexture {
         this.initialized = true;
     }
 
-    public Identifier textureId() {
+    public ResourceLocation textureId() {
         return this.textureId;
     }
 

@@ -4,7 +4,7 @@ import dev.anvilcraft.lib.v2.config.ConfigManager;
 import dev.dubhe.map.config.AtlasClientConfigs;
 import dev.dubhe.map.config.AtlasServerConfig;
 import dev.dubhe.map.team.AtlasIntegrations;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -22,7 +22,7 @@ public final class AleeveAtlas {
             ConfigManager.register(MOD_ID, AtlasServerConfig::new);
 
     public AleeveAtlas(IEventBus modEventBus, ModContainer modContainer) {
-        if (FMLEnvironment.getDist().isClient()) {
+        if (FMLEnvironment.dist.isClient()) {
             // 客户端配置只在物理客户端加载，保证专用服务端不解析客户端配置类。
             AtlasClientConfigs.load();
         }
@@ -30,7 +30,7 @@ public final class AleeveAtlas {
         AtlasIntegrations.initialize();
     }
 
-    public static Identifier id(String path) {
-        return Identifier.fromNamespaceAndPath(MOD_ID, path);
+    public static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 }

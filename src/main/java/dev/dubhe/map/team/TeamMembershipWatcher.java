@@ -50,7 +50,7 @@ public final class TeamMembershipWatcher {
             return;
         }
         for (var info : connection.getOnlinePlayers()) {
-            UUID playerId = info.getProfile().id();
+            UUID playerId = info.getProfile().getId();
             String teamId = provider.teamIdOf(playerId);
             if (teamId != null) {
                 current.put(playerId, teamId);

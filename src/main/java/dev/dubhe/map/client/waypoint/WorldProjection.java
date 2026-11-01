@@ -40,7 +40,7 @@ public final class WorldProjection {
             frame = null;
             return;
         }
-        frame = new Frame(camera.position(), new Matrix4f(event.getProjectionMatrix()).mul(event.getModelViewMatrix()),
+        frame = new Frame(camera.getPosition(), new Matrix4f(event.getProjectionMatrix()).mul(event.getModelViewMatrix()),
                 minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight());
     }
 

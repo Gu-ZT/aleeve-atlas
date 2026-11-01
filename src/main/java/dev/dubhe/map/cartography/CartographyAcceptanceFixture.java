@@ -25,7 +25,7 @@ public final class CartographyAcceptanceFixture {
     @SubscribeEvent public static void login(PlayerEvent.PlayerLoggedInEvent event) {
         if (System.getenv("ALEEVE_ATLAS_CARTOGRAPHY_TEST") == null || !(event.getEntity() instanceof ServerPlayer player)) return;
         player.getInventory().clearContent();
-        player.getInventory().setSelectedSlot(0);
+        player.getInventory().selected = 0;
         player.setGameMode(GameType.SURVIVAL);
         player.getAbilities().invulnerable = true;
         player.onUpdateAbilities();

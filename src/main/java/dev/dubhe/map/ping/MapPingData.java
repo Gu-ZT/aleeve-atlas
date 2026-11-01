@@ -65,6 +65,6 @@ public record MapPingData(
 
     /// 维度键工具：把维度标识写入数据。
     public static String dimensionId(ResourceKey<Level> dimension) {
-        return dimension.identifier().toString();
+        return dimension.location().toString();
     }
 }

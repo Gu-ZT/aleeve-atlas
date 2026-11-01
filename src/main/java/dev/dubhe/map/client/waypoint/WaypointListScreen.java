@@ -9,8 +9,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
@@ -317,19 +315,19 @@ public final class WaypointListScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT
-                && this.overScrollbar(event.x(), event.y())) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT
+                && this.overScrollbar(mouseX, mouseY)) {
             this.scrollbarDragging = true;
-            this.updateScrollFromMouse(event.y());
+            this.updateScrollFromMouse(mouseY);
             return true;
         }
-        if (super.mouseClicked(event, doubleClick)) {
+        if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT
-                && event.x() >= 6 && event.x() < width - 16) {
-            int row = (int) Math.floor((event.y() - LIST_TOP) / ROW_HEIGHT);
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT
+                && mouseX >= 6 && mouseX < width - 16) {
+            int row = (int) Math.floor((mouseY - LIST_TOP) / ROW_HEIGHT);
             int index = this.scrollOffset + row;
             if (row >= 0 && row < this.visibleRows() && index < this.entries.size()) {
                 this.selectedId = this.entries.get(index).id();
@@ -341,21 +339,21 @@ public final class WaypointListScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (this.scrollbarDragging) {
-            this.updateScrollFromMouse(event.y());
+            this.updateScrollFromMouse(mouseY);
             return true;
         }
-        return super.mouseDragged(event, dragX, dragY);
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(MouseButtonEvent event) {
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (this.scrollbarDragging) {
             this.scrollbarDragging = false;
             return true;
         }
-        return super.mouseReleased(event);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
@@ -389,12 +387,12 @@ public final class WaypointListScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(KeyEvent event) {
-        if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             this.onClose();
             return true;
         }
-        return super.keyPressed(event);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override

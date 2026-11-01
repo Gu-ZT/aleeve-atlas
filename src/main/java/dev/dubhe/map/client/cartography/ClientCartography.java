@@ -18,7 +18,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
@@ -28,7 +28,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.io.IOException;
@@ -66,13 +66,13 @@ public final class ClientCartography {
         String key = ServerKey.resolveMapCache(mc);
         if (!key.equals(serverKey)) { STORES.clear(); serverKey = key; }
         return STORES.computeIfAbsent(dimension, d -> new ImportedMapStore(
-                AtlasPaths.dimensionDir(mc.gameDirectory.toPath(), key, Identifier.parse(d)).resolve("imported_maps"), d));
+                AtlasPaths.dimensionDir(mc.gameDirectory.toPath(), key, ResourceLocation.parse(d)).resolve("imported_maps"), d));
     }
 
     public static ImportedMapStore currentStore() {
         var mc = Minecraft.getInstance();
         var level = mc == null ? null : mc.level;
-        return level == null ? null : store(level.dimension().identifier().toString());
+        return level == null ? null : store(level.dimension().location().toString());
     }
 
     public static HeldMap held(Item item) {
@@ -80,8 +80,8 @@ public final class ClientCartography {
         if (player == null) return null;
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack stack = player.getItemInHand(hand);
-            if (stack.is(item)) return new HeldMap(hand, player.getInventory().getSelectedSlot(),
-                    player.level().dimension().identifier().toString(), stack.copy());
+            if (stack.is(item)) return new HeldMap(hand, player.getInventory().selected,
+                    player.level().dimension().location().toString(), stack.copy());
         }
         return null;
     }
@@ -89,8 +89,8 @@ public final class ClientCartography {
     public record HeldMap(InteractionHand hand, int slot, String dimension, ItemStack original) {
         public boolean valid() {
             var player = Minecraft.getInstance().player;
-            return player != null && player.isAlive() && player.getInventory().getSelectedSlot() == this.slot
-                    && player.level().dimension().identifier().toString().equals(this.dimension)
+            return player != null && player.isAlive() && player.getInventory().selected == this.slot
+                    && player.level().dimension().location().toString().equals(this.dimension)
                     && ItemStack.isSameItemSameComponents(player.getItemInHand(this.hand), this.original)
                     && player.getItemInHand(this.hand).getCount() == this.original.getCount();
         }
@@ -134,14 +134,14 @@ public final class ClientCartography {
                 }
             } else message(result.status());
         });
-        if (request != null) ClientPacketDistributor.sendToServer(new CartographyPayloads.ImportRequest(request, held.hand, held.slot, id.id()));
+        if (request != null) PacketDistributor.sendToServer(new CartographyPayloads.ImportRequest(request, held.hand, held.slot, id.id()));
     }
 
     public static boolean craft(HeldMap held, int x, int z, byte[] colors, boolean locked,
             Consumer<CartographyPayloads.Result> done) {
         UUID request = begin(held, done);
         if (request == null) return false;
-        ClientPacketDistributor.sendToServer(new CartographyPayloads.CraftRequest(request, held.hand,
+        PacketDistributor.sendToServer(new CartographyPayloads.CraftRequest(request, held.hand,
                 held.slot, held.dimension, x, z, locked, colors));
         return true;
     }
@@ -152,7 +152,7 @@ public final class ClientCartography {
             // 服务端成功制图会先同步物品变化，所以成功响应不能再用旧物品比对。
             var mc = Minecraft.getInstance();
             boolean valid = mc.screen == pendingScreen && mc.player != null
-                    && mc.player.level().dimension().identifier().toString().equals(pendingHeld.dimension)
+                    && mc.player.level().dimension().location().toString().equals(pendingHeld.dimension)
                     && (result.status().equals("crafted") || pendingHeld.valid());
             var done = callback;
             Object expectedScreen = pendingScreen;
@@ -165,7 +165,7 @@ public final class ClientCartography {
 
     private static int addTargets(MapSnapshot snapshot, List<BannerMarker> banners) {
         var mc = Minecraft.getInstance();
-        var dimension = ResourceKey.create(Registries.DIMENSION, Identifier.parse(snapshot.dimension()));
+        var dimension = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(snapshot.dimension()));
         ClientWaypoints.flushAllDimensions();
         var existing = WaypointStore.open(mc.gameDirectory.toPath(), ServerKey.resolve(mc), dimension);
         for (var target : snapshot.targets()) {
@@ -182,7 +182,7 @@ public final class ClientCartography {
                     y = data.heightAt(target.x() & 15, target.z() & 15);
                 }
             }
-            String type = Identifier.parse(target.type()).getPath();
+            String type = ResourceLocation.parse(target.type()).getPath();
             String name = text("target." + type).getString() + " " + text("reference_height").getString();
             ClientWaypoints.upsertInDimension(new Waypoint(id, name, new BlockPos(target.x(), y, target.z()),
                     dimension, 0xFFFFCC55, "treasure", true, -1, false, "", false));
