@@ -6,6 +6,19 @@ import org.junit.jupiter.api.Test;
 /// 渲染耗时统计测试。
 class RenderTimerTest {
     @Test
+    void mapSamplingAndMaintenanceAreReportedSeparatelyAndResetBetweenWindows() {
+        AtlasProfiling.reset();
+        AtlasProfiling.recordMapTick(3_000_000L);
+        AtlasProfiling.recordMapMaintenance(80_000_000L);
+        String summary = AtlasProfiling.mapUpdateSummary();
+        Assertions.assertTrue(summary.contains("tick avg=3.000ms"), summary);
+        Assertions.assertTrue(summary.contains("maintenance avg=80.000ms"), summary);
+        AtlasProfiling.reset();
+        Assertions.assertEquals(0, AtlasProfiling.mapTick().count());
+        Assertions.assertFalse(AtlasProfiling.mapUpdateSummary().contains("80.000ms"));
+    }
+
+    @Test
     void averageAndMaxAreTracked() {
         RenderTimer timer = new RenderTimer(4);
         timer.record(1_000_000L);

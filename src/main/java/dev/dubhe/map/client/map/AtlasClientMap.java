@@ -3,6 +3,7 @@ package dev.dubhe.map.client.map;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.api.territory.AtlasTerritory;
 import dev.dubhe.map.client.territory.ClientTerritorySync;
+import dev.dubhe.map.client.profiling.AtlasProfiling;
 import dev.dubhe.map.config.AtlasClientConfigs;
 import dev.dubhe.map.config.ConfigBounds;
 import net.minecraft.client.Minecraft;
@@ -46,13 +47,23 @@ public final class AtlasClientMap {
         if (manager == null) {
             initManager();
         }
-        manager.tick(minecraft.level);
+        long started = System.nanoTime();
+        try {
+            manager.tick(minecraft.level);
+        } finally {
+            AtlasProfiling.recordMapTick(System.nanoTime() - started);
+        }
         if (++ticksSinceFlush >= FLUSH_INTERVAL_TICKS) {
             ticksSinceFlush = 0;
-            manager.flush();
-            var imports = dev.dubhe.map.client.cartography.ClientCartography.currentStore();
-            if (imports != null && imports.pruneExplored(manager.currentCache()) > 0) {
-                WorldMapScreen.onMapDataChanged();
+            started = System.nanoTime();
+            try {
+                manager.flush();
+                var imports = dev.dubhe.map.client.cartography.ClientCartography.currentStore();
+                if (imports != null && imports.pruneExplored(manager.currentCache()) > 0) {
+                    WorldMapScreen.onMapDataChanged();
+                }
+            } finally {
+                AtlasProfiling.recordMapMaintenance(System.nanoTime() - started);
             }
         }
     }

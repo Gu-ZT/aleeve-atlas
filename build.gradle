@@ -8,6 +8,9 @@ plugins {
 apply from: "$rootDir/gradle/scripts/version.gradle"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(project.java_version)
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 apply from: "$rootDir/gradle/scripts/moddevgradle.gradle"

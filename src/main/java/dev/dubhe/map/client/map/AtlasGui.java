@@ -29,9 +29,17 @@ public final class AtlasGui {
     public static void blit(GuiGraphics graphics, Function<ResourceLocation, RenderType> renderType,
             ResourceLocation texture, int x, int y, float u, float v, int width, int height,
             int regionWidth, int regionHeight, int textureWidth, int textureHeight, int color) {
+        blit(graphics, renderType, texture, x, y, u, v, width, height,
+                (double) regionWidth, (double) regionHeight, textureWidth, textureHeight, color);
+    }
+
+    /// 保留地形 UV 跨度的小数，缩放动画与标记使用同一连续坐标系。
+    public static void blit(GuiGraphics graphics, Function<ResourceLocation, RenderType> renderType,
+            ResourceLocation texture, int x, int y, float u, float v, int width, int height,
+            double regionWidth, double regionHeight, int textureWidth, int textureHeight, int color) {
         quad(graphics, renderType.apply(texture), x, y, width, height,
-                u / textureWidth, (u + regionWidth) / textureWidth,
-                v / textureHeight, (v + regionHeight) / textureHeight, color);
+                u / textureWidth, (float) ((u + regionWidth) / textureWidth),
+                v / textureHeight, (float) ((v + regionHeight) / textureHeight), color);
     }
 
     public static void blitSprite(GuiGraphics graphics, Function<ResourceLocation, RenderType> renderType,

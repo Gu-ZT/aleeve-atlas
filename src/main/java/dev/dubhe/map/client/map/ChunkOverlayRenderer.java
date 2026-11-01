@@ -42,19 +42,16 @@ public final class ChunkOverlayRenderer {
             return;
         }
         Long seed = config.minimap.showSlimeChunks ? SlimeChunkTracker.currentSeed() : null;
-        int mapPixels = circular ? layout.size() : MinimapLayout.squareDrawSize(layout.size());
-        int mapBlocks = circular ? (int) layout.coveredBlocks()
-                : MinimapLayout.squareDrawSize((int) layout.coveredBlocks());
-        double centerX = layout.x() + layout.size() / 2.0;
-        double centerZ = layout.y() + layout.size() / 2.0;
-        double blocksToPixels = mapPixels / (double) mapBlocks;
-        int range = (int) Math.ceil(layout.coveredBlocks() / 32.0) + 1;
+        double blocksToPixels = minimapBlocksToPixels(layout);
+        int drawPixels = circular ? layout.size() : MinimapLayout.squareDrawSize(layout.size());
+        // 方形地图扩大旋转覆盖范围；比例始终与地形、雷达共用连续的视野缩放。
+        int range = (int) Math.ceil(drawPixels / blocksToPixels / 32.0) + 1;
         int centerChunkX = chunkAt(layout.centerWorldX());
         int centerChunkZ = chunkAt(layout.centerWorldZ());
         for (int chunkX = centerChunkX - range; chunkX <= centerChunkX + range; chunkX++) {
             for (int chunkZ = centerChunkZ - range; chunkZ <= centerChunkZ + range; chunkZ++) {
-                double left = centerX + (chunkX * 16.0 - layout.centerWorldX()) * blocksToPixels;
-                double top = centerZ + (chunkZ * 16.0 - layout.centerWorldZ()) * blocksToPixels;
+                double left = layout.worldToScreenX(chunkX * 16.0);
+                double top = layout.worldToScreenZ(chunkZ * 16.0);
                 drawCell(graphics, config.minimap.showChunkGrid,
                         seed != null && SlimeChunkTracker.isSlimeChunk(seed, chunkX, chunkZ),
                         left, top, 16.0 * blocksToPixels, 16.0 * blocksToPixels, circular,
@@ -62,6 +59,10 @@ public final class ChunkOverlayRenderer {
                         layout.size() / 2.0 - MinimapLayout.CLIP_INSET);
             }
         }
+    }
+
+    static double minimapBlocksToPixels(MinimapLayout layout) {
+        return layout.size() / layout.coveredBlocks();
     }
 
     private static void drawCell(GuiGraphics graphics, boolean grid, boolean slime,

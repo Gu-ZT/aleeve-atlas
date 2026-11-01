@@ -109,10 +109,12 @@ public final class WaypointEditScreen extends Screen {
         for (int paletteColor : PALETTE) {
             String hex = formatColor(paletteColor);
             Button button = Button.builder(
-                            Component.literal("■").withStyle(style -> style.withColor(paletteColor)),
+                            Component.empty(),
                             pressed -> this.colorBox.setValue(hex))
                     .bounds(0, 0, 24, 20)
                     .tooltip(Tooltip.create(Component.literal(hex)))
+                    .createNarration(supplier -> Component.translatable(
+                            "aleeve_atlas.screen.waypoint_edit.color").append(" " + hex))
                     .build();
             this.paletteButtons.add(addRenderableWidget(button));
         }
@@ -298,6 +300,7 @@ public final class WaypointEditScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
         graphics.fill(0, 0, width, height, 0xC0101010);
         final int left = width / 2 - FORM_WIDTH / 2;
         graphics.drawString(font, title, left, 8, 0xFFFFFFFF, true);
@@ -317,6 +320,23 @@ public final class WaypointEditScreen extends Screen {
             graphics.drawCenteredString(font, this.errorMessage, width / 2, height - 44, 0xFFFF5555);
         }
         super.render(graphics, mouseX, mouseY, partialTick);
+        // 色板直接绘制几何色块，避免依赖字体中的方块字形或源码的非 ASCII 字符解码。
+        for (int index = 0; index < this.paletteButtons.size(); index++) {
+            Button button = this.paletteButtons.get(index);
+            if (!button.visible) continue;
+            int x = button.getX() + 6;
+            int y = button.getY() + 4;
+            if ((this.previewColor & 0xFFFFFF) == PALETTE[index]) {
+                graphics.fill(x - 2, y - 2, x + 14, y + 14, 0xFFFFFFFF);
+            }
+            graphics.fill(x - 1, y - 1, x + 13, y + 13, 0xFF101010);
+            graphics.fill(x, y, x + 12, y + 12, 0xFF000000 | PALETTE[index]);
+        }
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        // 旧版 Screen.render 会再次调用此方法；背景已提前绘制，避免模糊自己的标签。
     }
 
     private void drawLabel(GuiGraphics graphics, Component text, int x, int y) {

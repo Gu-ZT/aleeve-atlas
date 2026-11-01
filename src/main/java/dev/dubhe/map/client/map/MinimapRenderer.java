@@ -103,10 +103,9 @@ public final class MinimapRenderer {
         int drawSize = circular ? size : MinimapLayout.squareDrawSize(size);
         float drawX = centerX - drawSize / 2.0F;
         float drawY = centerY - drawSize / 2.0F;
-        int uvSize = circular ? (int) layout.coveredBlocks()
-                : MinimapLayout.squareDrawSize((int) layout.coveredBlocks());
-        float uvStartX = (float) texture.uvStartX(layout.centerWorldX(), uvSize);
-        float uvStartZ = (float) texture.uvStartZ(layout.centerWorldZ(), uvSize);
+        double uvSize = layout.coveredBlocks() * drawSize / size;
+        float uvStartX = (float) (texture.uvStartX(layout.centerWorldX(), 0) - uvSize / 2.0);
+        float uvStartZ = (float) (texture.uvStartZ(layout.centerWorldZ(), 0) - uvSize / 2.0);
         float brightness = lightBrightness(minecraft, config);
         int mapTint = circular ? encodeCircleTint(brightness, clipInset, size)
                 : brightnessColor(brightness);
