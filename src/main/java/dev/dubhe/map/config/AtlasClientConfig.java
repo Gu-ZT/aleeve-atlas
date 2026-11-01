@@ -4,13 +4,14 @@ import com.google.gson.annotations.SerializedName;
 import dev.anvilcraft.lib.v2.config.CollapsibleObject;
 import dev.anvilcraft.lib.v2.config.Comment;
 import dev.anvilcraft.lib.v2.config.Config;
+import dev.anvilcraft.lib.v2.config.ConfigScreenStyle;
 import net.neoforged.fml.config.ModConfig;
 
 /// 客户端配置（`aleeve_atlas-client.toml`）。
 ///
 /// 本类只在物理客户端加载：实例由 {@link AtlasClientConfigs#CONFIG} 持有，
 /// 专用服务端不会解析本类。
-@Config(name = "aleeve_atlas", type = ModConfig.Type.CLIENT)
+@Config(name = "aleeve_atlas", type = ModConfig.Type.CLIENT, screenStyle = ConfigScreenStyle.SIDEBAR)
 public class AtlasClientConfig {
     @Comment("Show proximity notifications for favorite structures and followed structure types.")
     public boolean structureNotifications = true;

@@ -54,7 +54,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -335,7 +335,8 @@ public final class WorldMapScreen extends Screen {
     /// 打开模组客户端配置，并保留当前世界地图作为返回页。
     private void openClientConfig() {
         var container = ModList.get().getModContainerById(AleeveAtlas.MOD_ID).orElseThrow();
-        Minecraft.getInstance().setScreen(new ConfigurationScreen(container, this));
+        var factory = container.getCustomExtension(IConfigScreenFactory.class).orElseThrow();
+        Minecraft.getInstance().setScreen(factory.createScreen(container, this));
     }
 
     /// 分享当前视野内的全部路径点。

@@ -1,5 +1,6 @@
 package dev.dubhe.map.client.waypoint;
 
+import dev.anvilcraft.lib.v2.config.client.SidebarConfigScreen;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.client.map.AtlasWorldMap;
 import dev.dubhe.map.client.map.WorldMapScreen;
@@ -73,7 +74,7 @@ public final class WaypointUiSelfTest {
                     && clickButton(screen, "gui.back");
             case 9 -> screen instanceof WorldMapScreen
                     && clickButton(screen, "aleeve_atlas.screen.world_map.client_config");
-            case 10 -> screen instanceof ConfigurationScreen
+            case 10 -> (screen instanceof ConfigurationScreen || screen instanceof SidebarConfigScreen)
                     && clickButton(screen, "gui.done");
             case 11 -> screen instanceof WorldMapScreen;
             case 12 -> screen instanceof WorldMapScreen

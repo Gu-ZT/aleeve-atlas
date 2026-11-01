@@ -1,5 +1,11 @@
 repositories {
     exclusiveContent {
+        forRepository { maven { url = "https://server.cjsah.net:1002/maven/releases/" } }
+        filter {
+            includeGroup "dev.anvilcraft.lib"
+        }
+    }
+    exclusiveContent {
         forRepository { maven { url = "https://maven.ftb.dev/releases" } }
         filter { includeGroup "dev.ftb.mods" }
     }

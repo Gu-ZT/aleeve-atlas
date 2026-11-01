@@ -5,13 +5,14 @@ import dev.anvilcraft.lib.v2.config.BoundedDiscrete;
 import dev.anvilcraft.lib.v2.config.CollapsibleObject;
 import dev.anvilcraft.lib.v2.config.Comment;
 import dev.anvilcraft.lib.v2.config.Config;
+import dev.anvilcraft.lib.v2.config.ConfigScreenStyle;
 import net.neoforged.fml.config.ModConfig;
 
 /// 服务端配置（`aleeve_atlas-server.toml`）。
 ///
 /// 使用 NeoForge `ModConfig.Type.SERVER`：自动同步到客户端并按 `world/serverconfig` 允许存档覆盖，
 /// 因此连接时的锁定可直接复用该机制。实例由 {@code AleeveAtlas.CONFIG} 持有。
-@Config(name = "aleeve_atlas", type = ModConfig.Type.SERVER)
+@Config(name = "aleeve_atlas", type = ModConfig.Type.SERVER, screenStyle = ConfigScreenStyle.SIDEBAR)
 public class AtlasServerConfig {
     @CollapsibleObject
     @Comment("Server-side map synchronization settings.")
