@@ -13,7 +13,7 @@ repositories {
     mavenCentral()
     maven {
         name = "Cjsah's Maven"
-        url = "https://server.cjsah.net:1002/maven/"
+        url = "https://server.cjsah.net:1002/maven/releases/"
     }
 }
 
