@@ -12,7 +12,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.MapColor;
 
 import java.util.UUID;
@@ -23,7 +23,7 @@ public final class CartographyConfirmScreen extends Screen {
     private final ClientCartography.HeldMap held;
     private final int centerX, centerZ;
     private final byte[] colors;
-    private final Identifier textureId = AleeveAtlas.id("cartography_preview/" + UUID.randomUUID());
+    private final ResourceLocation textureId = AleeveAtlas.id("cartography_preview/" + UUID.randomUUID());
     private boolean registered;
     private boolean locked;
     private boolean submitting;
@@ -65,7 +65,7 @@ public final class CartographyConfirmScreen extends Screen {
     private void updateControls() {
         var player = this.minecraft.player;
         boolean glass = player != null && (player.getAbilities().instabuild || Cartography.glassSlot(player) >= 0);
-        if (!glass && this.lockBox.selected()) this.lockBox.onPress(null);
+        if (!glass && this.lockBox.selected()) this.lockBox.onPress();
         this.lockBox.active = glass && !this.submitting && !this.invalidated;
         this.lockBox.setTooltip(glass ? null : Tooltip.create(ClientCartography.text("glass_missing")));
         this.confirm.active = !this.submitting && !this.invalidated && this.held.valid()

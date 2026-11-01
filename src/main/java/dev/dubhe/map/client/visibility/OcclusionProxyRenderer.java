@@ -12,8 +12,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.dubhe.map.AleeveAtlas;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -62,8 +61,8 @@ public final class OcclusionProxyRenderer {
             .build();
 
     private static final RenderType PROXY_TYPE =
-            RenderType.create("aleeve_atlas_occlusion_proxy",
-                    RenderSetup.builder(PROXY_PIPELINE).createRenderSetup());
+            RenderType.create("aleeve_atlas_occlusion_proxy", 1536, PROXY_PIPELINE,
+                    RenderType.CompositeState.builder().createCompositeState(false));
 
     private int[] queries;
     private boolean unavailable;

@@ -7,7 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
@@ -52,7 +52,7 @@ public final class WaypointStore {
     /// 打开某服务器标识下、指定维度的路径点存储。
     public static WaypointStore open(Path gameDir, String serverKey, ResourceKey<Level> dimension) {
         Path dir = AtlasPaths.serverRoot(gameDir, serverKey).resolve(DIR_NAME);
-        String fileName = sanitize(dimension.identifier().toString()) + ".nbt";
+        String fileName = sanitize(dimension.location().toString()) + ".nbt";
         return new WaypointStore(dir.resolve(fileName), dimension);
     }
 
@@ -92,7 +92,7 @@ public final class WaypointStore {
         ResourceKey<Level> dimension = tag == null
                 ? Level.OVERWORLD
                 : resolveDimension(tag.getStringOr("dimension",
-                        Level.OVERWORLD.identifier().toString()));
+                        Level.OVERWORLD.location().toString()));
         WaypointStore store = new WaypointStore(file, dimension, tag);
         return store;
     }
@@ -161,7 +161,7 @@ public final class WaypointStore {
             return;
         }
         CompoundTag tag = new CompoundTag();
-        tag.putString("dimension", this.dimension.identifier().toString());
+        tag.putString("dimension", this.dimension.location().toString());
         tag.put("waypoints", Waypoint.saveAll(this.waypoints.values()));
         try {
             Files.createDirectories(this.file.getParent());
@@ -207,7 +207,7 @@ public final class WaypointStore {
 
     /// 依次尝试解析维度标识，未知维度回退主世界。
     private static ResourceKey<Level> resolveDimension(String raw) {
-        Identifier id = Identifier.tryParse(raw);
+        ResourceLocation id = ResourceLocation.tryParse(raw);
         if (id == null) {
             // 单个条目维度非法时回退主世界，留日志便于定位损坏的存档数据。
             LOGGER.warn("Invalid dimension id '{}' in waypoint store, using overworld", raw);

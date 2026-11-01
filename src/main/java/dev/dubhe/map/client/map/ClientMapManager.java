@@ -13,7 +13,7 @@ import dev.dubhe.map.storage.ServerKey;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -229,7 +229,7 @@ public final class ClientMapManager {
     /// 同步可访问其他维度的地表缓存，不能把远端维度写入当前地图。
     public MapDimensionCache syncCache(String dimensionId) {
         Minecraft minecraft = Minecraft.getInstance();
-        Identifier id = Identifier.tryParse(dimensionId);
+        ResourceLocation id = ResourceLocation.tryParse(dimensionId);
         if (minecraft.level == null || id == null) {
             return null;
         }
@@ -272,9 +272,9 @@ public final class ClientMapManager {
     }
 
     private MapDimensionCache cacheFor(Minecraft minecraft, String serverKey, ResourceKey<Level> dimension) {
-        String key = serverKey + "/" + dimension.identifier();
+        String key = serverKey + "/" + dimension.location();
         return this.caches.computeIfAbsent(key, ignored -> {
-            Path base = AtlasPaths.dimensionDir(gameDir(minecraft), serverKey, dimension.identifier());
+            Path base = AtlasPaths.dimensionDir(gameDir(minecraft), serverKey, dimension.location());
             return new MapDimensionCache(base);
         });
     }
@@ -282,7 +282,7 @@ public final class ClientMapManager {
     /// 地表、完整洞穴和 16 格分层独立持久化。
     private MapDimensionCache caveCacheFor(Minecraft minecraft, String serverKey,
             ResourceKey<Level> dimension, MapSlice slice) {
-        Path base = AtlasPaths.dimensionDir(gameDir(minecraft), serverKey, dimension.identifier());
+        Path base = AtlasPaths.dimensionDir(gameDir(minecraft), serverKey, dimension.location());
         Path caveBase = base.resolve("caves").resolve(slice.cacheLayer());
         return new MapDimensionCache(caveBase);
     }

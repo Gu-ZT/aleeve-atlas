@@ -4,7 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +128,7 @@ public final class StructureStore {
             }
             CompoundTag follows = root.getCompoundOrEmpty("followed");
             for (String key : follows.keySet()) {
-                StructureKind kind = StructureKind.fromId(Identifier.parse(key));
+                StructureKind kind = StructureKind.fromId(ResourceLocation.parse(key));
                 if (kind != null && follows.getBooleanOr(key, false)) {
                     this.followed.add(kind);
                 }

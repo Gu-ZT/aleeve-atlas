@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -213,12 +212,12 @@ public final class StructurePanel {
         }
     }
 
-    public boolean click(MouseButtonEvent event) {
-        if (!this.contains(event.x(), event.y())) {
+    public boolean click(double mouseX, double mouseY, int button) {
+        if (!this.contains(mouseX, mouseY)) {
             return false;
         }
-        if (event.button() == 0 && event.y() >= 106 && event.y() < 106 + this.visibleRows() * 24) {
-            int index = this.offset + (int) (event.y() - 106) / 24;
+        if (button == 0 && mouseY >= 106 && mouseY < 106 + this.visibleRows() * 24) {
+            int index = this.offset + (int) (mouseY - 106) / 24;
             if (index < this.results.size()) {
                 this.select(this.results.get(index));
             }

@@ -7,11 +7,11 @@ import dev.dubhe.map.config.ConfigBounds;
 import dev.dubhe.map.config.MinimapShape;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /// 小地图方向文字与世界地图四角星方向标。
 public final class CompassRenderer {
-    private static final Identifier WHITE_TEXTURE = AleeveAtlas.id("textures/gui/white.png");
+    private static final ResourceLocation WHITE_TEXTURE = AleeveAtlas.id("textures/gui/white.png");
     private static final String[] CARDINALS = { "N", "E", "S", "W" };
     private static final double[][] DIRECTIONS = {
         { 0.0, -1.0 }, { 1.0, 0.0 }, { 0.0, 1.0 }, { -1.0, 0.0 }

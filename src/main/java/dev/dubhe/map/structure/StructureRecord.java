@@ -3,7 +3,7 @@ package dev.dubhe.map.structure;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
 
@@ -15,7 +15,7 @@ public record StructureRecord(String dimension, StructureKind kind, int chunkX, 
     }
 
     public StructureRecord {
-        Identifier.parse(dimension);
+        ResourceLocation.parse(dimension);
         Objects.requireNonNull(kind);
         Objects.requireNonNull(source);
         position = position.immutable();
@@ -71,7 +71,7 @@ public record StructureRecord(String dimension, StructureKind kind, int chunkX, 
         if (bounds.length != 6) {
             throw new IllegalArgumentException("Invalid structure bounds length");
         }
-        StructureKind kind = StructureKind.fromId(Identifier.parse(tag.getString("kind").orElseThrow()));
+        StructureKind kind = StructureKind.fromId(ResourceLocation.parse(tag.getString("kind").orElseThrow()));
         return new StructureRecord(tag.getString("dimension").orElseThrow(), Objects.requireNonNull(kind),
                 tag.getInt("chunkX").orElseThrow(), tag.getInt("chunkZ").orElseThrow(),
                 BlockPos.of(tag.getLong("position").orElseThrow()), bounds[0], bounds[1], bounds[2],

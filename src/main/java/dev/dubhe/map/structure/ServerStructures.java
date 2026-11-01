@@ -95,7 +95,7 @@ public final class ServerStructures {
                 break;
             }
         }
-        return new StructureRecord(level.dimension().identifier().toString(), kind, chunk.x, chunk.z, position,
+        return new StructureRecord(level.dimension().location().toString(), kind, chunk.x, chunk.z, position,
                 bounds.minX(), bounds.minY(), bounds.minZ(), bounds.maxX(), bounds.maxY(), bounds.maxZ(), source);
     }
 
@@ -110,7 +110,7 @@ public final class ServerStructures {
                 return;
             }
             LAST_SHARE.put(sender.getUUID(), now);
-            String dimension = sender.level().dimension().identifier().toString();
+            String dimension = sender.level().dimension().location().toString();
             var records = payload.records().stream().filter(r -> r.dimension().equals(dimension))
                     .map(r -> r.withSource(StructureRecord.Source.SHARED)).toList();
             if (records.isEmpty()) {

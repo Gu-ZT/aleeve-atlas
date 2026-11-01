@@ -5,7 +5,6 @@ import dev.dubhe.map.ping.ClientPings;
 import dev.dubhe.map.ping.MapPingData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -74,8 +73,7 @@ public final class WorldPingSelfTest {
             require(minecraft.screen instanceof WorldMapScreen,
                     "Opening another screen must cancel the world ping hold");
             int pingCount = ClientPings.active().size();
-            InputEvent.MouseButton.Pre releaseEvent = new InputEvent.MouseButton.Pre(
-                    new MouseButtonInfo(GLFW.GLFW_MOUSE_BUTTON_MIDDLE, 0), GLFW.GLFW_RELEASE);
+            InputEvent.MouseButton.Pre releaseEvent = new InputEvent.MouseButton.Pre(GLFW.GLFW_MOUSE_BUTTON_MIDDLE, GLFW.GLFW_RELEASE, 0);
             WorldPingController.onMouseInput(releaseEvent);
             require(!releaseEvent.isCanceled(), "Canceled hold must not consume map input");
             require(ClientPings.active().size() == pingCount,
@@ -100,8 +98,7 @@ public final class WorldPingSelfTest {
     }
 
     private static void pressMouse(Minecraft minecraft, int action) {
-        InputEvent.MouseButton.Pre event = new InputEvent.MouseButton.Pre(
-                new MouseButtonInfo(GLFW.GLFW_MOUSE_BUTTON_MIDDLE, 0), action);
+        InputEvent.MouseButton.Pre event = new InputEvent.MouseButton.Pre(GLFW.GLFW_MOUSE_BUTTON_MIDDLE, action, 0);
         WorldPingController.onMouseInput(event);
         require(!event.isCanceled(), "World ping must preserve vanilla middle-click behavior");
     }

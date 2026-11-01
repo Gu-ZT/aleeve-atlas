@@ -82,7 +82,7 @@ public final class ServerStructureSearch {
                     ? StructurePayloads.SearchStatus.NOT_FOUND : StructurePayloads.SearchStatus.FOUND, record);
         } catch (RuntimeException e) {
             LOGGER.warn("结构查询失败，玩家 {} 维度 {} 起点 {} 类型 {}", task.player,
-                    task.level.dimension().identifier(), task.origin, task.request.kind(), e);
+                    task.level.dimension().location(), task.origin, task.request.kind(), e);
             ServerPlayer player = event.getServer().getPlayerList().getPlayer(task.player);
             if (player != null) {
                 send(player, task.request.requestId(), StructurePayloads.SearchStatus.FAILED, null);

@@ -67,7 +67,7 @@ public final class ClientMapSync {
         if (manager == null || minecraft.player == null || minecraft.level == null) {
             return;
         }
-        String dimension = minecraft.level.dimension().identifier().toString();
+        String dimension = minecraft.level.dimension().location().toString();
         Key key = new Key(minecraft.player.getUUID(), dimension);
         Session current = session;
         if (!current.working.add(key)) {

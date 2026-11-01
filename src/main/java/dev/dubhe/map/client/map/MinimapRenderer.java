@@ -16,7 +16,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -30,7 +30,7 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 /// 画出圆形遮罩、边框与水滴形玩家指示器。
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class MinimapRenderer {
-    private static final Identifier OVERLAY_TEXTURE =
+    private static final ResourceLocation OVERLAY_TEXTURE =
             AleeveAtlas.id("textures/gui/white.png");
     private static final int BORDER_EXPANSION_PIXELS = 3;
     private static final int TEXT_COLOR = 0xFFFFFFFF;
@@ -245,7 +245,7 @@ public final class MinimapRenderer {
             var biome = minecraft.level.getBiome(player.blockPosition());
             Component name = biome.unwrapKey()
                     .<Component>map(key -> Component.translatable(
-                            "biome." + key.identifier().toLanguageKey()))
+                            "biome." + key.location().toLanguageKey()))
                     .orElseGet(() -> Component.translatable(
                             "aleeve_atlas.hud.biome_unknown"));
             graphics.drawCenteredString(minecraft.font, name, textX, line, TEXT_COLOR);

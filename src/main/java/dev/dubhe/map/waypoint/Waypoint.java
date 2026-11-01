@@ -88,7 +88,7 @@ public record Waypoint(
         tag.putString("id", this.id.toString());
         tag.putString("name", this.name);
         tag.putLong("pos", this.pos.asLong());
-        tag.putString("dim", this.dimension.identifier().toString());
+        tag.putString("dim", this.dimension.location().toString());
         tag.putInt("color", this.colorArgb);
         tag.putString("icon", this.icon);
         tag.putBoolean("enabled", this.enabled);

@@ -3,7 +3,7 @@ package dev.dubhe.map.cartography;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.MapColor;
 
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ public record MapSnapshot(int mapId, String dimension, int centerX, int centerZ,
     public static final int MAX_TARGETS = 256;
 
     public MapSnapshot {
-        if (mapId < 0 || Identifier.tryParse(dimension) == null || scale < 0 || scale > 4
+        if (mapId < 0 || ResourceLocation.tryParse(dimension) == null || scale < 0 || scale > 4
                 || Math.abs((long) centerX) > 30_000_000 || Math.abs((long) centerZ) > 30_000_000
                 || targets.size() > MAX_TARGETS) {
             throw new IllegalArgumentException("Invalid map snapshot");
@@ -127,7 +127,7 @@ public record MapSnapshot(int mapId, String dimension, int centerX, int centerZ,
 
     public record Target(String type, int x, int z) {
         public Target {
-            if (Identifier.tryParse(type) == null || Math.abs((long) x) > 30_000_000
+            if (ResourceLocation.tryParse(type) == null || Math.abs((long) x) > 30_000_000
                     || Math.abs((long) z) > 30_000_000) throw new IllegalArgumentException("Invalid target");
         }
     }

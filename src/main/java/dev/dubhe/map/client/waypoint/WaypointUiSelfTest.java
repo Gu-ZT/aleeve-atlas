@@ -10,8 +10,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -125,15 +123,16 @@ public final class WaypointUiSelfTest {
         ensureScrollbarEntries(screen, visibleRows);
         int bottom = 36 + visibleRows * 24 - 4;
         final int previous = screen.scrollOffset();
-        MouseButtonEvent start = new MouseButtonEvent(screen.width - 7, 40,
-                new MouseButtonInfo(GLFW.GLFW_MOUSE_BUTTON_LEFT, 0));
-        if (!screen.mouseClicked(start, false)) {
+
+        if (!screen.mouseClicked(screen.width - 7, 40,
+                GLFW.GLFW_MOUSE_BUTTON_LEFT)) {
             return false;
         }
-        MouseButtonEvent end = new MouseButtonEvent(screen.width - 7, bottom,
-                new MouseButtonInfo(GLFW.GLFW_MOUSE_BUTTON_LEFT, 0));
-        screen.mouseDragged(end, 0.0, bottom - 40.0);
-        screen.mouseReleased(end);
+
+        screen.mouseDragged(screen.width - 7, bottom,
+                GLFW.GLFW_MOUSE_BUTTON_LEFT , 0.0, bottom - 40.0);
+        screen.mouseReleased(screen.width - 7, bottom,
+                GLFW.GLFW_MOUSE_BUTTON_LEFT);
         LOGGER.info("Waypoint UI self-test scrollbar offset {} -> {}", previous,
                 screen.scrollOffset());
         return screen.scrollOffset() > previous;
@@ -158,9 +157,7 @@ public final class WaypointUiSelfTest {
     }
 
     private static boolean selectFirstWaypoint(WaypointListScreen screen) {
-        MouseButtonEvent event = new MouseButtonEvent(20, 44,
-                new MouseButtonInfo(GLFW.GLFW_MOUSE_BUTTON_LEFT, 0));
-        return screen.mouseClicked(event, false);
+        return screen.mouseClicked(20, 44, GLFW.GLFW_MOUSE_BUTTON_LEFT);
     }
 
     /// 通过 Screen 的鼠标事件点击按钮，覆盖按钮与地图拖动的事件分发。
@@ -168,15 +165,18 @@ public final class WaypointUiSelfTest {
         String label = Component.translatable(translationKey).getString();
         for (GuiEventListener child : screen.children()) {
             if (child instanceof Button button && button.getMessage().getString().equals(label)) {
-                MouseButtonEvent event = new MouseButtonEvent(
+
+                if (!screen.mouseClicked(
                         button.getX() + button.getWidth() / 2.0,
                         button.getY() + button.getHeight() / 2.0,
-                        new MouseButtonInfo(GLFW.GLFW_MOUSE_BUTTON_LEFT, 0));
-                if (!screen.mouseClicked(event, false)) {
+                        GLFW.GLFW_MOUSE_BUTTON_LEFT)) {
                     LOGGER.warn("Waypoint UI self-test click was not consumed: {}", translationKey);
                     return false;
                 }
-                screen.mouseReleased(event);
+                screen.mouseReleased(
+                        button.getX() + button.getWidth() / 2.0,
+                        button.getY() + button.getHeight() / 2.0,
+                        GLFW.GLFW_MOUSE_BUTTON_LEFT);
                 LOGGER.info("Waypoint UI self-test clicked {}", translationKey);
                 return true;
             }

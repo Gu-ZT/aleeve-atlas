@@ -9,8 +9,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -59,13 +57,13 @@ public final class CartographyAcceptanceTest {
                 }
                 case 4 -> {
                     screenshot("selection");
-                    map.mouseClicked(new MouseButtonEvent(map.width / 2.0, map.height / 2.0, new MouseButtonInfo(0, 0)), false);
+                    map.mouseClicked(map.width / 2.0, map.height / 2.0, 0);
                     require(mc.screen instanceof CartographyConfirmScreen, "selection opens preview");
                 }
                 case 5 -> {
                     var box = mc.screen.children().stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
                     require(box.active && !box.selected(), "glass allows opt-in locking");
-                    box.onPress(null); screenshot("preview-locked");
+                    box.onPress(); screenshot("preview-locked");
                 }
                 case 6 -> press(Component.translatable("gui.ok").getString());
                 case 7 -> {
@@ -83,7 +81,7 @@ public final class CartographyAcceptanceTest {
                     });
                     press(ClientCartography.text("craft").getString());
                 }
-                case 8 -> map.mouseClicked(new MouseButtonEvent(map.width / 2.0, map.height / 2.0, new MouseButtonInfo(0, 0)), false);
+                case 8 -> map.mouseClicked(map.width / 2.0, map.height / 2.0, 0);
                 case 9 -> {
                     var box = mc.screen.children().stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
                     require(!box.active && !box.selected(), "no glass disables locking");
@@ -110,7 +108,7 @@ public final class CartographyAcceptanceTest {
         var button = Minecraft.getInstance().screen.children().stream().filter(Button.class::isInstance)
                 .map(Button.class::cast).filter(b -> b.getMessage().getString().equals(label) && b.visible && b.active)
                 .findFirst().orElseThrow();
-        button.onPress(null);
+        button.onPress();
     }
 
     private static void screenshot(String name) {

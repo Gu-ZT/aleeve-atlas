@@ -3,13 +3,13 @@ package dev.dubhe.map.client.map;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import dev.dubhe.map.AleeveAtlas;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /// 地图标记的解析几何绘制。
 ///
 /// 圆点、菱形和方向箭头均由片元着色器生成抗锯齿轮廓，避免逐像素菱形与箭头。
 public final class MapMarkerRenderer {
-    private static final Identifier WHITE_TEXTURE = AleeveAtlas.id("textures/gui/white.png");
+    private static final ResourceLocation WHITE_TEXTURE = AleeveAtlas.id("textures/gui/white.png");
 
     private MapMarkerRenderer() {
     }

@@ -3,6 +3,7 @@ package dev.dubhe.map.network;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.saveddata.SavedData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -33,6 +34,6 @@ class MapCacheIdentityTest {
     }
 
     private static DimensionDataStorage open(Path path) {
-        return new DimensionDataStorage(path, DataFixers.getDataFixer(), HolderLookup.Provider.create(Stream.empty()));
+        return new DimensionDataStorage(new SavedData.Context(null, 0L), path, DataFixers.getDataFixer(), HolderLookup.Provider.create(Stream.empty()));
     }
 }

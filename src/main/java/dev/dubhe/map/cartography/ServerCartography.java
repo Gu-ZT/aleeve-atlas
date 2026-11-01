@@ -93,15 +93,15 @@ public final class ServerCartography {
             var targets = new ArrayList<MapSnapshot.Target>();
             for (var target : held.getOrDefault(DataComponents.MAP_DECORATIONS, MapDecorations.EMPTY).decorations().values()) {
                 var key = target.type().unwrapKey().orElse(null);
-                if (key != null && key.identifier().getNamespace().equals("minecraft")
-                        && TARGETS.contains(key.identifier().getPath()) && Double.isFinite(target.x())
+                if (key != null && key.location().getNamespace().equals("minecraft")
+                        && TARGETS.contains(key.location().getPath()) && Double.isFinite(target.x())
                         && Double.isFinite(target.z()) && Math.abs(target.x()) <= 30_000_000 && Math.abs(target.z()) <= 30_000_000
                         && targets.size() < MapSnapshot.MAX_TARGETS) {
-                    targets.add(new MapSnapshot.Target(key.identifier().toString(), (int) Math.floor(target.x()), (int) Math.floor(target.z())));
+                    targets.add(new MapSnapshot.Target(key.location().toString(), (int) Math.floor(target.x()), (int) Math.floor(target.z())));
                 }
             }
             var mapLevel = player.level().getServer().getLevel(data.dimension);
-            var snapshot = new MapSnapshot(mapId.id(), data.dimension.identifier().toString(), data.centerX,
+            var snapshot = new MapSnapshot(mapId.id(), data.dimension.location().toString(), data.centerX,
                     data.centerZ, data.scale, mapLevel == null ? 63 : mapLevel.getSeaLevel(), data.colors, targets, 0);
             return new CartographyPayloads.Result(request.requestId(), "imported", mapId.id(), snapshot,
                     BannerMarker.fromMap(data));
@@ -151,7 +151,7 @@ public final class ServerCartography {
 
     static String validate(ServerPlayer player, CartographyPayloads.CraftRequest request) {
         if (!validHand(player, request.hand(), request.slot()) || !player.getItemInHand(request.hand()).is(Items.MAP)
-                || !player.level().dimension().identifier().toString().equals(request.dimension())) return "changed";
+                || !player.level().dimension().location().toString().equals(request.dimension())) return "changed";
         if (!Cartography.validRegion(player.level(), request.centerX(), request.centerZ())) return "region";
         try { MapSnapshot.validateColors(request.colors()); } catch (IllegalArgumentException e) { return "invalid"; }
         if (!Cartography.hasContent(request.colors())) return "empty";

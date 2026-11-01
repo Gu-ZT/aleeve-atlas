@@ -1,6 +1,6 @@
 package dev.dubhe.map.storage;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.nio.file.Path;
 
@@ -26,8 +26,8 @@ public final class AtlasPaths {
         return root(gameDir).resolve(MAPDATA).resolve(sanitize(serverKey));
     }
 
-    /// 某维度在小地图缓存中的目录；维度以 `Identifier` 标识。
-    public static Path dimensionDir(Path gameDir, String serverKey, Identifier dimension) {
+    /// 某维度在小地图缓存中的目录；维度以 `ResourceLocation` 标识。
+    public static Path dimensionDir(Path gameDir, String serverKey, ResourceLocation dimension) {
         return serverRoot(gameDir, serverKey).resolve(sanitize(dimension.toString().replace(':', '_')));
     }
 

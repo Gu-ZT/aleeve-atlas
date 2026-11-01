@@ -7,9 +7,6 @@ import dev.dubhe.map.config.NonTeamVisibility;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.entity.state.AvatarRenderState;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.state.LevelRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -89,34 +86,22 @@ public final class VisibilityPreFilter {
     /// 使用渲染状态中的插值位置构造包围盒，与当前帧矩阵保持一致；
     /// 结果按距离升序排列并截断到查询上限。
     public static List<Target> selectOcclusionTargets(Minecraft minecraft,
-            LevelRenderState renderState, Player observer, long frame) {
+            Vec3 cameraPos, float partialTick, Player observer, long frame) {
         ClientLevel level = minecraft.level;
-        if (level == null || renderState.cameraRenderState == null
+        if (level == null
                 || AtlasSession.nonTeamVisibility() != NonTeamVisibility.VISIBLE_ONLY) {
             return List.of();
         }
-        Vec3 cameraPos = renderState.cameraRenderState.pos;
         Frustum frustum = currentFrustum();
         List<Target> targets = new ArrayList<>();
         Set<UUID> accepted = new HashSet<>();
-        for (EntityRenderState state : renderState.entityRenderStates) {
-            if (!(state instanceof AvatarRenderState avatar)) {
-                continue;
-            }
-            Entity entity = level.getEntity(avatar.id);
-            if (!(entity instanceof Player player) || player == observer || entity.isRemoved()) {
-                continue;
-            }
+        for (Player player : level.players()) {
+            if (player == observer || player.isRemoved()) continue;
             if (RadarStyle.isTeammate(player) || isHiddenByInvisibility(player)) {
                 continue;
             }
-            AABB box = new AABB(
-                    avatar.x - avatar.boundingBoxWidth / 2.0,
-                    avatar.y,
-                    avatar.z - avatar.boundingBoxWidth / 2.0,
-                    avatar.x + avatar.boundingBoxWidth / 2.0,
-                    avatar.y + avatar.boundingBoxHeight,
-                    avatar.z + avatar.boundingBoxWidth / 2.0);
+            Vec3 position = player.getPosition(partialTick);
+            AABB box = player.getBoundingBox().move(position.subtract(player.position()));
             if (frustum != null && !frustum.isVisible(box)) {
                 continue;
             }

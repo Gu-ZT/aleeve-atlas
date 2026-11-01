@@ -40,12 +40,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
@@ -248,7 +246,7 @@ public final class WorldMapScreen extends Screen {
     public void finishCartography() { this.craftingHeld = null; this.dragging = false; }
 
     public void onMapImported(MapSnapshot snapshot) {
-        if (this.minecraft.level == null || !snapshot.dimension().equals(this.minecraft.level.dimension().identifier().toString())) {
+        if (this.minecraft.level == null || !snapshot.dimension().equals(this.minecraft.level.dimension().location().toString())) {
             ClientCartography.message("other_dimension", snapshot.dimension());
             return;
         }
@@ -964,9 +962,9 @@ public final class WorldMapScreen extends Screen {
         Component block = state.isAir()
                 ? Component.translatable("aleeve_atlas.screen.world_map.unknown")
                 : state.getBlock().getName();
-        Identifier biomeId = pixel == null ? null : Identifier.tryParse(pixel.biomeId());
+        ResourceLocation biomeId = pixel == null ? null : ResourceLocation.tryParse(pixel.biomeId());
         if (biomeId == null && minecraft.level.hasChunk(pos.getX() >> 4, pos.getZ() >> 4)) {
-            biomeId = minecraft.level.getBiome(pos).unwrapKey().map(key -> key.identifier()).orElse(null);
+            biomeId = minecraft.level.getBiome(pos).unwrapKey().map(key -> key.location()).orElse(null);
         }
         String biomeKey = biomeId == null ? "aleeve_atlas.screen.world_map.unknown"
                 : "biome." + biomeId.getNamespace() + "." + biomeId.getPath();
@@ -1015,6 +1013,10 @@ public final class WorldMapScreen extends Screen {
         return this.renderingFrame ? this.pixelsPerChunk : this.renderedPixelsPerChunk;
     }
 
+    private long lastMapClick;
+    private double lastClickX;
+    private double lastClickY;
+
     private double logicalMouseX(double mouseX) {
         return width / 2.0 + (mouseX - width / 2.0) / this.animationScale;
     }
@@ -1023,52 +1025,49 @@ public final class WorldMapScreen extends Screen {
         return height / 2.0 + (mouseY - height / 2.0) / this.animationScale;
     }
 
-    private MouseButtonEvent logicalMouseEvent(MouseButtonEvent event) {
-        return new MouseButtonEvent(this.logicalMouseX(event.x()), this.logicalMouseY(event.y()),
-                event.buttonInfo());
-    }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
         this.middleHeld = false;
-        if (this.structures.contains(event.x(), event.y())) {
+        if (this.structures.contains(mouseX, mouseY)) {
             this.contextMenu = null;
             this.dragging = false;
-            return super.mouseClicked(event, doubleClick) || this.structures.click(event);
+            return super.mouseClicked(mouseX, mouseY, button) || this.structures.click(mouseX, mouseY, button);
         }
         if (this.contextMenu != null) {
-            if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT
-                    && this.contextMenuContains(event.x(), event.y())) {
-                this.executeContextMenu(event.y());
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT
+                    && this.contextMenuContains(mouseX, mouseY)) {
+                this.executeContextMenu(mouseY);
             } else {
                 this.contextMenu = null;
             }
             return true;
         }
-        if (super.mouseClicked(event, doubleClick)) {
+        if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
-        if (this.structures.click(event)) {
+        if (this.structures.click(mouseX, mouseY, button)) {
             this.dragging = false;
             return true;
         }
         this.alignCameraToRenderedFrame();
-        event = this.logicalMouseEvent(event);
-        if (this.craftingHeld == null && event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT && event.y() > 30) {
-            StructureRecord record = this.findStructureAt(event.x(), event.y());
+        mouseX = this.logicalMouseX(mouseX);
+        mouseY = this.logicalMouseY(mouseY);
+        if (this.craftingHeld == null && button == GLFW.GLFW_MOUSE_BUTTON_LEFT && mouseY > 30) {
+            StructureRecord record = this.findStructureAt(mouseX, mouseY);
             if (record != null) {
                 this.structures.select(record);
                 return true;
             }
         }
         if (this.craftingHeld != null) {
-            if (event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) { this.finishCartography(); return true; }
-            if (event.button() == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
-                this.dragging = true; this.lastMouseX = event.x(); this.lastMouseY = event.y(); return true;
+            if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) { this.finishCartography(); return true; }
+            if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
+                this.dragging = true; this.lastMouseX = mouseX; this.lastMouseY = mouseY; return true;
             }
-            if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT && event.y() > 30 && this.craftingHeld.valid()) {
-                int x = Cartography.center(this.screenToWorldX(event.x()));
-                int z = Cartography.center(this.screenToWorldZ(event.y()));
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && mouseY > 30 && this.craftingHeld.valid()) {
+                int x = Cartography.center(this.screenToWorldX(mouseX));
+                int z = Cartography.center(this.screenToWorldZ(mouseY));
                 if (this.minecraft.level == null || !Cartography.validRegion(this.minecraft.level, x, z)) {
                     ClientCartography.message("region"); return true;
                 }
@@ -1079,29 +1078,36 @@ public final class WorldMapScreen extends Screen {
             }
             return true;
         }
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
             this.middleHeld = true;
             this.wheelOpened = false;
             this.middleHoldTicks = 0;
-            this.middleWorldX = this.screenToWorldX(event.x());
-            this.middleWorldZ = this.screenToWorldZ(event.y());
+            this.middleWorldX = this.screenToWorldX(mouseX);
+            this.middleWorldZ = this.screenToWorldZ(mouseY);
             this.dragging = false;
             return true;
         }
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-            this.openContextMenu(event.x(), event.y());
+        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            this.openContextMenu(mouseX, mouseY);
             return true;
         }
+        long now = net.minecraft.Util.getMillis();
+        boolean doubleClick = button == GLFW.GLFW_MOUSE_BUTTON_LEFT
+                && now - this.lastMapClick < 250
+                && Math.abs(mouseX - this.lastClickX) < 4 && Math.abs(mouseY - this.lastClickY) < 4;
+        this.lastMapClick = button == GLFW.GLFW_MOUSE_BUTTON_LEFT ? now : 0;
+        this.lastClickX = mouseX;
+        this.lastClickY = mouseY;
         // 双击左键在地图位置创建路径点。
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT && doubleClick) {
-            this.createWaypointAt(event.x(), event.y());
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && doubleClick) {
+            this.createWaypointAt(mouseX, mouseY);
             this.dragging = false;
             return true;
         }
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             this.dragging = true;
-            this.lastMouseX = event.x();
-            this.lastMouseY = event.y();
+            this.lastMouseX = mouseX;
+            this.lastMouseY = mouseY;
             return true;
         }
         return false;
@@ -1241,7 +1247,7 @@ public final class WorldMapScreen extends Screen {
         this.wheelCursorX = minecraft.mouseHandler.xpos();
         this.wheelCursorY = minecraft.mouseHandler.ypos();
         var window = minecraft.getWindow();
-        GLFW.glfwSetCursorPos(window.handle(), window.getScreenWidth() / 2.0,
+        GLFW.glfwSetCursorPos(window.getWindow(), window.getScreenWidth() / 2.0,
                 window.getScreenHeight() / 2.0);
     }
 
@@ -1249,7 +1255,7 @@ public final class WorldMapScreen extends Screen {
         if (this.wheelCursorX == null || this.wheelCursorY == null) {
             return;
         }
-        GLFW.glfwSetCursorPos(Minecraft.getInstance().getWindow().handle(),
+        GLFW.glfwSetCursorPos(Minecraft.getInstance().getWindow().getWindow(),
                 this.wheelCursorX, this.wheelCursorY);
         this.wheelCursorX = null;
         this.wheelCursorY = null;
@@ -1276,14 +1282,14 @@ public final class WorldMapScreen extends Screen {
     }
 
     @Override
-    public boolean mouseReleased(MouseButtonEvent event) {
-        if (this.structures.contains(event.x(), event.y())) {
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (this.structures.contains(mouseX, mouseY)) {
             this.middleHeld = false;
             this.dragging = false;
             return true;
         }
         if (this.craftingHeld != null) { this.dragging = false; return true; }
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_MIDDLE && this.middleHeld) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE && this.middleHeld) {
             this.alignCameraToRenderedFrame();
             this.middleHeld = false;
             if (!this.wheelOpened && this.middleHoldTicks < MIDDLE_HOLD_TICKS) {
@@ -1297,11 +1303,11 @@ public final class WorldMapScreen extends Screen {
             }
             return true;
         }
-        if (super.mouseReleased(event)) {
+        if (super.mouseReleased(mouseX, mouseY, button)) {
             this.dragging = false;
             return true;
         }
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             this.dragging = false;
             return true;
         }
@@ -1309,8 +1315,8 @@ public final class WorldMapScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        if (this.structures.contains(event.x(), event.y()) && !this.dragging) {
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (this.structures.contains(mouseX, mouseY) && !this.dragging) {
             return true;
         }
         if (this.contextMenu != null) {
@@ -1321,17 +1327,18 @@ public final class WorldMapScreen extends Screen {
         }
         if (this.dragging) {
             this.alignCameraToRenderedFrame();
-            event = this.logicalMouseEvent(event);
+            mouseX = this.logicalMouseX(mouseX);
+            mouseY = this.logicalMouseY(mouseY);
             this.zoomAnchored = false;
             // 事件携带的是从按下点起的总位移，因此用相邻事件差得到帧增量。
-            this.centerX -= (event.x() - this.lastMouseX) / this.pixelsPerChunk;
-            this.centerZ -= (event.y() - this.lastMouseY) / this.pixelsPerChunk;
-            this.lastMouseX = event.x();
-            this.lastMouseY = event.y();
+            this.centerX -= (mouseX - this.lastMouseX) / this.pixelsPerChunk;
+            this.centerZ -= (mouseY - this.lastMouseY) / this.pixelsPerChunk;
+            this.lastMouseX = mouseX;
+            this.lastMouseY = mouseY;
             this.refreshCanvas();
             return true;
         }
-        return super.mouseDragged(event, dragX, dragY);
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
@@ -1377,12 +1384,12 @@ public final class WorldMapScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(KeyEvent event) {
-        if (event.key() == GLFW.GLFW_KEY_ESCAPE && this.structures.open()) {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.structures.open()) {
             this.structures.toggle();
             return true;
         }
-        if (this.craftingHeld != null && event.key() == GLFW.GLFW_KEY_ESCAPE) { this.finishCartography(); return true; }
+        if (this.craftingHeld != null && keyCode == GLFW.GLFW_KEY_ESCAPE) { this.finishCartography(); return true; }
         this.middleHeld = false;
         if (this.contextMenu != null || this.wheelOpened) {
             this.contextMenu = null;
@@ -1390,12 +1397,12 @@ public final class WorldMapScreen extends Screen {
             return true;
         }
         // ESC 与呼出键均可关闭世界地图。
-        if (event.key() == GLFW.GLFW_KEY_ESCAPE
-                || AtlasKeyMappings.OPEN_WORLD_MAP.matches(event)) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE
+                || AtlasKeyMappings.OPEN_WORLD_MAP.matches(keyCode, scanCode)) {
             this.onClose();
             return true;
         }
-        return super.keyPressed(event);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override

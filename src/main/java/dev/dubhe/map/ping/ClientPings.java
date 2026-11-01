@@ -43,7 +43,7 @@ public final class ClientPings {
         MapPingData ping = new MapPingData(
                 UUID.randomUUID(),
                 minecraft.player.getUUID(),
-                minecraft.player.getGameProfile().name(),
+                minecraft.player.getGameProfile().getName(),
                 0xFFFFFFFF,
                 MapPingData.dimensionId(minecraft.level.dimension()),
                 position,

@@ -59,7 +59,7 @@ public final class ChunkMapSampler {
                     MapColor mapColor = state.getMapColor(level, cursor);
                     Holder<Biome> biome = level.getBiome(cursor);
                     String biomeId = biome.unwrapKey()
-                            .map(key -> key.identifier().toString())
+                            .map(key -> key.location().toString())
                             .orElseThrow(() -> new IllegalStateException("Unregistered map biome"));
                     BlockState vanillaState = fluid.isEmpty()
                             ? state : correctStateForFluidBlock(level, state, cursor);

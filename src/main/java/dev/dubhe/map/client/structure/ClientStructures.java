@@ -9,7 +9,7 @@ import dev.dubhe.map.structure.StructurePayloads;
 import dev.dubhe.map.structure.StructureRecord;
 import dev.dubhe.map.structure.StructureStore;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -53,17 +53,17 @@ public final class ClientStructures {
             serverKey = key;
         }
         return STORES.computeIfAbsent(dimension, d -> new StructureStore(
-                AtlasPaths.dimensionDir(mc.gameDirectory.toPath(), key, Identifier.parse(d)).resolve("structures.nbt"), d));
+                AtlasPaths.dimensionDir(mc.gameDirectory.toPath(), key, ResourceLocation.parse(d)).resolve("structures.nbt"), d));
     }
 
     public static @Nullable StructureStore current() {
         var level = Minecraft.getInstance().level;
-        return level == null ? null : store(level.dimension().identifier().toString());
+        return level == null ? null : store(level.dimension().location().toString());
     }
 
     private static void updateDimension() {
         var level = Minecraft.getInstance().level;
-        String dimension = level == null ? "" : level.dimension().identifier().toString();
+        String dimension = level == null ? "" : level.dimension().location().toString();
         if (!pendingDimension.equals(dimension)) {
             PENDING.clear();
             pendingDimension = dimension;

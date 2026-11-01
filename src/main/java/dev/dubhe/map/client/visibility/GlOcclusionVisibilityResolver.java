@@ -9,7 +9,6 @@ import dev.dubhe.map.client.radar.VisibilityPreFilter;
 import dev.dubhe.map.config.NonTeamVisibility;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.state.LevelRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -118,8 +117,7 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
         Player observer = minecraft.player;
-        LevelRenderState renderState = event.getLevelRenderState();
-        if (level == null || observer == null || renderState.cameraRenderState == null) {
+        if (level == null || observer == null) {
             return;
         }
         if (AtlasSession.nonTeamVisibility() != NonTeamVisibility.VISIBLE_ONLY) {
@@ -131,7 +129,7 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
         try {
             this.pollReady();
             List<VisibilityPreFilter.Target> targets = VisibilityPreFilter.selectOcclusionTargets(
-                    minecraft, renderState, observer, this.frame);
+                    minecraft, event.getCamera().getPosition(), event.getPartialTick().getGameTimeDeltaPartialTick(false), observer, this.frame);
             if (!targets.isEmpty()) {
                 this.issueQueries(targets, event);
                 int error = this.renderer.consumeError();
@@ -184,7 +182,7 @@ public final class GlOcclusionVisibilityResolver implements VisibilityResolver {
                 this.cache.attach(entry, slot);
                 occupied.add(slot);
                 if (!this.renderer.submit(slot, target.box(),
-                        event.getLevelRenderState().cameraRenderState.pos)) {
+                        event.getCamera().getPosition())) {
                     this.cache.cancel(entry);
                 }
             }

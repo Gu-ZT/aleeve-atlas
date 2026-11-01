@@ -3,16 +3,16 @@ package dev.dubhe.map.client.map;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.config.PlayerIndicatorType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.data.AtlasIds;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix3x2f;
 
 /// 两张地图共用的玩家指示器，位置和旋转均以玩家坐标为锚点。
 final class PlayerIndicatorRenderer {
-    private static final Identifier WHITE_TEXTURE = AleeveAtlas.id("textures/gui/white.png");
-    private static final Identifier PLAYER_SPRITE = Identifier.withDefaultNamespace("player");
+    private static final ResourceLocation WHITE_TEXTURE = AleeveAtlas.id("textures/gui/white.png");
+    private static final ResourceLocation PLAYER_SPRITE = ResourceLocation.withDefaultNamespace("player");
 
     private PlayerIndicatorRenderer() {
     }
@@ -40,7 +40,8 @@ final class PlayerIndicatorRenderer {
     }
 
     private static void drawVanilla(GuiGraphics graphics) {
-        var atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.MAP_DECORATIONS);
+        var atlas = (TextureAtlas) Minecraft.getInstance().getTextureManager().getTexture(
+                ResourceLocation.withDefaultNamespace("textures/atlas/map_decorations.png"));
         var sprite = atlas.getSprite(PLAYER_SPRITE);
         // 原版图案可见包围框中心位于 8×8 纹理的 (4.5, 3.5)，修正其半像素偏移。
         graphics.pose().translate(-0.75f, 0.75f);

@@ -4,9 +4,10 @@ import dev.dubhe.map.client.map.MinimapLayout;
 import dev.dubhe.map.structure.StructureKind;
 import dev.dubhe.map.structure.StructureRecord;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.data.AtlasIds;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -20,7 +21,8 @@ public final class StructureRenderer {
     }
 
     public static void icon(GuiGraphics graphics, StructureKind kind, double x, double y, boolean selected) {
-        var atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.MAP_DECORATIONS);
+        var atlas = (TextureAtlas) Minecraft.getInstance().getTextureManager().getTexture(
+                ResourceLocation.withDefaultNamespace("textures/atlas/map_decorations.png"));
         var sprite = atlas.getSprite(kind.sprite());
         graphics.pose().pushMatrix();
         graphics.pose().translate((float) x, (float) y);

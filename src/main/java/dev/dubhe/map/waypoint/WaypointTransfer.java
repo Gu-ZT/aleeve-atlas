@@ -5,7 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
@@ -94,7 +94,7 @@ public final class WaypointTransfer {
     }
 
     private static ResourceKey<Level> resolveDimension(String raw) {
-        Identifier id = Identifier.tryParse(raw);
+        ResourceLocation id = ResourceLocation.tryParse(raw);
         if (id == null) {
             // 维度标识非法时回退主世界，必须留日志，否则导入的路径点会静默落到错误维度。
             LOGGER.warn("Invalid dimension id '{}' in waypoint file, using overworld", raw);

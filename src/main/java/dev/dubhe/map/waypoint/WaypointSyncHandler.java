@@ -24,7 +24,7 @@ public final class WaypointSyncHandler {
             return;
         }
         // 以实际发送者覆盖来源字段，防止伪造。
-        Waypoint waypoint = payload.waypoint().withSource(sender.getGameProfile().name());
+        Waypoint waypoint = payload.waypoint().withSource(sender.getGameProfile().getName());
         WaypointSyncPayload verified =
                 new WaypointSyncPayload(payload.action(), waypoint);
 

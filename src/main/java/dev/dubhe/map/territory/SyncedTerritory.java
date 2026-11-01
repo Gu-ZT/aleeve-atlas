@@ -4,7 +4,7 @@ import dev.dubhe.map.api.territory.BorderStyle;
 import dev.dubhe.map.api.territory.TerritoryGroup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -19,7 +19,7 @@ public record SyncedTerritory(String territoryId, ResourceKey<Level> dimension,
         BorderStyle borderStyle, List<Component> tooltip, int zOrder) implements TerritoryGroup {
 
     /// 按维度标识构造，供负载解码使用。
-    public SyncedTerritory(String territoryId, Identifier dimensionId, Set<ChunkPos> chunks,
+    public SyncedTerritory(String territoryId, ResourceLocation dimensionId, Set<ChunkPos> chunks,
             Component displayName, int themeColorRgb, float fillOpacity, BorderStyle borderStyle,
             List<Component> tooltip, int zOrder) {
         this(territoryId, ResourceKey.create(Registries.DIMENSION, dimensionId), chunks,

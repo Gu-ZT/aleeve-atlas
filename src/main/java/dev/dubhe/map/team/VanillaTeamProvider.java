@@ -23,7 +23,7 @@ public final class VanillaTeamProvider implements TeamProvider {
     private static MinecraftServer server() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         return server != null && (server.isSameThread()
-                || FMLEnvironment.getDist() == Dist.DEDICATED_SERVER) ? server : null;
+                || FMLEnvironment.dist == Dist.DEDICATED_SERVER) ? server : null;
     }
 
     @Override
@@ -34,7 +34,7 @@ public final class VanillaTeamProvider implements TeamProvider {
             var player = server.getPlayerList().getPlayer(playerId);
             team = player == null ? null : player.getTeam();
         } else {
-            team = FMLEnvironment.getDist() == Dist.CLIENT ? ClientAccess.teamOf(playerId) : null;
+            team = FMLEnvironment.dist == Dist.CLIENT ? ClientAccess.teamOf(playerId) : null;
         }
         return team == null ? null : team.getName();
     }
@@ -50,7 +50,7 @@ public final class VanillaTeamProvider implements TeamProvider {
                     .filter(player -> teamId.equals(this.teamIdOf(player.getUUID())))
                     .map(player -> player.getUUID()).toList();
         }
-        return FMLEnvironment.getDist() == Dist.CLIENT
+        return FMLEnvironment.dist == Dist.CLIENT
                 ? ClientAccess.onlinePlayers().stream()
                         .filter(id -> teamId.equals(this.teamIdOf(id))).toList() : List.of();
     }
@@ -64,7 +64,7 @@ public final class VanillaTeamProvider implements TeamProvider {
     private static PlayerTeam namedTeam(String teamId) {
         MinecraftServer server = server();
         Scoreboard scoreboard = server != null ? server.getScoreboard()
-                : FMLEnvironment.getDist() == Dist.CLIENT ? ClientAccess.scoreboard() : null;
+                : FMLEnvironment.dist == Dist.CLIENT ? ClientAccess.scoreboard() : null;
         return teamId == null || scoreboard == null ? null : scoreboard.getPlayerTeam(teamId);
     }
 
@@ -93,13 +93,13 @@ public final class VanillaTeamProvider implements TeamProvider {
             var info = connection == null ? null : connection.getPlayerInfo(id);
             Scoreboard scoreboard = scoreboard();
             return info == null || scoreboard == null ? null
-                    : scoreboard.getPlayersTeam(info.getProfile().name());
+                    : scoreboard.getPlayersTeam(info.getProfile().getName());
         }
 
         private static List<UUID> onlinePlayers() {
             var connection = Minecraft.getInstance().getConnection();
             return connection == null ? List.of() : connection.getOnlinePlayers().stream()
-                    .map(info -> info.getProfile().id()).toList();
+                    .map(info -> info.getProfile().getId()).toList();
         }
     }
 }

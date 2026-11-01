@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +16,7 @@ import net.minecraft.world.level.material.MapColor;
 
 /// 大比例导入地图超出高清画布时，仍显示完整轮廓；高清画布随后覆盖此底层。
 public final class ImportedMapRenderer {
-    private static final Map<MapSnapshot, Identifier> TEXTURES = new HashMap<>();
+    private static final Map<MapSnapshot, ResourceLocation> TEXTURES = new HashMap<>();
     private ImportedMapRenderer() { }
 
     public static void draw(GuiGraphics graphics, double centerX, double centerZ, float zoom, int width, int height) {
@@ -33,7 +33,7 @@ public final class ImportedMapRenderer {
         });
         for (int i = maps.size() - 1; i >= 0; i--) {
             var map = maps.get(i);
-            Identifier texture = TEXTURES.computeIfAbsent(map, ImportedMapRenderer::create);
+            ResourceLocation texture = TEXTURES.computeIfAbsent(map, ImportedMapRenderer::create);
             graphics.pose().pushMatrix();
             graphics.pose().translate((float) (width / 2.0 + (map.minX() - centerX) * zoom),
                     (float) (height / 2.0 + (map.minZ() - centerZ) * zoom));
@@ -43,20 +43,20 @@ public final class ImportedMapRenderer {
         }
     }
 
-    private static Identifier create(MapSnapshot map) {
+    private static ResourceLocation create(MapSnapshot map) {
         var image = new NativeImage(128, 128, false);
         byte[] colors = map.colors();
         for (int z = 0; z < 128; z++) for (int x = 0; x < 128; x++)
             image.setPixel(x, z, MapColor.getColorFromPackedId(colors[z * 128 + x]));
         var texture = new DynamicTexture(() -> "Imported vanilla map", image);
-        Identifier id = AleeveAtlas.id("imported_map/" + map.mapId());
+        ResourceLocation id = AleeveAtlas.id("imported_map/" + map.mapId());
         Minecraft.getInstance().getTextureManager().register(id, texture);
         texture.upload();
         return id;
     }
 
     public static void clear() {
-        for (Identifier id : TEXTURES.values()) Minecraft.getInstance().getTextureManager().release(id);
+        for (ResourceLocation id : TEXTURES.values()) Minecraft.getInstance().getTextureManager().release(id);
         TEXTURES.clear();
     }
 }
