@@ -10,7 +10,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jspecify.annotations.Nullable;
 
@@ -54,10 +54,10 @@ public final class ClientStructureSearch {
             return false;
         }
         pending = UUID.randomUUID();
-        dimension = level.dimension().identifier().toString();
+        dimension = level.dimension().location().toString();
         started = System.nanoTime();
         callback = done;
-        ClientPacketDistributor.sendToServer(new StructurePayloads.Search(pending, kind));
+        PacketDistributor.sendToServer(new StructurePayloads.Search(pending, kind));
         return true;
     }
 
@@ -65,7 +65,7 @@ public final class ClientStructureSearch {
         context.enqueueWork(() -> {
             var level = Minecraft.getInstance().level;
             if (!result.requestId().equals(pending) || level == null
-                    || !dimension.equals(level.dimension().identifier().toString())) {
+                    || !dimension.equals(level.dimension().location().toString())) {
                 return;
             }
             if (result.record() != null) {
@@ -93,7 +93,7 @@ public final class ClientStructureSearch {
             return;
         }
         var level = Minecraft.getInstance().level;
-        if (level == null || !dimension.equals(level.dimension().identifier().toString())) {
+        if (level == null || !dimension.equals(level.dimension().location().toString())) {
             clear();
         } else if (System.nanoTime() - started > 60_000_000_000L) {
             var done = callback;

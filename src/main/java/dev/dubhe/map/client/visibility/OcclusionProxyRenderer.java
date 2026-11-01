@@ -1,25 +1,15 @@
 package dev.dubhe.map.client.visibility;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
-import com.mojang.blaze3d.platform.PolygonMode;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import dev.dubhe.map.AleeveAtlas;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL15C;
@@ -29,8 +19,6 @@ import org.lwjgl.system.MemoryStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Locale;
-
 /// 遮挡查询的代理包围盒绘制。
 ///
 /// 代理盒由 Blaze3d 管线绘制：深度测试沿用世界深度，颜色与深度写入关闭，
@@ -38,41 +26,27 @@ import java.util.Locale;
 /// 绘制状态全部交给管线与状态缓存，避免直接修改 FBO、program 与掩码。
 ///
 /// 片元 alpha 固定为 1，确保原版 `position_color` 着色器不会执行 `discard`。
-@EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
-public final class OcclusionProxyRenderer {
+public final class OcclusionProxyRenderer extends RenderType {
+    public OcclusionProxyRenderer() {
+        super("atlas_occlusion", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS,
+                1536, false, false, () -> {}, () -> {});
+    }
     private static final Logger LOGGER = LoggerFactory.getLogger("aleeve_atlas/occlusion");
     /// 查询总数上限，规格要求每帧不超过 64 个。
     public static final int MAX_QUERIES = 64;
 
     private static final int WHITE = 0xFFFFFFFF;
 
-    private static final RenderPipeline PROXY_PIPELINE = RenderPipeline
-            .builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
-            .withLocation(AleeveAtlas.id("pipeline/occlusion_proxy"))
-            .withVertexShader("core/position_color")
-            .withFragmentShader("core/position_color")
-            .withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST)
-            .withDepthWrite(false)
-            .withColorWrite(false, false)
-            .withoutBlend()
-            .withoutStencilTest()
-            .withCull(false)
-            .withPolygonMode(PolygonMode.FILL)
-            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
-            .build();
-
-    private static final RenderType PROXY_TYPE =
-            RenderType.create("aleeve_atlas_occlusion_proxy",
-                    RenderSetup.builder(PROXY_PIPELINE).createRenderSetup());
+    private static final RenderType PROXY_TYPE = RenderType.create("aleeve_atlas_occlusion_proxy",
+            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 1536, false, false,
+            CompositeState.builder().setShaderState(POSITION_COLOR_SHADER)
+                    .setDepthTestState(LEQUAL_DEPTH_TEST).setCullState(NO_CULL)
+                    .setWriteMaskState(new WriteMaskStateShard(false, false))
+                    .createCompositeState(false));
 
     private int[] queries;
     private boolean unavailable;
     private String failureReason = "";
-
-    @SubscribeEvent
-    public static void registerPipeline(RegisterRenderPipelinesEvent event) {
-        event.registerPipeline(PROXY_PIPELINE);
-    }
 
     /// 检查当前 GL 后端是否支持遮挡查询并分配查询对象。
     public boolean open() {
@@ -84,10 +58,6 @@ public final class OcclusionProxyRenderer {
         }
         if (!RenderSystem.isOnRenderThread()) {
             return this.disable("not on the render thread");
-        }
-        String backend = RenderSystem.getDevice().getBackendName();
-        if (backend == null || !backend.toLowerCase(Locale.ROOT).contains("opengl")) {
-            return this.disable("backend is " + backend);
         }
         if (!GL.getCapabilities().OpenGL33) {
             return this.disable("boolean occlusion queries unsupported");

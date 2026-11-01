@@ -64,7 +64,7 @@ public record MinimapLayout(int x, int y, int size, double centerWorldX, double 
                         + (expanded[index] - normal[index]) * focusProgress);
             }
         }
-        var position = player.getPosition(minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false));
+        var position = player.getPosition(minecraft.getTimer().getGameTimeDeltaPartialTick(false));
         return new MinimapLayout(box[0], box[1], box[2],
                 position.x, position.z, config.minimap.zoom);
     }

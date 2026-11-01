@@ -25,7 +25,7 @@ public final class FtbClaimOverlays {
 
     public record Position(ResourceKey<Level> dimension, ChunkPos chunk) { }
     private record Group(UUID team, ResourceKey<Level> dimension) {
-        String id() { return "ftbchunks:" + team + "/" + dimension.identifier(); }
+        String id() { return "ftbchunks:" + team + "/" + dimension.location(); }
     }
     private record Appearance(Component name, int color) { }
 

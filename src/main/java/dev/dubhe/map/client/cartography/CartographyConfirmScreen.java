@@ -1,5 +1,6 @@
 package dev.dubhe.map.client.cartography;
 
+import dev.dubhe.map.client.map.AtlasGui;
 import com.mojang.blaze3d.platform.NativeImage;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.cartography.Cartography;
@@ -9,11 +10,10 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderPipelines;
+import dev.dubhe.map.client.map.AtlasRenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.material.MapColor;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.UUID;
 
@@ -23,7 +23,7 @@ public final class CartographyConfirmScreen extends Screen {
     private final ClientCartography.HeldMap held;
     private final int centerX, centerZ;
     private final byte[] colors;
-    private final Identifier textureId = AleeveAtlas.id("cartography_preview/" + UUID.randomUUID());
+    private final ResourceLocation textureId = AleeveAtlas.id("cartography_preview/" + UUID.randomUUID());
     private boolean registered;
     private boolean locked;
     private boolean submitting;
@@ -44,10 +44,10 @@ public final class CartographyConfirmScreen extends Screen {
         if (!this.registered) {
             NativeImage image = new NativeImage(128, 128, false);
             for (int z = 0; z < 128; z++) for (int x = 0; x < 128; x++) {
-                int color = MapColor.getColorFromPackedId(this.colors[z * 128 + x]);
-                image.setPixel(x, z, color == 0 ? 0xFFD8C99B : color);
+                int color = dev.dubhe.map.map.MapPalette.fromPackedColor(this.colors[z * 128 + x]);
+                image.setPixelRGBA(x, z, net.minecraft.util.FastColor.ABGR32.fromArgb32(color == 0 ? 0xFFD8C99B : color));
             }
-            var texture = new DynamicTexture(() -> "Atlas cartography preview", image);
+            var texture = new DynamicTexture(image);
             this.minecraft.getTextureManager().register(this.textureId, texture);
             texture.upload();
             this.registered = true;
@@ -65,7 +65,7 @@ public final class CartographyConfirmScreen extends Screen {
     private void updateControls() {
         var player = this.minecraft.player;
         boolean glass = player != null && (player.getAbilities().instabuild || Cartography.glassSlot(player) >= 0);
-        if (!glass && this.lockBox.selected()) this.lockBox.onPress(null);
+        if (!glass && this.lockBox.selected()) this.lockBox.onPress();
         this.lockBox.active = glass && !this.submitting && !this.invalidated;
         this.lockBox.setTooltip(glass ? null : Tooltip.create(ClientCartography.text("glass_missing")));
         this.confirm.active = !this.submitting && !this.invalidated && this.held.valid()
@@ -111,7 +111,7 @@ public final class CartographyConfirmScreen extends Screen {
         graphics.drawCenteredString(this.font, ClientCartography.text("bounds", this.centerX - 64, this.centerZ - 64,
                 this.centerX + 63, this.centerZ + 63), this.width / 2, 23, 0xFFCCCCCC);
         int size = Math.max(16, Math.min(256, Math.min(this.width - 24, this.height - 125)));
-        graphics.blit(RenderPipelines.GUI_TEXTURED, this.textureId, (this.width - size) / 2, 37,
+        AtlasGui.blit(graphics, AtlasRenderPipelines.GUI_TEXTURED, this.textureId, (this.width - size) / 2, 37,
                 0, 0, size, size, 128, 128, 128, 128);
         boolean creative = this.minecraft.player != null && this.minecraft.player.getAbilities().instabuild;
         graphics.drawCenteredString(this.font, ClientCartography.text(creative ? "cost_creative" : this.locked ? "cost_locked" : "cost"),

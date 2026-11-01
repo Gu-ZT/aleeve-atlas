@@ -7,11 +7,11 @@ import dev.dubhe.map.config.ConfigBounds;
 import dev.dubhe.map.config.MinimapShape;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /// 小地图方向文字与世界地图四角星方向标。
 public final class CompassRenderer {
-    private static final Identifier WHITE_TEXTURE = AleeveAtlas.id("textures/gui/white.png");
+    private static final ResourceLocation WHITE_TEXTURE = AleeveAtlas.id("textures/gui/white.png");
     private static final String[] CARDINALS = { "N", "E", "S", "W" };
     private static final double[][] DIRECTIONS = {
         { 0.0, -1.0 }, { 1.0, 0.0 }, { 0.0, 1.0 }, { -1.0, 0.0 }
@@ -104,7 +104,7 @@ public final class CompassRenderer {
                     - WORLD_COMPASS_BOTTOM_INSET - edgeExtent * scale));
             case BOTTOM_RIGHT -> screenHeight - margin;
         };
-        graphics.blit(AtlasRenderPipelines.WORLD_COMPASS, WHITE_TEXTURE,
+        AtlasGui.blit(graphics, AtlasRenderPipelines.WORLD_COMPASS, WHITE_TEXTURE,
                 centerX - size / 2, centerY - size / 2,
                 0.0F, 0.0F, size, size, 2, 2, 2, 2, 0xFFFFFFFF);
         float labelOffset = WORLD_COMPASS_LABEL_DISTANCE * scale;
@@ -117,13 +117,13 @@ public final class CompassRenderer {
 
     private static void drawWorldLabel(GuiGraphics graphics, Minecraft minecraft,
             String label, int centerX, int centerY, float scale) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(centerX, centerY);
-        graphics.pose().scale(scale, scale);
+        graphics.pose().pushPose();
+        graphics.pose().translate(centerX, centerY, 0.0F);
+        graphics.pose().scale(scale, scale, 1.0F);
         int x = -minecraft.font.width(label) / 2;
         int y = -minecraft.font.lineHeight / 2;
         graphics.drawString(minecraft.font, label, x + 1, y + 1, TEXT_SHADOW, false);
         graphics.drawString(minecraft.font, label, x, y, TEXT_COLOR, false);
-        graphics.pose().popMatrix();
+        graphics.pose().popPose();
     }
 }

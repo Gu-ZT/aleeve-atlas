@@ -6,7 +6,6 @@ import dev.dubhe.map.config.MapColorScheme;
 import dev.dubhe.map.cartography.ImportedMapStore;
 import dev.dubhe.map.cartography.MapSnapshot;
 import dev.dubhe.map.client.cartography.ClientCartography;
-import net.minecraft.world.level.material.MapColor;
 import java.util.List;
 import dev.dubhe.map.map.ChunkColorizer;
 import dev.dubhe.map.map.ChunkMapData;
@@ -15,7 +14,7 @@ import dev.dubhe.map.map.MapPalette;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,7 @@ public final class MapCanvas {
 
     private final DynamicTexture texture;
     private final NativeImage image;
-    private final Identifier textureId;
+    private final ResourceLocation textureId;
     private int originChunkX;
     private int originChunkZ;
     private boolean initialized;
@@ -192,10 +191,10 @@ public final class MapCanvas {
         if (this.initialized) this.texture.upload();
     }
 
-    public MapCanvas(Identifier textureId) {
+    public MapCanvas(ResourceLocation textureId) {
         this.textureId = textureId;
         this.image = new NativeImage(PIXELS, PIXELS, false);
-        this.texture = new DynamicTexture(() -> "aleeve_atlas world map", this.image);
+        this.texture = new DynamicTexture(this.image);
     }
 
     public void register() {
@@ -213,7 +212,7 @@ public final class MapCanvas {
         this.positioned = false;
     }
 
-    public Identifier textureId() {
+    public ResourceLocation textureId() {
         return this.textureId;
     }
 
@@ -230,7 +229,7 @@ public final class MapCanvas {
     }
 
     int pixelAt(int x, int z) {
-        return this.image.getPixel(x, z);
+        return net.minecraft.util.FastColor.ABGR32.fromArgb32(this.image.getPixelRGBA(x, z));
     }
 
     int drawnVersionCount() {
@@ -353,7 +352,7 @@ public final class MapCanvas {
             int sourceRow = CanvasScroll.sourceIndexForOriginShift(row, originShiftPixelsZ);
             for (int col : colOrder) {
                 int sourceCol = CanvasScroll.sourceIndexForOriginShift(col, originShiftPixelsX);
-                image.setPixel(col, row, image.getPixel(sourceCol, sourceRow));
+                image.setPixelRGBA(col, row, image.getPixelRGBA(sourceCol, sourceRow));
             }
         }
     }
@@ -461,7 +460,7 @@ public final class MapCanvas {
     }
 
     private int importedColor(int x, int z) {
-        return MapColor.getColorFromPackedId(ImportedMapStore.pixelAt(this.importedMaps,
+        return dev.dubhe.map.map.MapPalette.fromPackedColor(ImportedMapStore.pixelAt(this.importedMaps,
                 this.originChunkX * 16 + x, this.originChunkZ * 16 + z));
     }
 
@@ -470,7 +469,7 @@ public final class MapCanvas {
         if (x < 0 || x >= PIXELS || y < 0 || y >= PIXELS) {
             return;
         }
-        this.image.setPixel(x, y, argb);
+        this.image.setPixelRGBA(x, y, net.minecraft.util.FastColor.ABGR32.fromArgb32(argb));
     }
 
     /// 释放纹理：从纹理管理器注销并关闭，避免注册表残留已关闭对象。

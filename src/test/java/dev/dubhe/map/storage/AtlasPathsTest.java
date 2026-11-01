@@ -1,6 +1,6 @@
 package dev.dubhe.map.storage;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -17,7 +17,7 @@ class AtlasPathsTest {
         assertEquals("sp_新的世界_123", first.getFileName().toString());
         assertNotEquals(first, second);
         assertEquals(first.resolve("minecraft_overworld"), AtlasPaths.dimensionDir(
-                tempDir, "sp_新的世界_123", Identifier.parse("minecraft:overworld")));
+                tempDir, "sp_新的世界_123", ResourceLocation.parse("minecraft:overworld")));
     }
 
     @Test void escapesAddressPortsWithoutCollidingWithLiteralEscapeSequences() {

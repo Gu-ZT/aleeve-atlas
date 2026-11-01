@@ -48,7 +48,7 @@ public final class ServerStructureSearch {
                 send(player, request.requestId(), rejection, null);
                 return;
             }
-            pending = new Pending(player.getUUID(), player.level(), player.blockPosition(), request);
+            pending = new Pending(player.getUUID(), player.serverLevel(), player.blockPosition(), request);
         });
     }
 
@@ -82,7 +82,7 @@ public final class ServerStructureSearch {
                     ? StructurePayloads.SearchStatus.NOT_FOUND : StructurePayloads.SearchStatus.FOUND, record);
         } catch (RuntimeException e) {
             LOGGER.warn("结构查询失败，玩家 {} 维度 {} 起点 {} 类型 {}", task.player,
-                    task.level.dimension().identifier(), task.origin, task.request.kind(), e);
+                    task.level.dimension().location(), task.origin, task.request.kind(), e);
             ServerPlayer player = event.getServer().getPlayerList().getPlayer(task.player);
             if (player != null) {
                 send(player, task.request.requestId(), StructurePayloads.SearchStatus.FAILED, null);
@@ -95,7 +95,7 @@ public final class ServerStructureSearch {
 
     static @Nullable StructureRecord locate(ServerLevel level, BlockPos origin, StructureKind kind) {
         var registry = level.registryAccess().lookupOrThrow(Registries.STRUCTURE);
-        var holder = registry.get(kind.structureId()).orElse(null);
+        var holder = registry.get(net.minecraft.resources.ResourceKey.create(Registries.STRUCTURE, kind.structureId())).orElse(null);
         if (holder == null) {
             return null;
         }

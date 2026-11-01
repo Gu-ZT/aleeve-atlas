@@ -2,7 +2,7 @@
 
 # Aleeve Atlas 袖里舆图
 
-**A minimap and world map mod for Minecraft 1.21.11 featuring waypoints, entity radar, team map syncing, and quick pings.**
+**A minimap and world map mod for Minecraft 1.21.1 featuring waypoints, entity radar, team map syncing, and quick pings.**
 
 English | [简体中文](README.zh_CN.md)
 
@@ -10,14 +10,14 @@ English | [简体中文](README.zh_CN.md)
 
 ## Overview
 
-**Aleeve Atlas (`aleeve_atlas`)** is a NeoForge map mod for Minecraft 1.21.11 that provides both a customizable HUD minimap and an interactive fullscreen world map. Beyond standard terrain mapping, waypoints, and entity radar, it is built with **multiplayer co-op** in mind—allowing teammates to sync explored chunks in real time, share waypoints, and drop quick tactical pings using a middle-click radial wheel.
+**Aleeve Atlas (`aleeve_atlas`)** is a NeoForge map mod for Minecraft 1.21.1 that provides both a customizable HUD minimap and an interactive fullscreen world map. Beyond standard terrain mapping, waypoints, and entity radar, it is built with **multiplayer co-op** in mind—allowing teammates to sync explored chunks in real time, share waypoints, and drop quick tactical pings using a middle-click radial wheel.
 
 * **Singleplayer / Client-Only**: Works on any server out of the box for local terrain mapping, waypoints, and radar.
 * **Client + Server**: Unlocks live team map syncing, waypoint sharing, and multiplayer quick pings.
 
 ## Requirements & Installation
 
-**Base Environment**: Minecraft `1.21.11` + NeoForge `21.11.x`
+**Base Environment**: Minecraft `1.21.1` + NeoForge `21.1.x`
 
 This mod depends on **AnvilLib 2.x** (`2.0.0` or later), but this dependency is already embedded, so no separate installation is required.
 

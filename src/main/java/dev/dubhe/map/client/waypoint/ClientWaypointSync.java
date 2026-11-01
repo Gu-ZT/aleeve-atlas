@@ -61,13 +61,13 @@ public final class ClientWaypointSync {
         }
         Component accept = Component.translatable("aleeve_atlas.message.waypoint_accept")
                 .withStyle(style -> style.withColor(ChatFormatting.GREEN)
-                        .withClickEvent(new ClickEvent.RunCommand(
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                                 "/aleeve_atlas waypoint accept " + waypoint.id()))
-                        .withHoverEvent(new HoverEvent.ShowText(
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                 Component.translatable("aleeve_atlas.message.waypoint_accept"))));
         Component ignore = Component.translatable("aleeve_atlas.message.waypoint_ignore")
                 .withStyle(style -> style.withColor(ChatFormatting.GRAY)
-                        .withClickEvent(new ClickEvent.RunCommand(
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                                 "/aleeve_atlas waypoint ignore " + waypoint.id())));
 
         minecraft.player.displayClientMessage(

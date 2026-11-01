@@ -1,12 +1,8 @@
-#version 330
+#version 150
 
 // 地图边缘方向箭头。基础形状尖端朝上，由 Java 侧按目标方向旋转。
-layout(std140) uniform DynamicTransforms {
-    mat4 ModelViewMat;
-    vec4 ColorModulator;
-    vec3 ModelOffset;
-    mat4 TextureMat;
-};
+uniform mat4 ModelViewMat;
+uniform vec4 ColorModulator;
 uniform sampler2D Sampler0;
 in vec2 texCoord0;
 in vec4 vertexColor;

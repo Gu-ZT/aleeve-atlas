@@ -15,7 +15,7 @@ class MapCanvasMoveTest {
                     int originZ = 37;
                     for (int row = 0; row < image.getHeight(); row++) {
                         for (int col = 0; col < image.getWidth(); col++) {
-                            image.setPixel(col, row, worldColor(originX + col, originZ + row));
+                            image.setPixelRGBA(col, row, worldColor(originX + col, originZ + row));
                         }
                     }
                     MapCanvas.movePixels(image, deltaX, deltaZ);
@@ -24,7 +24,7 @@ class MapCanvasMoveTest {
                         for (int col = Math.max(0, -deltaX);
                                 col < Math.min(image.getWidth(), image.getWidth() - deltaX); col++) {
                             Assertions.assertEquals(worldColor(originX + deltaX + col,
-                                            originZ + deltaZ + row), image.getPixel(col, row),
+                                            originZ + deltaZ + row), image.getPixelRGBA(col, row),
                                     "World coordinate changed after recenter: " + deltaX + "," + deltaZ);
                         }
                     }

@@ -10,8 +10,6 @@ import dev.dubhe.map.client.AtlasKeyMappings;
 import dev.dubhe.map.ping.MapPingData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 
@@ -62,7 +60,7 @@ final class PingWheelMenu extends WheelScreen {
     protected void init() {
         if (this.parent != null
                 && (this.parent.width != this.width || this.parent.height != this.height)) {
-            this.parent.resize(this.width, this.height);
+            this.parent.resize(this.minecraft, this.width, this.height);
         }
         super.init();
         this.disableFrostedBackground();
@@ -102,29 +100,29 @@ final class PingWheelMenu extends WheelScreen {
     }
 
     @Override
-    public boolean mouseReleased(MouseButtonEvent event) {
-        if (AtlasKeyMappings.WORLD_PING.matchesMouse(event)) {
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (AtlasKeyMappings.WORLD_PING.matchesMouse(button)) {
             if (!this.closing) {
                 this.triggerFromHoldRelease();
             }
             return true;
         }
-        return super.mouseReleased(event);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean keyReleased(KeyEvent event) {
-        if (AtlasKeyMappings.WORLD_PING.matches(event)) {
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        if (AtlasKeyMappings.WORLD_PING.matches(keyCode, scanCode)) {
             if (!this.closing) {
                 this.triggerFromHoldRelease();
             }
             return true;
         }
-        return super.keyReleased(event);
+        return super.keyReleased(keyCode, scanCode, modifiers);
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
         this.onClose();
         return true;
     }

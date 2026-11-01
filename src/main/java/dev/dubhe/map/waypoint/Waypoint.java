@@ -1,5 +1,6 @@
 package dev.dubhe.map.waypoint;
 
+import dev.dubhe.map.util.NbtValues;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -88,7 +89,7 @@ public record Waypoint(
         tag.putString("id", this.id.toString());
         tag.putString("name", this.name);
         tag.putLong("pos", this.pos.asLong());
-        tag.putString("dim", this.dimension.identifier().toString());
+        tag.putString("dim", this.dimension.location().toString());
         tag.putInt("color", this.colorArgb);
         tag.putString("icon", this.icon);
         tag.putBoolean("enabled", this.enabled);
@@ -102,19 +103,19 @@ public record Waypoint(
     /// 读取路径点时需要维度键的解析函数。
     public static Waypoint load(CompoundTag tag,
             Function<String, ResourceKey<Level>> dimensionResolver) {
-        String dim = tag.getStringOr("dim", "minecraft:overworld");
+        String dim = NbtValues.getString(tag, "dim", "minecraft:overworld");
         return new Waypoint(
-                UUID.fromString(tag.getStringOr("id", UUID.randomUUID().toString())),
-                tag.getStringOr("name", "waypoint"),
-                BlockPos.of(tag.getLongOr("pos", 0L)),
+                UUID.fromString(NbtValues.getString(tag, "id", UUID.randomUUID().toString())),
+                NbtValues.getString(tag, "name", "waypoint"),
+                BlockPos.of(NbtValues.getLong(tag, "pos", 0L)),
                 dimensionResolver.apply(dim),
-                tag.getIntOr("color", 0xFFFFFFFF),
-                tag.getStringOr("icon", DEFAULT_ICON),
-                tag.getBooleanOr("enabled", true),
-                tag.getIntOr("visible", DEFAULT_VISIBLE_DISTANCE),
-                tag.getBooleanOr("death", false),
-                tag.getStringOr("source", ""),
-                tag.getBooleanOr("shareable", true));
+                NbtValues.getInt(tag, "color", 0xFFFFFFFF),
+                NbtValues.getString(tag, "icon", DEFAULT_ICON),
+                NbtValues.getBoolean(tag, "enabled", true),
+                NbtValues.getInt(tag, "visible", DEFAULT_VISIBLE_DISTANCE),
+                NbtValues.getBoolean(tag, "death", false),
+                NbtValues.getString(tag, "source", ""),
+                NbtValues.getBoolean(tag, "shareable", true));
     }
 
     /// 序列化路径点列表。

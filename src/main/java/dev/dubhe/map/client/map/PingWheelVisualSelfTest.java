@@ -38,7 +38,7 @@ public final class PingWheelVisualSelfTest {
             }
         } else if (ticks == 120) {
             Screenshot.grab(minecraft.gameDirectory, "atlas-wheel.png",
-                    minecraft.getMainRenderTarget(), 1,
+                    minecraft.getMainRenderTarget(),
                     message -> LOGGER.info("Wheel screenshot: {}", message.getString()));
             if (minecraft.screen != null) {
                 minecraft.screen.onClose();

@@ -101,11 +101,11 @@ public final class ChunkOverlayRenderer {
     }
 
     private static void fillRect(GuiGraphics graphics, double x, double y, double width, double height, int color) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate((float) x, (float) y);
-        graphics.pose().scale((float) width, (float) height);
+        graphics.pose().pushPose();
+        graphics.pose().translate((float) x, (float) y, 0.0F);
+        graphics.pose().scale((float) width, (float) height, 1.0F);
         graphics.fill(0, 0, 1, 1, color);
-        graphics.pose().popMatrix();
+        graphics.pose().popPose();
     }
 
     private static int chunkAt(double worldCoordinate) {

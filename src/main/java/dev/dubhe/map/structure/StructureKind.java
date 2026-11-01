@@ -1,6 +1,6 @@
 package dev.dubhe.map.structure;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.Nullable;
 
 /// 结构注册名称与原版地图装饰资源的对应关系。
@@ -16,25 +16,25 @@ public enum StructureKind {
     SWAMP_HUT("swamp_hut", "swamp_hut", "swamp_hut"),
     TRIAL_CHAMBERS("trial_chambers", "trial_chambers", "trial_chambers");
 
-    private final Identifier structureId;
-    private final Identifier decorationId;
-    private final Identifier sprite;
+    private final ResourceLocation structureId;
+    private final ResourceLocation decorationId;
+    private final ResourceLocation sprite;
 
     StructureKind(String structure, String decoration, String sprite) {
-        this.structureId = Identifier.withDefaultNamespace(structure);
-        this.decorationId = Identifier.withDefaultNamespace(decoration);
-        this.sprite = Identifier.withDefaultNamespace(sprite);
+        this.structureId = ResourceLocation.withDefaultNamespace(structure);
+        this.decorationId = ResourceLocation.withDefaultNamespace(decoration);
+        this.sprite = ResourceLocation.withDefaultNamespace(sprite);
     }
 
-    public Identifier structureId() {
+    public ResourceLocation structureId() {
         return this.structureId;
     }
 
-    public Identifier decorationId() {
+    public ResourceLocation decorationId() {
         return this.decorationId;
     }
 
-    public Identifier sprite() {
+    public ResourceLocation sprite() {
         return this.sprite;
     }
 
@@ -42,7 +42,7 @@ public enum StructureKind {
         return "aleeve_atlas.structure.type." + this.structureId.getPath();
     }
 
-    public static @Nullable StructureKind fromId(Identifier id) {
+    public static @Nullable StructureKind fromId(ResourceLocation id) {
         for (StructureKind kind : values()) {
             if (kind.structureId.equals(id)) {
                 return kind;

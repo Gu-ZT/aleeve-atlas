@@ -59,12 +59,13 @@ class BannerMarkerTest {
 
     private static MapItemSavedData map(List<MapBanner> banners) {
         var data = MapItemSavedData.createFresh(0, 0, (byte) 4, true, false, Level.OVERWORLD);
-        CompoundTag saved = (CompoundTag) MapItemSavedData.CODEC.encodeStart(NbtOps.INSTANCE, data).getOrThrow();
+        var registries = net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.empty());
+        CompoundTag saved = data.save(new CompoundTag(), registries);
         ListTag entries = new ListTag();
         for (MapBanner banner : banners) {
             entries.add(MapBanner.CODEC.encodeStart(NbtOps.INSTANCE, banner).getOrThrow());
         }
         saved.put("banners", entries);
-        return MapItemSavedData.CODEC.parse(NbtOps.INSTANCE, saved).getOrThrow();
+        return MapItemSavedData.load(saved, registries);
     }
 }

@@ -164,7 +164,7 @@ public final class MinimapDisplaySelfTest {
     }
 
     private static void screenshot(Minecraft minecraft, String name) {
-        Screenshot.grab(minecraft.gameDirectory, name, minecraft.getMainRenderTarget(), 1,
+        Screenshot.grab(minecraft.gameDirectory, name, minecraft.getMainRenderTarget(),
                 message -> LOGGER.info("Display screenshot: {}", message.getString()));
     }
 

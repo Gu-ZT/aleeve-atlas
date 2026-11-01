@@ -6,7 +6,6 @@ import dev.dubhe.map.client.AtlasKeyMappings;
 import dev.dubhe.map.ping.ClientPings;
 import dev.dubhe.map.ping.MapPingData;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -67,8 +66,7 @@ public final class WorldPingController {
         if (minecraft.player == null) {
             return;
         }
-        MouseButtonEvent mouse = new MouseButtonEvent(0, 0, event.getMouseButtonInfo());
-        if (!AtlasKeyMappings.WORLD_PING.matchesMouse(mouse)) {
+        if (!AtlasKeyMappings.WORLD_PING.matchesMouse(event.getButton())) {
             return;
         }
         if (minecraft.screen != null && holdStarted < 0L) {
@@ -82,7 +80,7 @@ public final class WorldPingController {
         if (!MinimapPingAPI.isWorldInputEnabled()) {
             return;
         }
-        if (!AtlasKeyMappings.WORLD_PING.matches(event.getKeyEvent())) {
+        if (!AtlasKeyMappings.WORLD_PING.matches(event.getKey(), event.getScanCode())) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();

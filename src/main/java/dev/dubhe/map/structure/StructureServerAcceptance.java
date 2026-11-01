@@ -38,8 +38,8 @@ public final class StructureServerAcceptance {
                 return;
             }
             StructureKind kind = StructureKind.values()[index++];
-            var structure = level.registryAccess().lookupOrThrow(Registries.STRUCTURE).get(kind.structureId()).orElseThrow();
-            require(BuiltInRegistries.MAP_DECORATION_TYPE.get(kind.decorationId()).isPresent(), "原版地图装饰存在");
+            var structure = level.registryAccess().lookupOrThrow(Registries.STRUCTURE).get(net.minecraft.resources.ResourceKey.create(Registries.STRUCTURE, kind.structureId())).orElseThrow();
+            require(BuiltInRegistries.MAP_DECORATION_TYPE.containsKey(kind.decorationId()), "原版地图装饰存在");
             var record = ServerStructureSearch.locate(level, BlockPos.ZERO, kind);
             require(record != null, "原版搜索找到 " + kind);
             if (record == null) {

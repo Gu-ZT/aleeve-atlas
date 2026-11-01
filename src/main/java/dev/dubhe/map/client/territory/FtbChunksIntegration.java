@@ -13,7 +13,7 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /// 仅由 AnvilLib 在安装 FTB Chunks 的客户端加载；不访问服务端隐藏的领地。
-@Integration(value = "ftbchunks", version = "[2111.1.1,2112)", type = IntegrationType.CLIENT)
+@Integration(value = "ftbchunks", version = "[2101.1,2102)", type = IntegrationType.CLIENT)
 public final class FtbChunksIntegration {
     private final FtbClaimOverlays claims = new FtbClaimOverlays(AtlasTerritory.client());
     private int ticks;

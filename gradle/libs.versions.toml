@@ -1,23 +1,24 @@
 [versions]
-minecraft = "1.21.11"
-neoForge = "21.11.48"
+minecraft = "1.21.1"
+neoForge = "21.1.263"
 modDevGradle = "2.0.148"
-anvillib = "2.0.0+snapshot.+"
-ftb = "2111.1.1"
-architectury = "19.0.1"
+anvillib = "2.0.0+snapshot.582"
+ftb-library = "2101.1.39"
+ftb-teams = "2101.1.11"
+ftb-chunks = "2101.1.23"
+architectury = "13.0.11"
 
 [libraries]
-ftb-library = { group = "dev.ftb.mods", name = "ftb-library-neoforge", version.ref = "ftb" }
-ftb-teams = { group = "dev.ftb.mods", name = "ftb-teams-neoforge", version.ref = "ftb" }
-ftb-chunks = { group = "dev.ftb.mods", name = "ftb-chunks-neoforge", version.ref = "ftb" }
+ftb-library = { group = "dev.ftb.mods", name = "ftb-library-neoforge", version.ref = "ftb-library" }
+ftb-teams = { group = "dev.ftb.mods", name = "ftb-teams-neoforge", version.ref = "ftb-teams" }
+ftb-chunks = { group = "dev.ftb.mods", name = "ftb-chunks-neoforge", version.ref = "ftb-chunks" }
 architectury = { group = "dev.architectury", name = "architectury-neoforge", version.ref = "architectury" }
-anvillib-codec = { group = "dev.anvilcraft.lib", name = "anvillib-codec-neoforge-1.21.11", version.ref = "anvillib" }
-anvillib-network = { group = "dev.anvilcraft.lib", name = "anvillib-network-neoforge-1.21.11", version.ref = "anvillib" }
-anvillib-config = { group = "dev.anvilcraft.lib", name = "anvillib-config-neoforge-1.21.11", version.ref = "anvillib" }
-anvillib-integration = { group = "dev.anvilcraft.lib", name = "anvillib-integration-neoforge-1.21.11", version.ref = "anvillib" }
-anvillib-util = { group = "dev.anvilcraft.lib", name = "anvillib-util-neoforge-1.21.11", version.ref = "anvillib" }
-anvillib-wheel = { group = "dev.anvilcraft.lib", name = "anvillib-wheel-neoforge-1.21.11", version.ref = "anvillib" }
-anvillib-rendering = { group = "dev.anvilcraft.lib", name = "anvillib-rendering-neoforge-1.21.11", version.ref = "anvillib" }
+anvillib-codec = { group = "dev.anvilcraft.lib", name = "anvillib-codec-neoforge-1.21.1", version.ref = "anvillib" }
+anvillib-network = { group = "dev.anvilcraft.lib", name = "anvillib-network-neoforge-1.21.1", version.ref = "anvillib" }
+anvillib-config = { group = "dev.anvilcraft.lib", name = "anvillib-config-neoforge-1.21.1", version.ref = "anvillib" }
+anvillib-integration = { group = "dev.anvilcraft.lib", name = "anvillib-integration-neoforge-1.21.1", version.ref = "anvillib" }
+anvillib-util = { group = "dev.anvilcraft.lib", name = "anvillib-util-neoforge-1.21.1", version.ref = "anvillib" }
+anvillib-wheel = { group = "dev.anvilcraft.lib", name = "anvillib-wheel-neoforge-1.21.1", version.ref = "anvillib" }
 
 [plugins]
 modDevGradle = { id = "net.neoforged.moddev", version.ref = "modDevGradle" }

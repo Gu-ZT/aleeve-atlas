@@ -25,7 +25,7 @@ public final class CartographyAcceptanceFixture {
     @SubscribeEvent public static void login(PlayerEvent.PlayerLoggedInEvent event) {
         if (System.getenv("ALEEVE_ATLAS_CARTOGRAPHY_TEST") == null || !(event.getEntity() instanceof ServerPlayer player)) return;
         player.getInventory().clearContent();
-        player.getInventory().setSelectedSlot(0);
+        player.getInventory().selected = 0;
         player.setGameMode(GameType.SURVIVAL);
         player.getAbilities().invulnerable = true;
         player.onUpdateAbilities();
@@ -37,7 +37,7 @@ public final class CartographyAcceptanceFixture {
         player.setItemInHand(InteractionHand.MAIN_HAND, map);
         player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.MAP, 3));
         player.getInventory().setItem(1, new ItemStack(Items.GLASS_PANE));
-        player.connection.send(new net.minecraft.network.protocol.game.ClientboundSetHeldSlotPacket(0));
+        player.connection.send(new net.minecraft.network.protocol.game.ClientboundSetCarriedItemPacket(0));
         player.containerMenu.sendAllDataToRemote();
     }
 }

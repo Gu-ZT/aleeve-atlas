@@ -12,9 +12,6 @@ import dev.dubhe.map.ping.MapPingData;
 import dev.dubhe.map.waypoint.Waypoint;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -80,9 +77,9 @@ public final class MapInteractionSelfTest {
         double y = map.height / 2.0;
         if (step == 1) {
             ClientPings.clear();
-            MouseButtonEvent middle = mouse(x + 32, y + 32, GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
-            map.mouseClicked(middle, false);
-            map.mouseReleased(middle);
+
+            map.mouseClicked(x + 32, y + 32, GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
+            map.mouseReleased(x + 32, y + 32, GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
             MapPingData created = ClientPings.active().stream()
                     .filter(p -> p.icon() == MapPingData.PingIcon.GENERAL)
                     .findFirst().orElseThrow();
@@ -108,35 +105,35 @@ public final class MapInteractionSelfTest {
             openWheel(x, y);
             var wheel = minecraft.screen;
             int before = ClientPings.active().size();
-            wheel.keyPressed(new KeyEvent(GLFW.GLFW_KEY_ESCAPE, 0, 0));
-            wheel.mouseReleased(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_MIDDLE));
+            wheel.keyPressed(GLFW.GLFW_KEY_ESCAPE, 0, 0);
+            wheel.mouseReleased(x, y, GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
             require(minecraft.screen == map && ClientPings.active().size() == before,
                     "Escape must cancel without a ping");
         } else if (step == 11) {
-            map.mouseClicked(mouse(x + 32, y + 32, GLFW.GLFW_MOUSE_BUTTON_RIGHT), false);
-            map.mouseClicked(mouse(x + 33, y + 33, GLFW.GLFW_MOUSE_BUTTON_LEFT), false);
+            map.mouseClicked(x + 32, y + 32, GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+            map.mouseClicked(x + 33, y + 33, GLFW.GLFW_MOUSE_BUTTON_LEFT);
             require(minecraft.screen instanceof WaypointEditScreen, "Context create must open waypoint editor");
             minecraft.screen.onClose();
         } else if (step == 12) {
             Waypoint waypoint = Waypoint.create("Map interaction test", minecraft.player.blockPosition(),
                     minecraft.level.dimension(), 0xFFFFFFFF);
             ClientWaypoints.store().upsert(waypoint);
-            map.mouseClicked(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_RIGHT), false);
-            map.mouseClicked(mouse(x + 1, y + 1, GLFW.GLFW_MOUSE_BUTTON_LEFT), false);
+            map.mouseClicked(x, y, GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+            map.mouseClicked(x + 1, y + 1, GLFW.GLFW_MOUSE_BUTTON_LEFT);
             require(ClientWaypoints.store().get(waypoint.id()).isEmpty(), "Context delete must remove waypoint");
         } else if (step == 13) {
-            map.mouseClicked(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_LEFT), false);
-            map.mouseDragged(mouse(x + 280, y - 220, GLFW.GLFW_MOUSE_BUTTON_LEFT), 280, -220);
-            map.mouseDragged(mouse(x - 240, y + 180, GLFW.GLFW_MOUSE_BUTTON_LEFT), -520, 400);
-            map.mouseDragged(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_LEFT), 240, -180);
-            map.mouseReleased(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_LEFT));
+            map.mouseClicked(x, y, GLFW.GLFW_MOUSE_BUTTON_LEFT);
+            map.mouseDragged(x + 280, y - 220, GLFW.GLFW_MOUSE_BUTTON_LEFT , 280, -220);
+            map.mouseDragged(x - 240, y + 180, GLFW.GLFW_MOUSE_BUTTON_LEFT , -520, 400);
+            map.mouseDragged(x, y, GLFW.GLFW_MOUSE_BUTTON_LEFT , 240, -180);
+            map.mouseReleased(x, y, GLFW.GLFW_MOUSE_BUTTON_LEFT);
         } else if (step == 14) {
             verifyCanvas(minecraft);
         } else {
             AtlasClientConfigs.CONFIG.minimap.colorScheme = MapColorScheme.BIOME_SHADE;
             AtlasClientMap.manager().tick(minecraft.level);
             Screenshot.grab(minecraft.gameDirectory, "atlas-biome-shade.png",
-                    minecraft.getMainRenderTarget(), 1,
+                    minecraft.getMainRenderTarget(),
                     message -> LOGGER.info("Biome map screenshot: {}", message.getString()));
             AtlasClientConfigs.CONFIG.minimap.colorScheme = MapColorScheme.VANILLA;
             AtlasClientMap.manager().tick(minecraft.level);
@@ -154,9 +151,9 @@ public final class MapInteractionSelfTest {
         if (step == 3) {
             Minecraft minecraft = Minecraft.getInstance();
             Screenshot.grab(minecraft.gameDirectory, "atlas-wheel.png", minecraft.getMainRenderTarget(),
-                    1, message -> LOGGER.info("Wheel screenshot: {}", message.getString()));
+                    message -> LOGGER.info("Wheel screenshot: {}", message.getString()));
         }
-        wheel.mouseReleased(mouse(selectionX, selectionY, GLFW.GLFW_MOUSE_BUTTON_MIDDLE));
+        wheel.mouseReleased(selectionX, selectionY, GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
     }
 
     private static void verifyCanvas(Minecraft minecraft) {
@@ -298,15 +295,11 @@ public final class MapInteractionSelfTest {
     }
 
     private static void openWheel(double x, double y) {
-        map.mouseClicked(mouse(x, y, GLFW.GLFW_MOUSE_BUTTON_MIDDLE), false);
+        map.mouseClicked(x, y, GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
         for (int tick = 0; tick < 8; tick++) {
             map.tick();
         }
         require(Minecraft.getInstance().screen instanceof PingWheelMenu, "Long press must open AnvilLib wheel");
-    }
-
-    private static MouseButtonEvent mouse(double x, double y, int button) {
-        return new MouseButtonEvent(x, y, new MouseButtonInfo(button, 0));
     }
 
     private static void require(boolean condition, String message) {

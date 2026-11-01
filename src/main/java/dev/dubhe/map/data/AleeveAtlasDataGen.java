@@ -11,7 +11,7 @@ public final class AleeveAtlasDataGen {
     }
 
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent.Client event) {
+    public static void gatherData(GatherDataEvent event) {
         event.addProvider(new AleeveAtlasLanguageProvider(event.getGenerator().getPackOutput()));
     }
 }

@@ -1,16 +1,12 @@
-#version 330
+#version 150
 
 // 小地图地图纹理的圆形裁剪。
 //
 // 裁剪坐标独立于地形 UV，避免玩家移动时圆心随纹理漂移。
 // G 传递亮度，B 传递圆形边界的归一化内缩量。
 
-layout(std140) uniform DynamicTransforms {
-    mat4 ModelViewMat;
-    vec4 ColorModulator;
-    vec3 ModelOffset;
-    mat4 TextureMat;
-};
+uniform mat4 ModelViewMat;
+uniform vec4 ColorModulator;
 
 uniform sampler2D Sampler0;
 

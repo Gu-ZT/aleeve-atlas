@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -193,7 +192,7 @@ public final class StructurePanel {
                     this.width - 44), 32, y + 2, 0xFFFFFFFF);
             graphics.drawString(font, record.position().getX() + ", " + record.position().getZ(), 32, y + 13, 0xFFBBBBBB);
             if (hovered) {
-                graphics.setComponentTooltipForNextFrame(font, StructureRenderer.description(record), mouseX, mouseY);
+                graphics.renderComponentTooltip(font, StructureRenderer.description(record), mouseX, mouseY);
             }
         }
         graphics.disableScissor();
@@ -209,16 +208,16 @@ public final class StructurePanel {
         graphics.drawString(font, font.plainSubstrByWidth(this.message.getString(), this.width - 18),
                 12, this.listBottom + 5, 0xFFFFDD88);
         if (this.contains(mouseX, mouseY) && mouseY >= this.listBottom && mouseY < this.bottom - 21) {
-            graphics.setTooltipForNextFrame(this.message, mouseX, mouseY);
+            graphics.renderTooltip(Minecraft.getInstance().font, this.message, mouseX, mouseY);
         }
     }
 
-    public boolean click(MouseButtonEvent event) {
-        if (!this.contains(event.x(), event.y())) {
+    public boolean click(double mouseX, double mouseY, int button) {
+        if (!this.contains(mouseX, mouseY)) {
             return false;
         }
-        if (event.button() == 0 && event.y() >= 106 && event.y() < 106 + this.visibleRows() * 24) {
-            int index = this.offset + (int) (event.y() - 106) / 24;
+        if (button == 0 && mouseY >= 106 && mouseY < 106 + this.visibleRows() * 24) {
+            int index = this.offset + (int) (mouseY - 106) / 24;
             if (index < this.results.size()) {
                 this.select(this.results.get(index));
             }

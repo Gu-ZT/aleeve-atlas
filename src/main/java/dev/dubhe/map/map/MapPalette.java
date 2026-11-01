@@ -50,9 +50,13 @@ public final class MapPalette {
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
+    public static int fromPackedColor(int packedColor) {
+        return net.minecraft.util.FastColor.ABGR32.fromArgb32(MapColor.getColorFromPackedId(packedColor));
+    }
+
     /// 把方块的地图色按明暗档位转换为不透明 ARGB。
     public static int colorOf(MapColor mapColor, MapColor.Brightness brightness) {
         return mapColor == MapColor.NONE ? TRANSPARENT
-                : mapColor.calculateARGBColor(brightness) | 0xFF000000;
+                : net.minecraft.util.FastColor.ABGR32.fromArgb32(mapColor.calculateRGBColor(brightness)) | 0xFF000000;
     }
 }

@@ -1,5 +1,6 @@
 package dev.dubhe.map.client.map;
 
+import dev.dubhe.map.util.NbtValues;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.storage.AtlasPaths;
 import dev.dubhe.map.storage.ServerKey;
@@ -67,7 +68,7 @@ public final class SlimeChunkTracker {
         }
         try {
             CompoundTag tag = NbtIo.readCompressed(file, NbtAccounter.unlimitedHeap());
-            long seed = tag.getLongOr("seed", Long.MIN_VALUE);
+            long seed = NbtValues.getLong(tag, "seed", Long.MIN_VALUE);
             if (seed != Long.MIN_VALUE) {
                 LEARNED_SEEDS.put(serverKey, seed);
                 return seed;

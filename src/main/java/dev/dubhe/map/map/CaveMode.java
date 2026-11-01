@@ -15,7 +15,7 @@ public final class CaveMode {
 
     public static MapSlice detect(Level level, BlockPos player, AtlasClientConfig.Caves config) {
         CaveMapMode mode = level.dimensionType().hasCeiling() ? config.ceilingDimensionMode : config.mode;
-        if (mode == CaveMapMode.OFF || player.getY() < level.getMinY() || player.getY() >= level.getMaxY()) {
+        if (mode == CaveMapMode.OFF || player.getY() < level.getMinBuildHeight() || player.getY() >= level.getMaxBuildHeight()) {
             return MapSlice.SURFACE;
         }
         int ceiling = ceilingAbove(level, player);
@@ -31,7 +31,7 @@ public final class CaveMode {
             int x = player.getX() + dx, z = player.getZ() + dz;
             var chunk = level.getChunkSource().getChunkNow(x >> 4, z >> 4);
             if (chunk == null) return Integer.MAX_VALUE;
-            int top = Math.min(level.getMaxY() - 1, chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x & 15, z & 15));
+            int top = Math.min(level.getMaxBuildHeight() - 1, chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x & 15, z & 15));
             boolean covered = false;
             for (int y = player.getY() + 1; y <= top; y++) {
                 cursor.set(x, y, z);

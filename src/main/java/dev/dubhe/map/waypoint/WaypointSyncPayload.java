@@ -6,7 +6,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public record WaypointSyncPayload(Action action, Waypoint waypoint) implements C
                         buf.writeUUID(payload.waypoint.id());
                         buf.writeUtf(payload.waypoint.name(), 128);
                         buf.writeLong(payload.waypoint.pos().asLong());
-                        buf.writeUtf(payload.waypoint.dimension().identifier().toString(), 256);
+                        buf.writeUtf(payload.waypoint.dimension().location().toString(), 256);
                         buf.writeInt(payload.waypoint.colorArgb());
                         buf.writeUtf(payload.waypoint.icon(), 32);
                         buf.writeBoolean(payload.waypoint.enabled());
@@ -49,11 +49,11 @@ public record WaypointSyncPayload(Action action, Waypoint waypoint) implements C
                         BlockPos pos = BlockPos.of(buf.readLong());
                         // 维度标识非法时回退主世界，避免解码抛异常导致连接断开。
                         String rawDimension = buf.readUtf(256);
-                        Identifier dimensionId = Identifier.tryParse(rawDimension);
+                        ResourceLocation dimensionId = ResourceLocation.tryParse(rawDimension);
                         if (dimensionId == null) {
                             LOGGER.warn("Invalid dimension id '{}' in waypoint payload",
                                     rawDimension);
-                            dimensionId = Level.OVERWORLD.identifier();
+                            dimensionId = Level.OVERWORLD.location();
                         }
                         int color = buf.readInt();
                         String icon = buf.readUtf(32);

@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /// 由 AnvilLib 在安装 FTB Teams 时加载，直接调用正式 API。
-@Integration(value = "ftbteams", version = "[2111.1.1,2112)")
+@Integration(value = "ftbteams", version = "[2101.1,2102)")
 public final class FtbTeamsIntegration {
     public void apply() {
         TeamProviders.register(new FtbTeamsProvider());
@@ -27,7 +27,7 @@ public final class FtbTeamsIntegration {
         /// 单机与 LAN 的客户端、服务端共用进程，不能仅按物理端选择 manager。
         private static boolean serverSide() {
             var server = ServerLifecycleHooks.getCurrentServer();
-            return FMLEnvironment.getDist() == Dist.DEDICATED_SERVER
+            return FMLEnvironment.dist == Dist.DEDICATED_SERVER
                     || server != null && server.isSameThread();
         }
 

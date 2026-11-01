@@ -7,7 +7,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.FrameGraphSetupEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -33,14 +33,15 @@ public final class WorldProjection {
     }
 
     @SubscribeEvent
-    public static void onWorldRender(FrameGraphSetupEvent event) {
+    public static void onWorldRender(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SKY) return;
         Minecraft minecraft = Minecraft.getInstance();
         Camera camera = event.getCamera();
         if (minecraft.level == null || !camera.isInitialized()) {
             frame = null;
             return;
         }
-        frame = new Frame(camera.position(), new Matrix4f(event.getProjectionMatrix()).mul(event.getModelViewMatrix()),
+        frame = new Frame(camera.getPosition(), new Matrix4f(event.getProjectionMatrix()).mul(event.getModelViewMatrix()),
                 minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight());
     }
 

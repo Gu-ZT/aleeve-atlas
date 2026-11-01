@@ -11,7 +11,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.event.ClientResourceLoadFinishedEvent;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /// 客户端地图管理器的生命周期与调度。
@@ -83,7 +84,11 @@ public final class AtlasClientMap {
     /// 资源重载会清空纹理管理器中的全部纹理，包括本模组注册的动态纹理；
     /// 若不重置注册标志，小地图会持续渲染空白直到重启游戏。
     @SubscribeEvent
-    public static void onResourceReload(ClientResourceLoadFinishedEvent event) {
+    public static void registerReload(RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener((ResourceManagerReloadListener) resources -> onResourceReload());
+    }
+
+    private static void onResourceReload() {
         if (manager != null) {
             manager.onResourceReload();
         }

@@ -1,12 +1,8 @@
-#version 330
+#version 150
 
 // 光滑菱形标记。使用曼哈顿距离绘制轮廓，避免逐像素阶梯边缘。
-layout(std140) uniform DynamicTransforms {
-    mat4 ModelViewMat;
-    vec4 ColorModulator;
-    vec3 ModelOffset;
-    mat4 TextureMat;
-};
+uniform mat4 ModelViewMat;
+uniform vec4 ColorModulator;
 uniform sampler2D Sampler0;
 in vec2 texCoord0;
 in vec4 vertexColor;

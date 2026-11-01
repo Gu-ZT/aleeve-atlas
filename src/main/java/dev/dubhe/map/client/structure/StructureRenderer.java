@@ -1,12 +1,13 @@
 package dev.dubhe.map.client.structure;
 
+import dev.dubhe.map.client.map.AtlasGui;
 import dev.dubhe.map.client.map.MinimapLayout;
 import dev.dubhe.map.structure.StructureKind;
 import dev.dubhe.map.structure.StructureRecord;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.data.AtlasIds;
+import dev.dubhe.map.client.map.AtlasRenderPipelines;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -20,16 +21,17 @@ public final class StructureRenderer {
     }
 
     public static void icon(GuiGraphics graphics, StructureKind kind, double x, double y, boolean selected) {
-        var atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.MAP_DECORATIONS);
+        var atlas = (net.minecraft.client.renderer.texture.TextureAtlas) Minecraft.getInstance().getTextureManager()
+                .getTexture(ResourceLocation.withDefaultNamespace("textures/atlas/map_decorations.png"));
         var sprite = atlas.getSprite(kind.sprite());
-        graphics.pose().pushMatrix();
-        graphics.pose().translate((float) x, (float) y);
+        graphics.pose().pushPose();
+        graphics.pose().translate((float) x, (float) y, 0.0F);
         if (selected) {
             graphics.fill(-9, -9, 9, 9, 0xCCFFD45A);
             graphics.fill(-8, -8, 8, 8, 0xDD202020);
         }
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, -ICON_SIZE / 2, -ICON_SIZE / 2, ICON_SIZE, ICON_SIZE);
-        graphics.pose().popMatrix();
+        AtlasGui.blitSprite(graphics, AtlasRenderPipelines.GUI_TEXTURED, sprite, -ICON_SIZE / 2, -ICON_SIZE / 2, ICON_SIZE, ICON_SIZE);
+        graphics.pose().popPose();
     }
 
     public static void minimap(GuiGraphics graphics, MinimapLayout layout, boolean circular, double rotation) {

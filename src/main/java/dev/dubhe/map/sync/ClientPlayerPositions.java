@@ -16,7 +16,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashMap;
@@ -88,7 +88,7 @@ public final class ClientPlayerPositions {
         if (minecraft.level == null) {
             return false;
         }
-        String dimension = minecraft.level.dimension().identifier().toString();
+        String dimension = minecraft.level.dimension().location().toString();
         if (!dimension.equals(currentDimension)) {
             REMOTE_PLAYERS.clear();
             SIGHTINGS.clear();
@@ -114,9 +114,9 @@ public final class ClientPlayerPositions {
         if (connection == null || !connection.hasChannel(PlayerPositionPayload.TYPE)) {
             return;
         }
-        ClientPacketDistributor.sendToServer(new PlayerPositionPayload(
-                minecraft.player.getUUID(), minecraft.player.getGameProfile().name(),
-                minecraft.level.dimension().identifier().toString(),
+        PacketDistributor.sendToServer(new PlayerPositionPayload(
+                minecraft.player.getUUID(), minecraft.player.getGameProfile().getName(),
+                minecraft.level.dimension().location().toString(),
                 minecraft.player.getX(), minecraft.player.getY(), minecraft.player.getZ(), false));
         if (connection.hasChannel(TeamSightingsPayload.TYPE)) {
             List<PlayerPositionPayload> sightings = new ArrayList<>();
@@ -127,14 +127,14 @@ public final class ClientPlayerPositions {
                 }
                 // 只上报本机实际观察结果，不能把队友共享的视野再次转发形成回路。
                 if (VisibilityGate.localOpacity(minecraft.level, minecraft.player, target) > 0.0F) {
-                    sightings.add(new PlayerPositionPayload(target.getUUID(), target.getGameProfile().name(),
+                    sightings.add(new PlayerPositionPayload(target.getUUID(), target.getGameProfile().getName(),
                             currentDimension, target.getX(), target.getY(), target.getZ(), false));
                     if (sightings.size() == TeamSightingsPayload.MAX_SIGHTINGS) {
                         break;
                     }
                 }
             }
-            ClientPacketDistributor.sendToServer(new TeamSightingsPayload(minecraft.player.getUUID(), sightings));
+            PacketDistributor.sendToServer(new TeamSightingsPayload(minecraft.player.getUUID(), sightings));
         }
     }
 

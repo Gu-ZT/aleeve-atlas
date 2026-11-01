@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public record TerritorySyncPayload(Action action, SyncedTerritory territory, int
         buf.writeInt(payload.batchIndex);
         buf.writeInt(payload.batchCount);
         buf.writeUtf(payload.territory.territoryId(), 128);
-        buf.writeUtf(payload.territory.dimension().identifier().toString(), 256);
+        buf.writeUtf(payload.territory.dimension().location().toString(), 256);
         buf.writeInt(payload.territory.themeColorRgb());
         buf.writeFloat(payload.territory.fillOpacity());
         buf.writeInt(payload.territory.borderStyle().colorArgb());
@@ -74,10 +74,10 @@ public record TerritorySyncPayload(Action action, SyncedTerritory territory, int
         final String territoryId = buf.readUtf(128);
         // 维度标识非法时回退主世界，避免解码抛异常导致连接断开。
         String rawDimension = buf.readUtf(256);
-        Identifier dimensionId = Identifier.tryParse(rawDimension);
+        ResourceLocation dimensionId = ResourceLocation.tryParse(rawDimension);
         if (dimensionId == null) {
             LOGGER.warn("Invalid dimension id '{}' in territory payload", rawDimension);
-            dimensionId = Level.OVERWORLD.identifier();
+            dimensionId = Level.OVERWORLD.location();
         }
         final int themeColor = buf.readInt();
         final float fillOpacity = buf.readFloat();

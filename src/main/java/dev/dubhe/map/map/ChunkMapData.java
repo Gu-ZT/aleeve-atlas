@@ -1,5 +1,6 @@
 package dev.dubhe.map.map;
 
+import dev.dubhe.map.util.NbtValues;
 import dev.dubhe.map.config.MapColorScheme;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -134,11 +135,11 @@ public final class ChunkMapData {
     }
 
     public static ChunkMapData load(CompoundTag tag) {
-        if (tag.getInt("f").orElse(0) != FORMAT) {
+        if (tag.getInt("f") != FORMAT) {
             throw new IllegalArgumentException("Unsupported chunk map cache format");
         }
         List<PixelState> palette = new ArrayList<>();
-        ListTag paletteTag = tag.getListOrEmpty("p");
+        ListTag paletteTag = tag.getList("p", net.minecraft.nbt.Tag.TAG_COMPOUND);
         for (Tag entry : paletteTag) {
             if (entry instanceof CompoundTag stateTag) {
                 palette.add(PixelState.load(stateTag));
@@ -147,18 +148,18 @@ public final class ChunkMapData {
         if (palette.isEmpty()) {
             throw new IllegalArgumentException("Chunk map palette is empty");
         }
-        int[] indices = checkedPixels(tag.getIntArray("i").orElse(new int[PIXELS]));
-        int[] heights = checkedPixels(tag.getIntArray("h").orElse(new int[PIXELS]));
+        int[] indices = checkedPixels((tag.contains("i", net.minecraft.nbt.Tag.TAG_INT_ARRAY) ? tag.getIntArray("i") : new int[PIXELS]));
+        int[] heights = checkedPixels((tag.contains("h", net.minecraft.nbt.Tag.TAG_INT_ARRAY) ? tag.getIntArray("h") : new int[PIXELS]));
         for (int index : indices) {
             if (index < 0 || index >= palette.size()) {
                 throw new IllegalArgumentException("Chunk map palette index out of range");
             }
         }
-        ChunkMapData data = new ChunkMapData(tag.getInt("x").orElse(0), tag.getInt("z").orElse(0),
-                palette, indices, heights, tag.getLongOr("v", 0L));
-        int top = tag.getIntOr("slice_top", Integer.MAX_VALUE);
+        ChunkMapData data = new ChunkMapData(tag.getInt("x"), tag.getInt("z"),
+                palette, indices, heights, NbtValues.getLong(tag, "v", 0L));
+        int top = NbtValues.getInt(tag, "slice_top", Integer.MAX_VALUE);
         data.slice = top == Integer.MAX_VALUE ? MapSlice.SURFACE : top == Integer.MIN_VALUE ? MapSlice.FULL_CAVE
-                : MapSlice.layered(top, tag.getIntOr("slice_depth", 30));
+                : MapSlice.layered(top, NbtValues.getInt(tag, "slice_depth", 30));
         return data;
     }
 
@@ -199,14 +200,14 @@ public final class ChunkMapData {
         }
 
         private static PixelState load(CompoundTag tag) {
-            BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK,
-                    tag.getCompoundOrEmpty("s"));
-            BlockState ground = NbtUtils.readBlockState(BuiltInRegistries.BLOCK,
-                    tag.getCompoundOrEmpty("g"));
-            return new PixelState(state, MapColor.byId(tag.getInt("m").orElse(0)),
-                    MapColor.byId(tag.getInt("v").orElse(0)), ground,
-                    MapColor.byId(tag.getInt("n").orElse(0)), tag.getStringOr("b", ""),
-                    tag.getInt("d").orElse(0));
+            BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(),
+                    tag.getCompound("s"));
+            BlockState ground = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(),
+                    tag.getCompound("g"));
+            return new PixelState(state, MapColor.byId(tag.getInt("m")),
+                    MapColor.byId(tag.getInt("v")), ground,
+                    MapColor.byId(tag.getInt("n")), NbtValues.getString(tag, "b", ""),
+                    tag.getInt("d"));
         }
     }
 }

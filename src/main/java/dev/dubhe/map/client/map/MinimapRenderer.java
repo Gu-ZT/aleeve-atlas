@@ -1,6 +1,8 @@
 package dev.dubhe.map.client.map;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import java.util.function.Function;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.RenderType;
 import dev.dubhe.map.AleeveAtlas;
 import dev.dubhe.map.client.profiling.AtlasProfiling;
 import dev.dubhe.map.client.radar.RadarRenderer;
@@ -14,14 +16,12 @@ import dev.dubhe.map.ping.PingRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 
 /// 小地图 HUD 渲染。
 ///
@@ -30,7 +30,7 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 /// 画出圆形遮罩、边框与水滴形玩家指示器。
 @EventBusSubscriber(modid = AleeveAtlas.MOD_ID, value = Dist.CLIENT)
 public final class MinimapRenderer {
-    private static final Identifier OVERLAY_TEXTURE =
+    private static final ResourceLocation OVERLAY_TEXTURE =
             AleeveAtlas.id("textures/gui/white.png");
     private static final int BORDER_EXPANSION_PIXELS = 3;
     private static final int TEXT_COLOR = 0xFFFFFFFF;
@@ -39,7 +39,11 @@ public final class MinimapRenderer {
     }
 
     @SubscribeEvent
-    public static void onRenderGui(RenderGuiEvent.Post event) {
+    public static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAboveAll(AleeveAtlas.id("minimap"), (graphics, partialTick) -> render(graphics));
+    }
+
+    private static void render(GuiGraphics graphics) {
         AtlasClientConfig config = AtlasClientConfigs.CONFIG;
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.level == null) {
@@ -62,7 +66,8 @@ public final class MinimapRenderer {
         if (layout == null) {
             return;
         }
-        GuiGraphics graphics = event.getGuiGraphics();
+        graphics.flush();
+        graphics.pose().pushPose();
         int x = layout.x();
         int y = layout.y();
         int size = layout.size();
@@ -75,9 +80,9 @@ public final class MinimapRenderer {
         float centerX = x + size / 2.0F;
         float centerY = y + size / 2.0F;
 
-        final RenderPipeline mapPipeline = circular
+        final Function<ResourceLocation, RenderType> mapPipeline = circular
                 ? AtlasRenderPipelines.MINIMAP_CIRCLE
-                : RenderPipelines.GUI_TEXTURED;
+                : AtlasRenderPipelines.GUI_TEXTURED;
 
         // 方形形态旋转后四角会越出小地图边界，需用裁剪区限制。
         // 裁剪必须在旋转前启用：enableScissor 按当前 pose 变换矩形，
@@ -87,11 +92,11 @@ public final class MinimapRenderer {
         if (scissored) {
             graphics.enableScissor(x + clipInset, y + clipInset, x + size - clipInset, y + size - clipInset);
         }
-        graphics.pose().pushMatrix();
+        graphics.pose().pushPose();
         if (rotationDegrees != 0.0F) {
-            graphics.pose().translate(centerX, centerY);
-            graphics.pose().rotate((float) Math.toRadians(rotationDegrees));
-            graphics.pose().translate(-centerX, -centerY);
+            graphics.pose().translate(centerX, centerY, 0.0F);
+            graphics.pose().mulPose(new org.joml.Quaternionf().rotationZ((float) Math.toRadians(rotationDegrees)));
+            graphics.pose().translate(-centerX, -centerY, 0.0F);
         }
 
         // 方形按对角线尺寸绘制后由内缩 scissor 裁剪，圆形由 shader 按同一内缩半径裁剪。
@@ -105,14 +110,14 @@ public final class MinimapRenderer {
         float brightness = lightBrightness(minecraft, config);
         int mapTint = circular ? encodeCircleTint(brightness, clipInset, size)
                 : brightnessColor(brightness);
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(drawX, drawY);
-        graphics.blit(mapPipeline, texture.textureId(), 0, 0, uvStartX, uvStartZ,
+        graphics.pose().pushPose();
+        graphics.pose().translate(drawX, drawY, 0.0F);
+        AtlasGui.blit(graphics, mapPipeline, texture.textureId(), 0, 0, uvStartX, uvStartZ,
                 drawSize, drawSize, uvSize, uvSize, MapTexture.PIXELS, MapTexture.PIXELS, mapTint);
-        graphics.pose().popMatrix();
+        graphics.pose().popPose();
         TerritoryRenderer.renderOnMinimap(graphics, layout, circular);
         ChunkOverlayRenderer.renderOnMinimap(graphics, config, layout, circular);
-        graphics.pose().popMatrix();
+        graphics.pose().popPose();
         if (scissored) {
             graphics.disableScissor();
         }
@@ -135,7 +140,7 @@ public final class MinimapRenderer {
         int overlayY = y - BORDER_EXPANSION_PIXELS;
         int tint = encodeOverlayTint(circular, size,
                 BORDER_EXPANSION_PIXELS);
-        graphics.blit(AtlasRenderPipelines.MINIMAP_OVERLAY, OVERLAY_TEXTURE,
+        AtlasGui.blit(graphics, AtlasRenderPipelines.MINIMAP_OVERLAY, OVERLAY_TEXTURE,
                 overlayX, overlayY, 0.0F, 0.0F, overlaySize, overlaySize,
                 2, 2, 2, 2, tint);
 
@@ -148,6 +153,8 @@ public final class MinimapRenderer {
         if (!MinimapLayout.focused(minecraft)) {
             drawInfo(graphics, config, minecraft, size, x, y);
         }
+        graphics.flush();
+        graphics.pose().popPose();
         // 记录渲染耗时，供性能验收读取。
         AtlasProfiling.recordMinimap(
                 System.nanoTime() - startedAt);
@@ -245,7 +252,7 @@ public final class MinimapRenderer {
             var biome = minecraft.level.getBiome(player.blockPosition());
             Component name = biome.unwrapKey()
                     .<Component>map(key -> Component.translatable(
-                            "biome." + key.identifier().toLanguageKey()))
+                            "biome." + key.location().toLanguageKey()))
                     .orElseGet(() -> Component.translatable(
                             "aleeve_atlas.hud.biome_unknown"));
             graphics.drawCenteredString(minecraft.font, name, textX, line, TEXT_COLOR);

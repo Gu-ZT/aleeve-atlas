@@ -18,7 +18,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public final class ClientWaypoints {
             currentServerKey = key;
             STORES.clear();
         }
-        String dimensionId = minecraft.level.dimension().identifier().toString();
+        String dimensionId = minecraft.level.dimension().location().toString();
         WaypointStore cached = STORES.get(dimensionId);
         if (cached == null) {
             cached = WaypointStore.open(minecraft.gameDirectory.toPath(), key,
@@ -143,7 +143,7 @@ public final class ClientWaypoints {
 
     static void upsertStoredDimension(Path gameDir, String serverKey, Map<String, WaypointStore> stores, Waypoint waypoint) {
         // 已访问维度必须更新同一缓存实例，否则之后切回或保存时会丢失导入点。
-        WaypointStore other = stores.get(waypoint.dimension().identifier().toString());
+        WaypointStore other = stores.get(waypoint.dimension().location().toString());
         if (other == null) {
             other = WaypointStore.open(gameDir, serverKey, waypoint.dimension());
         }
@@ -236,7 +236,7 @@ public final class ClientWaypoints {
         }
         WaypointStore waypointStore = current;
         if (minecraft.level != null && !dimension.equals(minecraft.level.dimension())) {
-            String dimensionId = dimension.identifier().toString();
+            String dimensionId = dimension.location().toString();
             waypointStore = STORES.get(dimensionId);
             if (waypointStore == null) {
                 waypointStore = WaypointStore.open(minecraft.gameDirectory.toPath(),
@@ -270,7 +270,7 @@ public final class ClientWaypoints {
         if (!AtlasSession.synchronizedMode() || !waypoint.shareable()) {
             return;
         }
-        ClientPacketDistributor.sendToServer(
+        PacketDistributor.sendToServer(
                 new WaypointSyncPayload(WaypointSyncPayload.Action.UPSERT, waypoint));
     }
 
@@ -279,7 +279,7 @@ public final class ClientWaypoints {
         if (!AtlasSession.synchronizedMode()) {
             return;
         }
-        ClientPacketDistributor.sendToServer(
+        PacketDistributor.sendToServer(
                 new WaypointSyncPayload(WaypointSyncPayload.Action.DELETE, waypoint));
     }
 

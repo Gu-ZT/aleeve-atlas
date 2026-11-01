@@ -1,11 +1,12 @@
 package dev.dubhe.map.waypoint;
 
+import dev.dubhe.map.util.NbtValues;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
@@ -51,10 +52,10 @@ public final class WaypointTransfer {
     /// 同时校验格式版本，避免旧版客户端解析新版文件时静默丢失字段。
     public static List<Waypoint> importFrom(Path file) throws IOException {
         CompoundTag root = NbtIo.readCompressed(file, NbtAccounter.unlimitedHeap());
-        if (!ROOT.equals(root.getStringOr("type", ""))) {
+        if (!ROOT.equals(NbtValues.getString(root, "type", ""))) {
             throw new IOException("Not a waypoint export file: " + file);
         }
-        int format = root.getIntOr("format", 0);
+        int format = NbtValues.getInt(root, "format", 0);
         if (format > FORMAT_VERSION) {
             throw new IOException("Waypoint file format " + format
                     + " is newer than supported version " + FORMAT_VERSION + ": " + file);
@@ -63,7 +64,7 @@ public final class WaypointTransfer {
             // 旧版文件仍可导入：`load` 对缺失字段取默认值。
             LOGGER.info("Importing waypoint file with older format {} from {}", format, file);
         }
-        ListTag list = root.getListOrEmpty("waypoints");
+        ListTag list = root.getList("waypoints", net.minecraft.nbt.Tag.TAG_COMPOUND);
         return Waypoint.loadAll(list, WaypointTransfer::resolveDimension);
     }
 
@@ -94,7 +95,7 @@ public final class WaypointTransfer {
     }
 
     private static ResourceKey<Level> resolveDimension(String raw) {
-        Identifier id = Identifier.tryParse(raw);
+        ResourceLocation id = ResourceLocation.tryParse(raw);
         if (id == null) {
             // 维度标识非法时回退主世界，必须留日志，否则导入的路径点会静默落到错误维度。
             LOGGER.warn("Invalid dimension id '{}' in waypoint file, using overworld", raw);

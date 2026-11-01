@@ -17,22 +17,25 @@ class MapCacheIdentityTest {
 
     @Test void persistsBeforeLoginAndReusesIdentityAfterRestart() throws Exception {
         String id;
-        try (var storage = open(temp)) {
+        {
+            var storage = open(temp);
             id = MapCacheIdentity.initialize(storage).id();
             assertEquals(id, UUID.fromString(id).toString());
             assertTrue(Files.isRegularFile(temp.resolve("aleeve_atlas_map_cache_identity.dat")));
             assertEquals(id, MapCacheIdentity.initialize(storage).id());
         }
-        try (var restarted = open(temp)) {
+        {
+            var restarted = open(temp);
             assertEquals(id, MapCacheIdentity.initialize(restarted).id());
         }
         Path other = Files.createDirectory(temp.resolve("other-world"));
-        try (var anotherWorld = open(other)) {
+        {
+            var anotherWorld = open(other);
             assertNotEquals(id, MapCacheIdentity.initialize(anotherWorld).id());
         }
     }
 
     private static DimensionDataStorage open(Path path) {
-        return new DimensionDataStorage(path, DataFixers.getDataFixer(), HolderLookup.Provider.create(Stream.empty()));
+        return new DimensionDataStorage(path.toFile(), DataFixers.getDataFixer(), HolderLookup.Provider.create(Stream.empty()));
     }
 }

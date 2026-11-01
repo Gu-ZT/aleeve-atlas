@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import org.junit.jupiter.api.Assertions;
@@ -68,7 +68,7 @@ class WaypointTest {
     }
 
     private static ResourceKey<Level> resolve(String raw) {
-        Identifier id = Identifier.tryParse(raw);
+        ResourceLocation id = ResourceLocation.tryParse(raw);
         return id == null ? Level.OVERWORLD : ResourceKey.create(Registries.DIMENSION, id);
     }
 

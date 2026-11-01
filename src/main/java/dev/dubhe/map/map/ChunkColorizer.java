@@ -5,7 +5,7 @@ import dev.dubhe.map.config.AtlasClientConfigs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
@@ -59,7 +59,7 @@ public final class ChunkColorizer {
             int height, int worldX, int worldZ, Level level,
             BlockPos.MutableBlockPos cursor, int shadow) {
         Holder<Biome> biome = level.registryAccess().lookupOrThrow(Registries.BIOME)
-                .get(Identifier.parse(pixel.biomeId()))
+                .get(net.minecraft.resources.ResourceKey.create(Registries.BIOME, ResourceLocation.parse(pixel.biomeId())))
                 .orElseThrow(() -> new IllegalArgumentException("Unknown biome " + pixel.biomeId()));
         cursor.set(worldX, height, worldZ);
         int color = BiomeShadePalette.colorWithBiome(pixel.mapColor().col,

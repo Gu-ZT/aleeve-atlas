@@ -24,7 +24,7 @@ public final class ServerPingHandler {
         MapPingData ping = payload.ping();
         // 服务端以实际发送者信息覆盖，防止伪造。
         MapPingData verified = new MapPingData(ping.pingId(), sender.getUUID(),
-                sender.getGameProfile().name(), ping.teamColorArgb(), ping.dimensionId(),
+                sender.getGameProfile().getName(), ping.teamColorArgb(), ping.dimensionId(),
                 ping.position(), ping.targetEntityId(), ping.icon(), ping.createdAtMillis(),
                 ping.lifetimeMillis());
 

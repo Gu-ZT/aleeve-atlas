@@ -34,8 +34,8 @@ public final class ChunkMapSampler {
         }
         ChunkMapData data = new ChunkMapData(pos.x, pos.z);
         data.setSlice(slice);
-        int minY = slice.scanBottom(level.getMinY());
-        int topY = slice.scanTop(level.getMaxY());
+        int minY = slice.scanBottom(level.getMinBuildHeight());
+        int topY = slice.scanTop(level.getMaxBuildHeight());
         int baseX = pos.getMinBlockX();
         int baseZ = pos.getMinBlockZ();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
@@ -59,12 +59,12 @@ public final class ChunkMapSampler {
                     MapColor mapColor = state.getMapColor(level, cursor);
                     Holder<Biome> biome = level.getBiome(cursor);
                     String biomeId = biome.unwrapKey()
-                            .map(key -> key.identifier().toString())
+                            .map(key -> key.location().toString())
                             .orElseThrow(() -> new IllegalStateException("Unregistered map biome"));
                     BlockState vanillaState = fluid.isEmpty()
                             ? state : correctStateForFluidBlock(level, state, cursor);
                     MapColor vanillaMapColor = vanillaState.getMapColor(level, cursor);
-                    int depth = fluid.isEmpty() ? 0 : countFluidDepth(chunk, cursor, y, level.getMinY());
+                    int depth = fluid.isEmpty() ? 0 : countFluidDepth(chunk, cursor, y, level.getMinBuildHeight());
                     BlockState groundState = Blocks.AIR.defaultBlockState();
                     MapColor groundMapColor = MapColor.NONE;
                     if (!fluid.isEmpty()) {
