@@ -153,3 +153,7 @@
 ## 专用服务器网络注册
 
 客户端数据包处理器通过客户端专用事件注册。服务端仅注册负载编解码器和服务端处理器；地图增量解压仍在网络线程中执行。
+
+## 模组图标
+
+模组列表与 README 共用 `src/main/resources/pack.png`，图片尺寸为 256×256。构建时将图片复制到 JAR 根目录，`neoforge.mods.toml` 通过 `logoFile = "pack.png"` 引用，并设置 `logoBlur = false`，使缩放后的像素边缘保持清晰。
