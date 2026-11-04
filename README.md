@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="src/main/resources/pack.png" width="256" height="256" alt="Aleeve Atlas icon">
+
 # Aleeve Atlas 袖里舆图
 
 **A minimap and world map mod for Minecraft 26.2 featuring waypoints, entity radar, team map syncing, and quick pings.**
