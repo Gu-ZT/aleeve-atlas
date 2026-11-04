@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="src/main/resources/pack.png" width="256" height="256" alt="袖里舆图图标">
+
 # 袖里舆图 Aleeve Atlas
 
 **适用于 Minecraft 26.1.2 的小地图与世界地图模组，支持路径点、生物雷达、小队同步与快捷标点。**
