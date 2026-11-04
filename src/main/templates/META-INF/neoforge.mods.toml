@@ -25,7 +25,8 @@ displayName = "${mod_name}" #mandatory
 # A URL for the "homepage" for this mod, displayed in the mod UI
 displayURL = "https://chainmine.dubhe.dev" #optional
 # A file name (in the root of the mod JAR) containing a logo for display
-#logoFile="chain_mine.png" #optional
+logoFile = "pack.png"
+logoBlur = false
 # A text field displayed in the mod UI
 #credits="" #optional
 # A text field displayed in the mod UI
